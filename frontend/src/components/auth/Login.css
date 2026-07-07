@@ -1,0 +1,199 @@
+/* frontend/src/components/auth/Login.css */
+
+.login-page-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f1f5f9; 
+    
+    /* Update this line to point to the new SVG file */
+    background-image: url('../../assets/sts-background.png');
+    
+    background-size: cover;
+    background-position: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    padding: 20px;
+}
+
+.login-card-split {
+    display: flex;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 1200px;
+    min-height: 650px;
+    overflow: hidden;
+}
+
+/* Left Side */
+.login-illustration {
+    flex: 1.1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f4f8fb; /* The specific light blue from the image */
+}
+
+.login-illustration img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Right Side */
+.login-form-container {
+    flex: 0.9;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-title {
+    color: #111827;
+    margin-bottom: 24px;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+
+.role-toggle-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.role-toggle {
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+    /* Grey border around the actual buttons */
+    border: 1px solid #7c8ea3; 
+}
+
+.role-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background-color: #7c8ea3; /* Greyish blue */
+    border-right: 1px solid #6b7f96;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.role-btn:last-child {
+    border-right: none;
+}
+
+.role-btn.active {
+    background-color: #3b74ce; /* Bright STS Blue */
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.input-group label {
+    font-size: 13px;
+    color: #111827;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* Inputs with SVG icons */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    color: #6b7280;
+}
+
+.login-input {
+    width: 100%;
+    padding: 12px 12px 12px 42px;
+    background-color: #eef2f6; /* Very light blue background */
+    border: 1px solid #d1d9e2;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+.login-input:focus {
+    border-color: #3b74ce;
+    background-color: #ffffff;
+}
+
+.login-button {
+    background-color: #3b74ce;
+    color: #ffffff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.login-button:hover {
+    background-color: #2e5da6;
+}
+
+.forgot-password {
+    text-align: right;
+    font-size: 13px;
+    color: #3b74ce;
+    text-decoration: underline;
+    margin-top: -6px;
+}
+
+/* New Bordered Signup Box */
+.signup-box {
+    margin-top: 24px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.signup-text {
+    color: #111827;
+}
+
+.signup-link {
+    color: #3b74ce;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.admin-note {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 12px;
+    font-style: italic;
+    color: #4b5563;
+}
+
+/* Alerts */
+.alert { padding: 10px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; text-align: center; }
+.alert-error { background-color: #fee2e2; color: #dc2626; border: 1px solid #f87171; }
+.alert-success { background-color: #d1fae5; color: #059669; border: 1px solid #34d399; }
