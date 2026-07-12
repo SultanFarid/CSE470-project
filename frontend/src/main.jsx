@@ -9,3 +9,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 )
 console.log("Hello")
+
+console.log("Hi")
