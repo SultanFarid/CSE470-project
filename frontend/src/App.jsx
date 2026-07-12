@@ -5,6 +5,7 @@ import PatientDashboard from './components/patient/PatientDashboard';
 import TherapistDashboard from './components/therapist/TherapistDashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
 import TherapistJobForm from './components/therapist/TherapistJobForm';
+import AdminUserManagement from "./components/admin/AdminUserManagement";
 function App() {
   return (
     <Router>
@@ -16,6 +17,7 @@ function App() {
         <Route path="/apply" element={<TherapistJobForm />} />
         <Route path="/therapist-dashboard" element={<TherapistDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<AdminUserManagement />} />
       </Routes>
     </Router>
   );
@@ -23,4 +25,3 @@ function App() {
 
 export default App;
 
-condsole.log("Hello Hi")
