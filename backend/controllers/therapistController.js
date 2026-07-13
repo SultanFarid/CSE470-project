@@ -1,4 +1,6 @@
 const db = require('../config/db');
+const TherapistProfileModel = require('../models/therapistProfileModel');
+
 
 // Fetch the application deadline for the frontend
 const getApplicationSettings = async (req, res) => {
@@ -49,6 +51,54 @@ const submitApplication = async (req, res) => {
 };
 
 // ... keep your existing updateProfile function ...
-const updateProfile = async (req, res) => { /* existing code */ };
+const getProfile = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const profile = await TherapistProfileModel.findByUserId(userId);
+        if (!profile) {
+            return res.status(404).json({ message: 'No profile found for this therapist.' });
+        }
+        res.status(200).json(profile);
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ message: 'Database error fetching profile.' });
+    }
+};
 
-module.exports = { getApplicationSettings, submitApplication, updateProfile };
+const updateProfile = async (req, res) => {
+    const { user_id, profile_photo_url, biography, specialties, languages, consultation_fee, session_type } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ message: 'user_id is required.' });
+    }
+
+    const allowedSessionTypes = ['online', 'in-person', 'both'];
+    if (session_type && !allowedSessionTypes.includes(session_type)) {
+        return res.status(400).json({ message: 'Invalid session type.' });
+    }
+
+    try {
+        await TherapistProfileModel.upsert(user_id, {
+            profile_photo_url,
+            biography,
+            specialties,
+            languages,
+            consultation_fee: parseFloat(consultation_fee) || 0,
+            session_type
+        });
+        res.status(200).json({ message: 'Profile updated successfully!' });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ message: 'Database error updating profile.' });
+    }
+};
+
+const uploadProfilePhoto = (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No photo file was uploaded.' });
+    }
+    const fileUrl = `/uploads/profile_photos/${req.file.filename}`;
+    res.status(200).json({ url: fileUrl });
+};
+
+module.exports = { getApplicationSettings, submitApplication, updateProfile, getProfile, uploadProfilePhoto };
