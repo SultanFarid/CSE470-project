@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './components/auth/Login';
 import PatientDashboard from './components/patient/PatientDashboard';
 import TherapistDashboard from './components/therapist/TherapistDashboard';
+import TherapistProfileEditor from './components/therapist/TherapistProfileEditor';
 import AdminDashboard from './components/admin/AdminDashboard';
 import TherapistJobForm from './components/therapist/TherapistJobForm';
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
         <Route path="/apply" element={<TherapistJobForm />} />
         <Route path="/therapist-dashboard" element={<TherapistDashboard />} />
+<Route path="/therapist-dashboard/profile" element={<TherapistProfileEditor />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </Router>
