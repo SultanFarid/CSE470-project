@@ -20,3 +20,15 @@ export const getSystemSettings = async () => {
     const response = await axios.get(`${API_URL}/therapist/settings`);
     return response.data;
 };
+
+export const SERVER_BASE_URL = 'http://localhost:5000';
+
+export const getTherapistProfile = async (userId) => {
+    const response = await axios.get(`${API_URL}/therapist/profile/${userId}`);
+    return response.data;
+};
+
+export const uploadProfilePhoto = async (formData) => {
+    const response = await axios.post(`${API_URL}/therapist/upload-photo`, formData);
+    return response.data;
+};

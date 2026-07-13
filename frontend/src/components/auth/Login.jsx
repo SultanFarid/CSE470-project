@@ -23,6 +23,7 @@ const Login = () => {
             const userRole = data.user.role;
 
             setSuccessMessage(`Welcome ${data.user.name}! Routing...`);
+            localStorage.setItem('user', JSON.stringify(data.user));
             setTimeout(() => {
                 if (userRole === 'patient') navigate('/patient-dashboard');
                 else if (userRole === 'therapist') navigate('/therapist-dashboard');
