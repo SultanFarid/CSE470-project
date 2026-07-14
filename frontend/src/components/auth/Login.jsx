@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../../services/api';
 import illustration from '../../assets/sts-illustration.png';
 import './Login.css';
+import axios from 'axios';
+
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -14,25 +16,26 @@ const Login = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccessMessage('');
-
         try {
-            // We pass the activeRole (the currently selected tab) to the backend
-            const data = await login(email, password, activeRole);
-            const userRole = data.user.role;
-
-            setSuccessMessage(`Welcome ${data.user.name}! Routing...`);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            setTimeout(() => {
-                if (userRole === 'patient') navigate('/patient-dashboard');
-                else if (userRole === 'therapist') navigate('/therapist-dashboard');
-                else if (userRole === 'admin') navigate('/admin-dashboard');
-            }, 1000);
+            const response = await axios.post('http://localhost:5001/api/auth/login', { 
+                email, 
+                password,
+                role: activeRole
+            });
             
+            // Use a safe check to see where the token is
+            const token = response.data.token || response.data.accessToken; 
+            
+            if (token) {
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                window.location.href = '/patient-dashboard';
+            } else {
+                console.error("Token not found in response:", response.data);
+                alert("Login successful, but no token received. Check backend.");
+            }
         } catch (err) {
-            // This will now display the custom 403 error message from the backend
-            setError(err.response?.data?.message || 'Network error.');
+            alert("Login failed: " + (err.response?.data?.message || "Check credentials"));
         }
     };
 
@@ -59,30 +62,21 @@ const Login = () => {
                             <button 
                                 type="button" 
                                 className={`role-btn ${activeRole === 'patient' ? 'active' : ''}`}
-                                onClick={() => {
-                                    setActiveRole('patient');
-                                    setError(''); // Clear errors on tab switch
-                                }}
+                                onClick={() => { setActiveRole('patient'); setError(''); }}
                             >
                                 PATIENT
                             </button>
                             <button 
                                 type="button" 
                                 className={`role-btn ${activeRole === 'therapist' ? 'active' : ''}`}
-                                onClick={() => {
-                                    setActiveRole('therapist');
-                                    setError('');
-                                }}
+                                onClick={() => { setActiveRole('therapist'); setError(''); }}
                             >
                                 THERAPIST
                             </button>
                             <button 
                                 type="button" 
                                 className={`role-btn ${activeRole === 'admin' ? 'active' : ''}`}
-                                onClick={() => {
-                                    setActiveRole('admin');
-                                    setError('');
-                                }}
+                                onClick={() => { setActiveRole('admin'); setError(''); }}
                             >
                                 ADMIN
                             </button>
@@ -134,7 +128,7 @@ const Login = () => {
                         <a href="#" className="forgot-password">Forgot Password?</a>
                     </form>
 
-                    {/* Dynamic Signup Box: Only shows if the active tab is NOT admin */}
+                    {/* Dynamic Signup Box */}
                     {activeRole !== 'admin' && (
                         <div className="signup-box">
                             <span className="signup-text">Don't have an account? </span>
@@ -146,7 +140,6 @@ const Login = () => {
                             </Link>
                         </div>
                     )}
-
                 </div>
             </div>
         </div>
