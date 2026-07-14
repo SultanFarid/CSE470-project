@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../../services/api';
 import illustration from '../../assets/sts-illustration.png';
 import './Login.css';
-import axios from 'axios';
 
 
 const Login = () => {
@@ -16,26 +15,19 @@ const Login = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setError('');
+        setSuccessMessage('');
         try {
-            const response = await axios.post('http://localhost:5001/api/auth/login', { 
-                email, 
-                password,
-                role: activeRole
-            });
-            
-            // Use a safe check to see where the token is
-            const token = response.data.token || response.data.accessToken; 
-            
-            if (token) {
-                localStorage.setItem('token', token);
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-                window.location.href = '/patient-dashboard';
-            } else {
-                console.error("Token not found in response:", response.data);
-                alert("Login successful, but no token received. Check backend.");
-            }
+            const data = await login(email, password, activeRole);
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            const userRole = data.user.role;
+            if (userRole === 'patient') navigate('/patient-dashboard');
+            else if (userRole === 'therapist') navigate('/therapist-dashboard');
+            else if (userRole === 'admin') navigate('/admin-dashboard');
         } catch (err) {
-            alert("Login failed: " + (err.response?.data?.message || "Check credentials"));
+            setError(err.response?.data?.message || 'Network error.');
         }
     };
 
