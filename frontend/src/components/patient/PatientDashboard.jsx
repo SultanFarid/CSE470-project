@@ -5,23 +5,37 @@ import {
   Globe, Phone, Video, ShieldAlert
 } from 'lucide-react';
 import './PatientDashboard.css';
-import { getPatientProfile } from '../../services/api'; // Ensure this path points to your api.js
+import { getPatientProfile, updatePatientProfile, uploadPatientPhoto, SERVER_BASE_URL } from '../../services/api'; // Ensure this path points to your api.js
 
 export default function PatientDashboard() {
-  // 1. STATE FOR LIVE DATABASE USER DATA
+  
   const [patientUser, setPatientUser] = useState({
     name: 'Loading...',
     email: '',
     location: 'Dhaka, Bangladesh',
     language: 'English, Bengali',
     contact: '+880 1712-345678',
-    therapist: 'Dr. Sultan M. Farid'
+    therapist: 'Dr. Sultan M. Farid',
+    profile_photo_url: ''
   });
   
   const [loading, setLoading] = useState(true);
   const [appointmentCancelled, setAppointmentCancelled] = useState(false);
   const [showRatingSuccess, setShowRatingSuccess] = useState(false);
   const [groupJoinRequested, setGroupJoinRequested] = useState(false);
+
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    contact_number: '',
+    location: '',
+    preferred_language: ''
+  });
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   
   const [checklistItems, setChecklistItems] = useState([
     { id: 1, text: "Take Morning Medication (Sertraline 50mg)", time: "8:00 AM", completed: true },
@@ -29,12 +43,12 @@ export default function PatientDashboard() {
     { id: 3, text: "15-Min Guided Mindfulness Breathing Exercise", time: "DUE TODAY", completed: false, hasVideo: true }
   ]);
 
-  // 2. FETCH REAL USER DATA FROM BACKEND
+  
   useEffect(() => {
     const fetchPatientProfile = async () => {
       try {
         setLoading(true);
-        // The interceptor in api.js handles the token, so we just call the function
+        
         const data = await getPatientProfile();
         
         if (data) {
@@ -42,9 +56,10 @@ export default function PatientDashboard() {
             name: data.name || 'No Name Provided',
             email: data.email,
             location: data.location || 'Dhaka, Bangladesh',
-            language: data.language || 'English, Bengali',
-            contact: data.contact || '+880 1712-345678',
-            therapist: data.assigned_therapist || 'Dr. Sultan M. Farid'
+            language: data.preferred_language || 'English, Bengali',
+            contact: data.contact_number || '+880 1712-345678',
+            therapist: data.assigned_therapist || 'Dr. Sultan M. Farid',
+            profile_photo_url: data.profile_photo_url || ''
           });
         }
       } catch (error) {
@@ -68,6 +83,87 @@ export default function PatientDashboard() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  
+  const getPhotoUrl = (photoPath) => {
+    if (!photoPath) return null;
+    return `${SERVER_BASE_URL}${photoPath}`;
+  };
+
+  
+  const openEditModal = () => {
+    setEditForm({
+      name: patientUser.name,
+      contact_number: patientUser.contact,
+      location: patientUser.location,
+      preferred_language: patientUser.language
+    });
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setSaveError('');
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setSaveError('');
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhotoFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      
+      let photoUrl = patientUser.profile_photo_url;
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append('photo', photoFile);
+        const uploadResult = await uploadPatientPhoto(formData);
+        photoUrl = uploadResult.url;
+      }
+
+      await updatePatientProfile({
+        name: editForm.name,
+        contact_number: editForm.contact_number,
+        location: editForm.location,
+        preferred_language: editForm.preferred_language,
+        profile_photo_url: photoUrl
+      });
+
+      
+      setPatientUser((prev) => ({
+        ...prev,
+        name: editForm.name,
+        contact: editForm.contact_number,
+        location: editForm.location,
+        language: editForm.preferred_language,
+        profile_photo_url: photoUrl
+      }));
+
+      setIsEditModalOpen(false);
+      setPhotoFile(null);
+      setPhotoPreview(null);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      setSaveError(error.response?.data?.message || "Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (loading) {
       return <div className="loading-screen">Loading your dashboard...</div>;
   }
@@ -87,7 +183,13 @@ export default function PatientDashboard() {
             <span className="notification-text">Reminders (1)</span>
           </div>
           <div className="user-profile-tile">
-            <div className="avatar-circle-sm">{getInitials(patientUser.name)}</div>
+            <div className="avatar-circle-sm">
+              {patientUser.profile_photo_url ? (
+                <img src={getPhotoUrl(patientUser.profile_photo_url)} alt="Profile" className="avatar-photo" />
+              ) : (
+                getInitials(patientUser.name)
+              )}
+            </div>
             <span className="profile-name-text">{patientUser.name}</span>
           </div>
         </div>
@@ -231,7 +333,13 @@ export default function PatientDashboard() {
           <section className="dashboard-card span-5 flex-column">
             <h2 className="card-title margin-bottom-16">Personal Profile & Preferences</h2>
             <div className="profile-snapshot-tile">
-              <div className="avatar-circle-lg">{getInitials(patientUser.name)}</div>
+              <div className="avatar-circle-lg">
+                {patientUser.profile_photo_url ? (
+                  <img src={getPhotoUrl(patientUser.profile_photo_url)} alt="Profile" className="avatar-photo" />
+                ) : (
+                  getInitials(patientUser.name)
+                )}
+              </div>
               <div className="profile-snapshot-meta">
                 <h3 className="profile-snapshot-name">{patientUser.name}</h3>
                 <p className="profile-snapshot-role">Registered Patient Account</p>
@@ -255,10 +363,92 @@ export default function PatientDashboard() {
                 <span className="data-field-value color-link-blue">{patientUser.therapist}</span>
               </div>
             </div>
-            <button className="edit-profile-action-btn"><Settings size={16} /><span>Edit Profile Info</span></button>
+            <button className="edit-profile-action-btn" onClick={openEditModal}>
+              <Settings size={16} /><span>Edit Profile Info</span>
+            </button>
           </section>
         </div>
       </main>
+
+      {/* EDIT PROFILE MODAL */}
+      {isEditModalOpen && (
+        <div className="edit-modal-overlay" onClick={closeEditModal}>
+          <div className="edit-modal-box" onClick={(e) => e.stopPropagation()}>
+            <h2 className="edit-modal-title">Edit Profile Info</h2>
+
+            <div className="edit-modal-photo-row">
+              <div className="avatar-circle-lg edit-modal-avatar">
+                {photoPreview || patientUser.profile_photo_url ? (
+                  <img
+                    src={photoPreview || getPhotoUrl(patientUser.profile_photo_url)}
+                    alt="Profile preview"
+                    className="avatar-photo"
+                  />
+                ) : (
+                  getInitials(patientUser.name)
+                )}
+              </div>
+              <label className="edit-modal-photo-upload-btn">
+                Change Photo
+                <input type="file" accept="image/png, image/jpeg, image/jpg, image/webp" onChange={handlePhotoFileChange} hidden />
+              </label>
+            </div>
+
+            <div className="edit-modal-form-group">
+              <label className="edit-modal-label">Display Name</label>
+              <input
+                type="text"
+                name="name"
+                className="edit-modal-input"
+                value={editForm.name}
+                onChange={handleEditFormChange}
+              />
+            </div>
+
+            <div className="edit-modal-form-group">
+              <label className="edit-modal-label">Contact Number</label>
+              <input
+                type="text"
+                name="contact_number"
+                className="edit-modal-input"
+                value={editForm.contact_number}
+                onChange={handleEditFormChange}
+              />
+            </div>
+
+            <div className="edit-modal-form-group">
+              <label className="edit-modal-label">Location</label>
+              <input
+                type="text"
+                name="location"
+                className="edit-modal-input"
+                value={editForm.location}
+                onChange={handleEditFormChange}
+              />
+            </div>
+
+            <div className="edit-modal-form-group">
+              <label className="edit-modal-label">Preferred Language</label>
+              <input
+                type="text"
+                name="preferred_language"
+                className="edit-modal-input"
+                value={editForm.preferred_language}
+                onChange={handleEditFormChange}
+              />
+            </div>
+
+            {saveError && <p className="edit-modal-error">{saveError}</p>}
+
+            <div className="edit-modal-actions">
+              <button className="edit-modal-cancel-btn" onClick={closeEditModal} disabled={isSaving}>Cancel</button>
+              <button className="edit-modal-save-btn" onClick={handleSaveProfile} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
