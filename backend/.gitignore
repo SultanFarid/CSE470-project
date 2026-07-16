@@ -1,3 +1,5 @@
 node_modules/
 .env
 models/oracleJdk-26/
+uploads/profile_photos/*
+!uploads/profile_photos/.gitkeep

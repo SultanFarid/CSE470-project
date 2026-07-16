@@ -123,6 +123,20 @@ INSERT INTO `therapist_profiles` (`user_id`, `profile_photo_url`, `biography`, `
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `patient_profiles`
+--
+
+CREATE TABLE `patient_profiles` (
+  `user_id` int(11) NOT NULL,
+  `profile_photo_url` varchar(255) DEFAULT '',
+  `contact_number` varchar(50) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `preferred_language` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -172,6 +186,12 @@ ALTER TABLE `therapist_applications`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `patient_profiles`
+--
+ALTER TABLE `patient_profiles`
+  ADD PRIMARY KEY (`user_id`);
+
+--
 -- Indexes for table `therapist_profiles`
 --
 ALTER TABLE `therapist_profiles`
@@ -203,6 +223,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `patient_profiles`
+--
+ALTER TABLE `patient_profiles`
+  ADD CONSTRAINT `patient_profiles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `therapist_profiles`
