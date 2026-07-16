@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'http://localhost:5000/api';
 
 // 1. Create a reusable axios instance
 const apiInstance = axios.create({
@@ -24,14 +24,13 @@ apiInstance.interceptors.request.use(
     }
 );
 
-// --- Your App Functions (Updated to use the new apiInstance) ---
-
+// --- Auth ---
 export const login = async (email, password, role) => {
-    // Send the role in the request body
     const response = await apiInstance.post('/auth/login', { email, password, role });
     return response.data;
 };
 
+// --- Therapist ---
 export const applyForJob = async (applicationData) => {
     const response = await apiInstance.post('/therapist/apply', applicationData);
     return response.data;
@@ -47,21 +46,19 @@ export const getSystemSettings = async () => {
     return response.data;
 };
 
-export const SERVER_BASE_URL = 'http://localhost:5001';
-
 export const getTherapistProfile = async (userId) => {
     const response = await apiInstance.get(`/therapist/profile/${userId}`);
     return response.data;
 };
 
 export const uploadProfilePhoto = async (formData) => {
-    // Overriding content-type for image files
     const response = await apiInstance.post('/therapist/upload-photo', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
     return response.data;
 };
 
+// --- Patient ---
 export const getPatientProfile = async () => {
     const response = await apiInstance.get('/patient/profile');
     return response.data;
@@ -71,3 +68,34 @@ export const updatePatientProfile = async (profileData) => {
     const response = await apiInstance.put('/patient/profile', profileData);
     return response.data;
 };
+
+// --- Admin ---
+export const adminGetAllUsers = async (search, role) => {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (role) params.append('role', role);
+    const response = await apiInstance.get(`/admin/users?${params.toString()}`);
+    return response.data;
+};
+
+export const adminGetUserDetails = async (userId) => {
+    const response = await apiInstance.get(`/admin/users/${userId}`);
+    return response.data;
+};
+
+export const adminSuspendUser = async (userId) => {
+    const response = await apiInstance.put(`/admin/users/${userId}/suspend`);
+    return response.data;
+};
+
+export const adminDeactivateUser = async (userId) => {
+    const response = await apiInstance.put(`/admin/users/${userId}/deactivate`);
+    return response.data;
+};
+
+export const adminReactivateUser = async (userId) => {
+    const response = await apiInstance.put(`/admin/users/${userId}/reactivate`);
+    return response.data;
+};
+
+export const SERVER_BASE_URL = 'http://localhost:5000';
