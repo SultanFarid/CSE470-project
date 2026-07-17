@@ -99,3 +99,10 @@ export const adminReactivateUser = async (userId) => {
 };
 
 export const SERVER_BASE_URL = 'http://localhost:5000';
+export const adminSignup = async (name, email, password, secretKey) => {
+    const response = await axios.post(
+        `${API_URL}/auth/admin-signup`,
+        { name, email, password, secretKey }
+    );
+    return response.data;
+};
