@@ -7,6 +7,7 @@ import TherapistProfileEditor from './components/therapist/TherapistProfileEdito
 import AdminDashboard from './components/admin/AdminDashboard';
 import TherapistJobForm from './components/therapist/TherapistJobForm';
 import AdminUserManagement from "./components/admin/AdminUserManagement";
+import AdminSignup from "./components/auth/AdminSignup";
 function App() {
   return (
     <Router>
@@ -20,6 +21,7 @@ function App() {
 <Route path="/therapist-dashboard/profile" element={<TherapistProfileEditor />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<AdminUserManagement />} />
+        <Route path="/admin-signup" element={<AdminSignup />} />
       </Routes>
     </Router>
   );
