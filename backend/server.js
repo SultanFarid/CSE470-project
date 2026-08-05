@@ -7,7 +7,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const therapistRoutes = require('./routes/therapistRoutes');
 const patientRoutes = require('./routes/patientRoutes');
-
+const adminUserRoutes = require('./routes/adminUserRoutes');
 // 2. Initialize the app
 const app = express();
 
@@ -21,7 +21,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/therapist', therapistRoutes);
 app.use('/api/patient', patientRoutes);
-
+app.use('/api/admin', adminUserRoutes);
 // 5. Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));

@@ -38,7 +38,7 @@ const loginUser = async (req, res) => {
             token,
             user: {
                 id: user.id,
-                name: user.name,
+                name: user.display_name,
                 email: user.email,
                 role: user.role
             }
@@ -49,4 +49,47 @@ const loginUser = async (req, res) => {
     }
 };
 
-module.exports = { loginUser };
+// --- NEW: Admin Signup ---
+const signupAdmin = async (req, res) => {
+    const { name, email, password, secretKey } = req.body;
+
+    try {
+        // Security: only someone who knows this secret key can create an admin account
+        if (secretKey !== process.env.ADMIN_SIGNUP_SECRET) {
+            return res.status(403).json({ message: 'Invalid admin secret key.' });
+        }
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Name, email, and password are required.' });
+        }
+
+        const existingUser = await UserModel.findByEmail(email);
+        if (existingUser) {
+            return res.status(400).json({ message: 'An account with this email already exists.' });
+        }
+
+        const newUser = await UserModel.create({ name, email, password, role: 'admin' });
+
+        const token = jwt.sign(
+            { id: newUser.id, role: 'admin' },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        res.status(201).json({
+            message: 'Admin account created successfully',
+            token,
+            user: {
+                id: newUser.id,
+                name: newUser.name,
+                email: newUser.email,
+                role: 'admin'
+            }
+        });
+    } catch (error) {
+        console.error('Admin signup error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+module.exports = { loginUser, signupAdmin };
