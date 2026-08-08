@@ -37,14 +37,15 @@ const STATUS_META = {
     deactivated: { label: "Deactivated", className: "status-deactivated" }
 };
 
-// Sidebar items outside "User Management" don't have routes/pages built
-// yet in this project — they're kept as visual placeholders so the nav
-// matches the approved design without linking anywhere broken.
+// Sidebar items with a `path` navigate to their built page. Items without
+// a `path` don't have routes/pages built yet in this project — they're
+// kept as visual placeholders so the nav matches the approved design
+// without linking anywhere broken.
 const NAV_ITEMS = [
-    { key: "analytics", label: "Platform Analytics", icon: BarChart2 },
-    { key: "verification", label: "Therapist Verification", icon: FileCheck2 },
-    { key: "users", label: "User Management", icon: Users, active: true },
-    { key: "approvals", label: "Group Approvals", icon: Gavel },
+    { key: "analytics", label: "Platform Analytics", icon: BarChart2, path: "/admin/analytics"},
+    { key: "verification", label: "Therapist Verification", icon: FileCheck2, path: "/admin/verification" },
+    { key: "users", label: "User Management", icon: Users, active: true, path: "/admin/users" },
+    { key: "approvals", label: "Group Approvals", icon: Gavel, path: "/admin/group-approvals" },
     { key: "logs", label: "Disciplinary Logs", icon: ShieldAlert },
     { key: "settings", label: "System Settings", icon: Settings }
 ];
@@ -195,13 +196,14 @@ const AdminUserManagement = () => {
                 </div>
 
                 <nav className="aum-nav">
-                    {NAV_ITEMS.map(({ key, label, icon: Icon, active }) => (
+                    {NAV_ITEMS.map(({ key, label, icon: Icon, active, path }) => (
                         <button
                             key={key}
                             type="button"
                             className={`aum-nav-item ${active ? "aum-nav-item-active" : ""}`}
-                            disabled={!active}
-                            title={active ? label : `${label} (coming soon)`}
+                            disabled={!path}
+                            onClick={() => path && navigate(path)}
+                            title={path ? label : `${label} (coming soon)`}
                         >
                             <Icon size={18} />
                             <span>{label}</span>

@@ -1,0 +1,178 @@
+.pgs-container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    color: #1f2233;
+}
+
+.pgs-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #1a1c2e;
+}
+
+.pgs-header p {
+    font-size: 13.5px;
+    color: #6b6e89;
+    margin: 0 0 20px;
+}
+
+.pgs-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-bottom: 20px;
+}
+
+.pgs-alert-success { background: #e6faf0; color: #1a9c5c; border: 1px solid #b6ecd0; }
+.pgs-alert-error { background: #fdeaea; color: #d1433f; border: 1px solid #f9c5c5; }
+
+.pgs-toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.pgs-search {
+    position: relative;
+    flex: 1;
+}
+
+.pgs-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9497b3;
+}
+
+.pgs-search input {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border-radius: 10px;
+    border: 1px solid #e2e3ef;
+    background: #ffffff;
+    font-size: 13.5px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.pgs-search input:focus { border-color: #6c5ce7; }
+
+.pgs-select {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #e2e3ef;
+    background: #ffffff;
+    font-size: 13px;
+    color: #4a4d68;
+    outline: none;
+}
+
+.pgs-state-msg {
+    text-align: center;
+    color: #9497b3;
+    font-size: 14px;
+    padding: 50px 0;
+}
+
+.pgs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.pgs-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #ececf5;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(20, 21, 43, 0.04);
+}
+
+.pgs-card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #6c5ce7;
+    background: #f0eeff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    width: fit-content;
+    margin-bottom: 12px;
+}
+
+.pgs-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1c2e;
+    margin: 0 0 6px;
+}
+
+.pgs-therapist {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: #6b6e89;
+    margin: 0 0 12px;
+}
+
+.pgs-desc {
+    font-size: 13px;
+    color: #4a4d68;
+    line-height: 1.4;
+    margin: 0 0 16px;
+    flex: 1;
+}
+
+.pgs-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    background: #f8f8fc;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: #4a4d68;
+    margin-bottom: 16px;
+}
+
+.pgs-meta div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pgs-card-footer {
+    margin-top: auto;
+}
+
+.pgs-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 9px;
+    border: none;
+    font-size: 13.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.pgs-btn-join { background: #6c5ce7; color: #fff; }
+.pgs-btn-join:hover { background: #5c4dd6; }
+
+.pgs-btn-joined { background: #e6faf0; color: #1a9c5c; cursor: default; }
+.pgs-btn-full { background: #f2f2f9; color: #9497b3; cursor: not-allowed; }

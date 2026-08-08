@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-    // 1. Extract token from the Authorization header
+    // 1. Extract token from Authorization header
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -12,15 +12,45 @@ const verifyToken = (req, res, next) => {
     try {
         // 2. Verify token using the secret from .env
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
+
         // 3. Attach user data to request
-        req.user = decoded; 
-        next(); 
+        req.user = decoded;
+        next();
     } catch (err) {
-        // Log the error to your terminal to see why the 403 is happening
         console.error("Token verification failed:", err.message);
         return res.status(403).json({ message: "Invalid or expired token." });
     }
 };
 
+// Case-insensitive & trimmed Role Helper
+const checkRole = (userRole, targetRole) => {
+    if (!userRole) return false;
+    return userRole.toString().trim().toLowerCase() === targetRole.toLowerCase();
+};
+
+const isAdmin = (req, res, next) => {
+    if (!req.user || !checkRole(req.user.role, 'admin')) {
+        return res.status(403).json({ message: "Admin access required." });
+    }
+    next();
+};
+
+const isTherapist = (req, res, next) => {
+    if (!req.user || !checkRole(req.user.role, 'therapist')) {
+        return res.status(403).json({ message: "Therapist access required." });
+    }
+    next();
+};
+
+const isPatient = (req, res, next) => {
+    if (!req.user || !checkRole(req.user.role, 'patient')) {
+        return res.status(403).json({ message: "Patient access required." });
+    }
+    next();
+};
+
 module.exports = verifyToken;
+module.exports.verifyToken = verifyToken;
+module.exports.isAdmin = isAdmin;
+module.exports.isTherapist = isTherapist;
+module.exports.isPatient = isPatient;

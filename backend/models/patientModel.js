@@ -4,7 +4,7 @@ const PatientModel = {
     // 1. Find a patient profile by their User ID
     findByUserId: async (userId) => {
         const query = `
-            SELECT u.id, u.name, u.email, p.profile_photo_url, p.contact_number, p.location, p.preferred_language 
+            SELECT u.id, u.display_name AS name, u.email, p.profile_photo_url, p.contact_number, p.location, p.preferred_language 
             FROM users u
             LEFT JOIN patient_profiles p ON u.id = p.user_id
             WHERE u.id = ?
@@ -34,7 +34,7 @@ const PatientModel = {
 
     // 3. Update the main display name in the users table
     updateName: async (userId, name) => {
-        const query = "UPDATE users SET name = ? WHERE id = ?";
+        const query = "UPDATE users SET display_name = ? WHERE id = ?";
         const [result] = await db.query(query, [name, userId]);
         return result;
     }

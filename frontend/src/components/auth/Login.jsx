@@ -118,6 +118,7 @@ const Login = () => {
                     <form 
                         onSubmit={handleLogin} 
                         className="login-form"
+                        autoComplete="on"
                     >
                         <div className="input-group">
                             <label htmlFor="email">Email</label>
@@ -136,9 +137,11 @@ const Login = () => {
                                 </svg>
                                 <input
                                     id="email"
+                                    name="email"
                                     type="email"
                                     className="login-input"
                                     placeholder="your.email@example.com"
+                                    autoComplete="username"
                                     value={email}
                                     onChange={(e) => 
                                         setEmail(e.target.value)}
@@ -166,9 +169,11 @@ const Login = () => {
                                 </svg>
                                 <input
                                     id="password"
+                                    name="password"
                                     type="password"
                                     className="login-input"
                                     placeholder="••••••••"
+                                    autoComplete="current-password"
                                     value={password}
                                     onChange={(e) => 
                                         setPassword(e.target.value)}
