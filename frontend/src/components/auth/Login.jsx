@@ -29,7 +29,15 @@ const Login = () => {
             if (token) {
                 localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
-                window.location.href = '/patient-dashboard';
+
+                const role = response.data.user?.role;
+                if (role === 'admin') {
+                    window.location.href = '/admin/users';
+                } else if (role === 'therapist') {
+                    window.location.href = '/therapist-dashboard';
+                } else {
+                    window.location.href = '/patient-dashboard';
+                }
             } else {
                 console.error("Token not found in response:", response.data);
                 alert("Login successful, but no token received. Check backend.");

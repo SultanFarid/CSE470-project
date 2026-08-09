@@ -557,3 +557,21 @@
         align-items: stretch;
     }
 }
+
+/* ===== Small helpers used only on this page ===== */
+.avd-inline-icon {
+    display: inline;
+    margin-right: 4px;
+    vertical-align: -2px;
+}
+
+.avd-description-block {
+    margin-top: 12px;
+}
+
+.avd-description-text {
+    font-size: 13px;
+    color: #4a4d68;
+    margin: 0;
+    line-height: 1.4;
+}
