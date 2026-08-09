@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const patientController = require('../controllers/patientController');
 
-// 1. Import your newly created authentication middleware
-const verifyToken = require('../middleware/authMiddleware');
+// Import verifyToken and isPatient correctly
+const { verifyToken, isPatient } = require('../middleware/authMiddleware');
 
-// 2. Add 'verifyToken' right before the controller actions to protect them
-router.get('/profile', verifyToken, patientController.getPatientProfile);
-router.put('/profile', verifyToken, patientController.updatePatientProfile);
+// Add both middlewares
+router.get('/profile', verifyToken, isPatient, patientController.getPatientProfile);
+router.put('/profile', verifyToken, isPatient, patientController.updatePatientProfile);
 
 module.exports = router;

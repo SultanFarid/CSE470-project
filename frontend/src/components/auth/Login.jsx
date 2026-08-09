@@ -83,7 +83,15 @@ const Login = () => {
                         </div>
                     </div>
 
+<<<<<<< HEAD
                     <form onSubmit={handleLogin} className="login-form">
+=======
+                    <form 
+                        onSubmit={handleLogin} 
+                        className="login-form"
+                        autoComplete="on"
+                    >
+>>>>>>> origin/samantha_branch
                         <div className="input-group">
                             <label htmlFor="email">Email</label>
                             <div className="input-with-icon">
@@ -93,9 +101,17 @@ const Login = () => {
                                 </svg>
                                 <input 
                                     id="email"
+<<<<<<< HEAD
                                     type="email" 
                                     className="login-input"
                                     placeholder="your.email@example.com" 
+=======
+                                    name="email"
+                                    type="email"
+                                    className="login-input"
+                                    placeholder="your.email@example.com"
+                                    autoComplete="username"
+>>>>>>> origin/samantha_branch
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required 
@@ -112,9 +128,17 @@ const Login = () => {
                                 </svg>
                                 <input 
                                     id="password"
+<<<<<<< HEAD
                                     type="password" 
                                     className="login-input"
                                     placeholder="••••••••" 
+=======
+                                    name="password"
+                                    type="password"
+                                    className="login-input"
+                                    placeholder="••••••••"
+                                    autoComplete="current-password"
+>>>>>>> origin/samantha_branch
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required 

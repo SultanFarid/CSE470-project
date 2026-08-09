@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. useNavigate Import
 import { 
   Bell, Calendar, CheckCircle, Clock, Play, User, Star, Search, 
   Users, LogOut, ArrowRight, Settings, Heart, Sliders, MapPin, 
-  Globe, Phone, Video, ShieldAlert
+  Globe, Phone, Video, ShieldAlert, Check
 } from 'lucide-react';
 import './PatientDashboard.css';
-import { getPatientProfile } from '../../services/api'; // Ensure this path points to your api.js
+import { 
+  getPatientProfile, 
+  patientGetOpenGroupSessions, 
+  patientJoinGroupSession, 
+  patientGetMyEnrollments 
+} from '../../services/api'; 
+import NotificationBell from '../shared/NotificationBell';
 
 export default function PatientDashboard() {
+  const navigate = useNavigate(); // 2. Initialize Navigation Hook
+
   // 1. STATE FOR LIVE DATABASE USER DATA
   const [patientUser, setPatientUser] = useState({
     name: 'Loading...',
@@ -21,41 +30,72 @@ export default function PatientDashboard() {
   const [loading, setLoading] = useState(true);
   const [appointmentCancelled, setAppointmentCancelled] = useState(false);
   const [showRatingSuccess, setShowRatingSuccess] = useState(false);
-  const [groupJoinRequested, setGroupJoinRequested] = useState(false);
   
+  // Real Group Sessions State
+  const [groupSessions, setGroupSessions] = useState([]);
+  const [enrolledSessionIds, setEnrolledSessionIds] = useState(new Set());
+  const [joiningId, setJoiningId] = useState(null);
+
   const [checklistItems, setChecklistItems] = useState([
     { id: 1, text: "Take Morning Medication (Sertraline 50mg)", time: "8:00 AM", completed: true },
     { id: 2, text: "Complete 5-Minute Daily Mood Journaling", time: "10:30 AM", completed: true },
     { id: 3, text: "15-Min Guided Mindfulness Breathing Exercise", time: "DUE TODAY", completed: false, hasVideo: true }
   ]);
 
-  // 2. FETCH REAL USER DATA FROM BACKEND
+  // 2. FETCH REAL USER DATA & GROUP SESSIONS FROM BACKEND
   useEffect(() => {
-    const fetchPatientProfile = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // The interceptor in api.js handles the token, so we just call the function
-        const data = await getPatientProfile();
-        
-        if (data) {
+        // Fetch Profile
+        const profileData = await getPatientProfile();
+        if (profileData) {
           setPatientUser({
-            name: data.name || 'No Name Provided',
-            email: data.email,
-            location: data.location || 'Dhaka, Bangladesh',
-            language: data.language || 'English, Bengali',
-            contact: data.contact || '+880 1712-345678',
-            therapist: data.assigned_therapist || 'Dr. Sultan M. Farid'
+            name: profileData.name || profileData.display_name || 'No Name Provided',
+            email: profileData.email,
+            location: profileData.location || 'Dhaka, Bangladesh',
+            language: profileData.language || 'English, Bengali',
+            contact: profileData.contact || '+880 1712-345678',
+            therapist: profileData.assigned_therapist || 'Dr. Sultan M. Farid'
           });
         }
+
+        // Fetch Open Group Sessions
+        const sessionsRes = await patientGetOpenGroupSessions();
+        const sessionsList = Array.isArray(sessionsRes) ? sessionsRes : (sessionsRes?.data || []);
+        setGroupSessions(sessionsList);
+
+        // Fetch Current Enrollments to highlight joined sessions
+        const enrollmentsRes = await patientGetMyEnrollments();
+        const myEnrollments = Array.isArray(enrollmentsRes) ? enrollmentsRes : (enrollmentsRes?.data || []);
+        const enrolledIds = new Set(myEnrollments.map(e => e.group_session_id));
+        setEnrolledSessionIds(enrolledIds);
+
       } catch (error) {
-        console.error("Error pulling live patient data:", error);
+        console.error("Error pulling live dashboard data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPatientProfile();
+    fetchDashboardData();
   }, []);
+
+  // Handle Join Request Call
+  const handleJoinGroup = async (sessionId) => {
+    try {
+      setJoiningId(sessionId);
+      await patientJoinGroupSession(sessionId);
+      
+      // Update local state instantly
+      setEnrolledSessionIds(prev => new Set(prev).add(sessionId));
+      alert("Join request submitted successfully!");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit join request");
+    } finally {
+      setJoiningId(null);
+    }
+  };
 
   const toggleChecklistItem = (id) => {
     setChecklistItems(checklistItems.map(item => 
@@ -82,10 +122,7 @@ export default function PatientDashboard() {
           <span className="mode-badge">Patient Mode</span>
         </div>
         <div className="navbar-right">
-          <div className="notifications-box">
-            <Bell size={18} className="icon-bell" />
-            <span className="notification-text">Reminders (1)</span>
-          </div>
+          <NotificationBell />
           <div className="user-profile-tile">
             <div className="avatar-circle-sm">{getInitials(patientUser.name)}</div>
             <span className="profile-name-text">{patientUser.name}</span>
@@ -93,17 +130,36 @@ export default function PatientDashboard() {
         </div>
       </nav>
 
-      {/* B. LEFT SIDEBAR FRAME */}
+      {/* B. LEFT SIDEBAR FRAME WITH ROUTING */}
       <aside className="left-sidebar">
         <div className="sidebar-menu-wrapper">
-          <div className="menu-item active"><Heart size={18} /><span>Recovery Hub</span></div>
-          <div className="menu-item"><Calendar size={18} /><span>My Appointments</span></div>
-          <div className="menu-item"><CheckCircle size={18} /><span>Daily Checklist</span></div>
-          <div className="menu-item"><Sliders size={18} /><span>AI Matchmaker</span></div>
-          <div className="menu-item"><Search size={18} /><span>Therapist Directory</span></div>
-          <div className="menu-item"><Users size={18} /><span>Group Sessions</span></div>
-          <div className="menu-item"><Clock size={18} /><span>Vitals & Progress</span></div>
-          <div className="menu-item"><Settings size={18} /><span>Profile Settings</span></div>
+          <div className="menu-item active" onClick={() => navigate('/patient-dashboard')}>
+            <Heart size={18} /><span>Recovery Hub</span>
+          </div>
+          <div className="menu-item">
+            <Calendar size={18} /><span>My Appointments</span>
+          </div>
+          <div className="menu-item">
+            <CheckCircle size={18} /><span>Daily Checklist</span>
+          </div>
+          <div className="menu-item">
+            <Sliders size={18} /><span>AI Matchmaker</span>
+          </div>
+          <div className="menu-item">
+            <Search size={18} /><span>Therapist Directory</span>
+          </div>
+
+          {/* 👇 Click Here Opens Dedicated Group Sessions Page */}
+          <div className="menu-item" onClick={() => navigate('/patient/group-sessions')} style={{ cursor: 'pointer' }}>
+            <Users size={18} /><span>Group Sessions</span>
+          </div>
+
+          <div className="menu-item">
+            <Clock size={18} /><span>Vitals & Progress</span>
+          </div>
+          <div className="menu-item">
+            <Settings size={18} /><span>Profile Settings</span>
+          </div>
         </div>
         <button className="sidebar-logout-btn" onClick={() => { localStorage.clear(); window.location.href = '/login'; }}>
           <LogOut size={18} /><span>Logout</span>
@@ -169,8 +225,20 @@ export default function PatientDashboard() {
             </div>
           </section>
 
+          {/* C. SMART ROUTING & GROUP SESSIONS HUB */}
           <section className="dashboard-card span-5 flex-column gap-16">
-            <h2 className="card-title">Smart Routing & Discovery Hub</h2>
+            <div className="card-header-row">
+              <h2 className="card-title">Smart Routing & Discovery Hub</h2>
+              {/* 👉 View All Link to Group Sessions */}
+              <span 
+                className="card-header-link" 
+                onClick={() => navigate('/patient/group-sessions')} 
+                style={{ cursor: 'pointer', fontSize: '12px' }}
+              >
+                View All →
+              </span>
+            </div>
+
             <div className="shortcut-card matchmaker-shortcut">
               <div className="shortcut-left">
                 <h3 className="shortcut-title text-blue">AI-Powered Therapist Matchmaker</h3>
@@ -178,21 +246,50 @@ export default function PatientDashboard() {
               </div>
               <ArrowRight size={18} className="text-blue" />
             </div>
-            <div className="shortcut-card directory-shortcut">
-              <div className="shortcut-left">
-                <h3 className="shortcut-title text-slate">Manual Therapist Directory</h3>
-                <p className="shortcut-desc">Filter by specialty, language, gender & public reviews</p>
-              </div>
-              <ArrowRight size={18} className="text-slate" />
-            </div>
-            <div className="shortcut-card group-shortcut">
-              <div className="shortcut-left">
-                <h3 className="shortcut-title text-green">Group Therapy: "Anxiety Management"</h3>
-                <p className="shortcut-desc">Thu 4:00 PM • 3 Spots Left</p>
-              </div>
-              <button className={`group-join-btn ${groupJoinRequested ? 'requested' : ''}`} onClick={() => setGroupJoinRequested(!groupJoinRequested)}>
-                {groupJoinRequested ? "Requested" : "Join Request"}
-              </button>
+
+            {/* REAL GROUP SESSIONS LIST */}
+            <div className="group-sessions-section">
+              <h3 className="section-subtitle" style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                Open Group Therapy Sessions
+              </h3>
+
+              {groupSessions.length === 0 ? (
+                <p style={{ fontSize: '13px', color: '#64748b' }}>No open group sessions available right now.</p>
+              ) : (
+                groupSessions.slice(0, 3).map((session) => {
+                  const isEnrolled = enrolledSessionIds.has(session.id);
+                  const isPending = joiningId === session.id;
+                  const sessionTime = session.start_time || session.scheduled_at;
+
+                  return (
+                    <div key={session.id} className="shortcut-card group-shortcut" style={{ marginBottom: '10px' }}>
+                      <div className="shortcut-left">
+                        <h3 className="shortcut-title text-green">{session.topic || session.title}</h3>
+                        <p className="shortcut-desc">
+                          By {session.therapist_name || 'Therapist'} • Capacity: {session.capacity || session.max_participants}
+                        </p>
+                        <p className="shortcut-desc" style={{ fontSize: '11px', color: '#64748b' }}>
+                          {sessionTime ? new Date(sessionTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Scheduled Soon'}
+                        </p>
+                      </div>
+                      
+                      <button 
+                        className={`group-join-btn ${isEnrolled ? 'requested' : ''}`} 
+                        onClick={() => !isEnrolled && handleJoinGroup(session.id)}
+                        disabled={isEnrolled || isPending}
+                      >
+                        {isEnrolled ? (
+                          <><Check size={14} inline="true" /> Requested</>
+                        ) : isPending ? (
+                          "Sending..."
+                        ) : (
+                          "Join Request"
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
 
