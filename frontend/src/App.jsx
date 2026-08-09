@@ -5,8 +5,6 @@ import PatientDashboard from './components/patient/PatientDashboard';
 import TherapistDashboard from './components/therapist/TherapistDashboard';
 import TherapistProfileEditor from './components/therapist/TherapistProfileEditor';
 import TherapistJobForm from './components/therapist/TherapistJobForm';
-<<<<<<< HEAD
-=======
 import AdminUserManagement from "./components/admin/AdminUserManagement";
 import AdminSignup from "./components/auth/AdminSignup";
 import AdminVerificationDashboard from "./components/admin/AdminVerificationDashboard";
@@ -14,7 +12,6 @@ import AdminAnalyticsDashboard from "./components/admin/AdminAnalyticsDashboard"
 import AdminGroupApprovals from "./components/admin/AdminGroupApprovals";
 import TherapistGroupProposals from "./components/therapist/TherapistGroupProposals";
 import PatientGroupSessions from "./components/patient/PatientGroupSessions";
->>>>>>> origin/samantha_branch
 function App() {
   return (
     <Router>
@@ -26,9 +23,6 @@ function App() {
         <Route path="/apply" element={<TherapistJobForm />} />
         <Route path="/therapist-dashboard" element={<TherapistDashboard />} />
 <Route path="/therapist-dashboard/profile" element={<TherapistProfileEditor />} />
-<<<<<<< HEAD
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-=======
         <Route path="/admin/users" element={<AdminUserManagement />} />
         <Route path="/admin-signup" element={<AdminSignup />} />
         <Route path="/admin/verification" element={<AdminVerificationDashboard />} />
@@ -36,8 +30,6 @@ function App() {
         <Route path="/admin/group-approvals" element={<AdminGroupApprovals />} />
         <Route path="/therapist-dashboard/group-proposals" element={<TherapistGroupProposals />} />
         <Route path="/patient/group-sessions" element={<PatientGroupSessions />} />
-
->>>>>>> origin/samantha_branch
       </Routes>
     </Router>
   );

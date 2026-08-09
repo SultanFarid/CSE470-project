@@ -121,11 +121,15 @@ const AdminVerificationDashboard = () => {
             if (type === "approve") res = await adminApproveApplication(appId);
             else if (type === "reject") res = await adminRejectApplication(appId);
 
-            setActionMsg(res.message);
+            const msg = res.generatedPassword
+                ? `${res.message} — New login for ${res.accountEmail}: ${res.generatedPassword} (share this with the applicant; there's no auto-email yet)`
+                : res.message;
+
+            setActionMsg(msg);
             closeConfirm();
             setSelectedApp(null);
             fetchApplications();
-            setTimeout(() => setActionMsg(""), 3000);
+            setTimeout(() => setActionMsg(""), res.generatedPassword ? 15000 : 3000);
         } catch (err) {
             console.error("Action failed", err);
         }

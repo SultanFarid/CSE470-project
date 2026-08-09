@@ -70,9 +70,6 @@ export const getPatientProfile = async () => {
 export const updatePatientProfile = async (profileData) => {
     const response = await apiInstance.put('/patient/profile', profileData);
     return response.data;
-<<<<<<< HEAD
-};
-=======
 };
 
 export const bookSession = async (therapistId) => {
@@ -109,7 +106,6 @@ export const adminReactivateUser = async (userId) => {
     return response.data;
 };
 
-export const SERVER_BASE_URL = 'http://localhost:5000';
 export const adminSignup = async (name, email, password, secretKey) => {
     const response = await axios.post(
         `${API_URL}/auth/admin-signup`,
@@ -180,4 +176,3 @@ export const patientJoinGroupSession = (sessionId) =>
 
 export const patientGetMyEnrollments = () =>
     apiInstance.get('/groups/my-enrollments').then(res => res.data);
->>>>>>> origin/samantha_branch
