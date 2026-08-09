@@ -78,8 +78,8 @@ const TherapistJobForm = () => {
         <div className="job-form-wrapper">
             <div className="job-form-container">
                 <div className="form-header">
-                    <h2>Clinical Practitioner Application</h2>
-                    <p>HR & Credentialing Background Check Form</p>
+                    <h2>Therapist Job Application</h2>
+                    <p>Tell us about yourself and your experience</p>
                 </div>
 
                 {message.text && <div className={`alert alert-${message.type}`}>{message.text}</div>}
@@ -88,7 +88,7 @@ const TherapistJobForm = () => {
                     
                     {/* Section 1: Personal Information */}
                     <div className="form-section">
-                        <div className="section-title">1. Personal & Contact Information</div>
+                        <div className="section-title">1. Your Basic Details</div>
                         <div className="grid-2">
                             <div className="form-group"><label>Full Legal Name</label><input type="text" name="name" onChange={handleChange} required /></div>
                             <div className="form-group"><label>Professional Email</label><input type="email" name="email" onChange={handleChange} required /></div>
@@ -129,7 +129,7 @@ const TherapistJobForm = () => {
 
                     {/* Section 3: Professional Credentialing */}
                     <div className="form-section">
-                        <div className="section-title">3. Professional Credentialing & Licensure</div>
+                        <div className="section-title">3. Licenses & Certifications</div>
                         <div className="grid-2">
                             <div className="form-group full-width"><label>Primary Clinical License (Type, State, Number, Expiration)</label><input type="text" name="primary_license" onChange={handleChange} required /></div>
                             <div className="form-group"><label>National Provider Identifier (NPI)</label><input type="text" name="npi" onChange={handleChange} /></div>
@@ -140,27 +140,27 @@ const TherapistJobForm = () => {
 
                     {/* Section 4 & 5: Education & Skills */}
                     <div className="form-section">
-                        <div className="section-title">4. Clinical Education & Skills</div>
+                        <div className="section-title">4. Education & Experience</div>
                         <div className="grid-2">
                             <div className="form-group full-width"><label>Highest Degree Earned (Institution & Year)</label><input type="text" name="education_history" onChange={handleChange} required /></div>
                             <div className="form-group"><label>EMR Systems Experience (Epic, Cerner, etc.)</label><input type="text" name="emr_experience" onChange={handleChange} /></div>
                             <div className="form-group"><label>Languages Spoken (Fluency Level)</label><input type="text" name="languages" onChange={handleChange} /></div>
-                            <div className="form-group full-width"><label>Therapeutic Modalities (e.g., CBT, EMDR, Manual Therapy)</label><input type="text" name="therapeutic_modalities" onChange={handleChange} /></div>
+                            <div className="form-group full-width"><label>Therapy Styles (e.g., CBT, EMDR, Manual Therapy)</label><input type="text" name="therapeutic_modalities" onChange={handleChange} /></div>
                         </div>
                     </div>
 
                     {/* Section 6: Legal, Compliance & Health */}
                     <div className="form-section">
-                        <div className="section-title">5. Legal, Compliance & Health Disclosures</div>
+                        <div className="section-title">5. Background & Health Information</div>
                         <div className="form-group" style={{marginBottom: '15px'}}>
-                            <label>Malpractice History (Explain if yes, otherwise write "None")</label>
+                            <label>Have you ever had professional complaints or legal issues? (If no, write "None")</label>
                             <textarea name="malpractice_history" rows="3" onChange={handleChange} required defaultValue="None"></textarea>
                         </div>
                         <div className="grid-2">
                             <div className="checkbox-group"><input type="checkbox" name="license_suspension" id="susp" onChange={handleChange}/><label htmlFor="susp">My license has previously been suspended/revoked.</label></div>
                             <div className="checkbox-group"><input type="checkbox" name="criminal_record" id="crim" onChange={handleChange}/><label htmlFor="crim">I have a criminal conviction record.</label></div>
                             <div className="checkbox-group"><input type="checkbox" name="immunization_proof" id="imm" onChange={handleChange}/><label htmlFor="imm">I can provide proof of required hospital immunizations (TB, Hep B).</label></div>
-                            <div className="checkbox-group"><input type="checkbox" name="physical_capability" id="phys" onChange={handleChange}/><label htmlFor="phys">I can perform essential job duties with/without accommodation.</label></div>
+                            <div className="checkbox-group"><input type="checkbox" name="physical_capability" id="phys" onChange={handleChange}/><label htmlFor="phys">I am physically able to perform the daily duties of this job.</label></div>
                         </div>
                     </div>
 
