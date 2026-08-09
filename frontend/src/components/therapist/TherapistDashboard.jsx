@@ -17,6 +17,7 @@ const NAV_ITEMS = [
     { label: 'Group Classes', icon: Users, path: '/therapist-dashboard/group-proposals' },
     { label: 'Earnings & Jobs', icon: Briefcase, path: null },
     { label: 'Profile Editor', icon: UserCog, path: '/therapist-dashboard/profile' },
+    { label: 'Schedule Manager', icon: Calendar, path: '/therapist-dashboard/schedule' },
 ];
 
 // Mock data shaped to mirror the real relational schema

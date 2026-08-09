@@ -11,7 +11,7 @@ const adminUserRoutes = require('./routes/adminUserRoutes');
 const adminVerificationRoutes = require('./routes/adminVerificationRoutes');
 const adminGroupApprovalRoutes = require('./routes/adminGroupApprovalRoutes');
 const groupSessionRoutes = require('./routes/groupSessionRoutes');
-
+const availabilityRoutes = require('./routes/availabilityRoutes');
 const { startExerciseReminderJob } = require('./jobs/exerciseReminderJob');
 const { startBookNextSessionJob } = require('./jobs/bookNextSessionJob');
 
@@ -33,6 +33,7 @@ app.use('/api/admin/analytics', require('./routes/adminAnalyticsRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/sessions', require('./routes/sessionRoutes'));
 app.use('/api/admin', adminGroupApprovalRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 // Fix: Registered as /api/groups to match frontend api.js
 app.use('/api/groups', groupSessionRoutes);

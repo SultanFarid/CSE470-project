@@ -12,6 +12,7 @@ import AdminAnalyticsDashboard from "./components/admin/AdminAnalyticsDashboard"
 import AdminGroupApprovals from "./components/admin/AdminGroupApprovals";
 import TherapistGroupProposals from "./components/therapist/TherapistGroupProposals";
 import PatientGroupSessions from "./components/patient/PatientGroupSessions";
+import ScheduleManager from './components/therapist/ScheduleManager';
 function App() {
   return (
     <Router>
@@ -22,13 +23,14 @@ function App() {
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
         <Route path="/apply" element={<TherapistJobForm />} />
         <Route path="/therapist-dashboard" element={<TherapistDashboard />} />
-<Route path="/therapist-dashboard/profile" element={<TherapistProfileEditor />} />
+        <Route path="/therapist-dashboard/profile" element={<TherapistProfileEditor />} />
         <Route path="/admin/users" element={<AdminUserManagement />} />
         <Route path="/admin-signup" element={<AdminSignup />} />
         <Route path="/admin/verification" element={<AdminVerificationDashboard />} />
         <Route path="/admin/analytics" element={<AdminAnalyticsDashboard />} />
         <Route path="/admin/group-approvals" element={<AdminGroupApprovals />} />
         <Route path="/therapist-dashboard/group-proposals" element={<TherapistGroupProposals />} />
+        <Route path="/therapist-dashboard/schedule" element={<ScheduleManager />} />
         <Route path="/patient/group-sessions" element={<PatientGroupSessions />} />
       </Routes>
     </Router>
