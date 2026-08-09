@@ -2,9 +2,11 @@ const db = require('../config/db');
 
 const getAllApplications = async (status) => {
     let sql = `
-        SELECT ta.*, u.email, u.display_name
+        SELECT ta.*,
+               COALESCE(u.email, ta.email) AS email,
+               COALESCE(u.display_name, ta.name) AS display_name
         FROM therapist_applications ta
-        JOIN users u ON ta.user_id = u.id
+        LEFT JOIN users u ON ta.user_id = u.id
         WHERE 1=1
     `;
     const params = [];
@@ -19,9 +21,11 @@ const getAllApplications = async (status) => {
 
 const getApplicationById = async (applicationId) => {
     const [rows] = await db.query(
-        `SELECT ta.*, u.email, u.display_name 
+        `SELECT ta.*,
+                COALESCE(u.email, ta.email) AS email,
+                COALESCE(u.display_name, ta.name) AS display_name
          FROM therapist_applications ta
-         JOIN users u ON ta.user_id = u.id
+         LEFT JOIN users u ON ta.user_id = u.id
          WHERE ta.id = ?`,
         [applicationId]
     );
@@ -53,10 +57,18 @@ const upgradeUserToTherapist = async (userId) => {
     );
 };
 
+const linkUserToApplication = async (applicationId, userId) => {
+    await db.query(
+        `UPDATE therapist_applications SET user_id=? WHERE id=?`,
+        [userId, applicationId]
+    );
+};
+
 module.exports = {
     getAllApplications,
     getApplicationById,
     updateApplicationStatus,
     scheduleViva,
-    upgradeUserToTherapist
+    upgradeUserToTherapist,
+    linkUserToApplication
 };

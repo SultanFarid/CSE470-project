@@ -1,5 +1,7 @@
+const crypto = require('crypto');
 const AdminVerificationModel = require('../models/adminVerificationModel');
-const AdminUserModel = require('../models/adminUserModel'); 
+const AdminUserModel = require('../models/adminUserModel');
+const UserModel = require('../models/userModel');
 
 const listApplications = async (req, res) => {
     try {
@@ -27,20 +29,47 @@ const approveApplication = async (req, res) => {
     try {
         const { id } = req.params;
         const application = await AdminVerificationModel.getApplicationById(id);
+        if (!application) return res.status(404).json({ message: 'Not found' });
 
-        
         await AdminVerificationModel.updateApplicationStatus(id, 'approved', req.user.id);
 
+        let userId = application.user_id;
+        let generatedPassword = null;
 
-        await AdminVerificationModel.upgradeUserToTherapist(application.user_id);
+        if (userId) {
+            // Applicant already has an account (e.g. was logged in when applying) — just upgrade it.
+            await AdminVerificationModel.upgradeUserToTherapist(userId);
+        } else {
+            // Public /apply form has no login, so no account exists yet.
+            // Reuse an account if this email already has one, otherwise create one now.
+            const existing = await UserModel.findByEmail(application.email);
+            if (existing) {
+                userId = existing.id;
+                await AdminVerificationModel.upgradeUserToTherapist(userId);
+            } else {
+                generatedPassword = crypto.randomBytes(6).toString('hex');
+                const created = await UserModel.create({
+                    name: application.name,
+                    email: application.email,
+                    password: generatedPassword,
+                    role: 'therapist'
+                });
+                userId = created.id;
+            }
+            await AdminVerificationModel.linkUserToApplication(id, userId);
+        }
 
-    
         await AdminUserModel.createNotification(
-            application.user_id,
+            userId,
             'Congratulations! Your therapist application has been approved. You now have access to your therapist dashboard.'
         );
 
-        res.status(200).json({ message: 'Application approved and account upgraded' });
+        res.status(200).json({
+            message: 'Application approved and account upgraded',
+            // No email sending is set up in this project yet, so hand the temp
+            // credentials back to the admin to pass along manually.
+            ...(generatedPassword ? { generatedPassword, accountEmail: application.email } : {})
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
@@ -51,13 +80,17 @@ const rejectApplication = async (req, res) => {
     try {
         const { id } = req.params;
         const application = await AdminVerificationModel.getApplicationById(id);
+        if (!application) return res.status(404).json({ message: 'Not found' });
 
         await AdminVerificationModel.updateApplicationStatus(id, 'rejected', req.user.id);
 
-        await AdminUserModel.createNotification(
-            application.user_id,
-            'Your therapist application has been reviewed and was not approved at this time.'
-        );
+        // Public applicants without an account yet have nothing to notify — skip safely.
+        if (application.user_id) {
+            await AdminUserModel.createNotification(
+                application.user_id,
+                'Your therapist application has been reviewed and was not approved at this time.'
+            );
+        }
 
         res.status(200).json({ message: 'Application rejected' });
     } catch (err) {
