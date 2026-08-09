@@ -176,3 +176,19 @@ export const patientJoinGroupSession = (sessionId) =>
 
 export const patientGetMyEnrollments = () =>
     apiInstance.get('/groups/my-enrollments').then(res => res.data);
+
+// --- Therapist: Schedule Manager (Availability Matrix) ---
+export const getMySchedule = () =>
+    apiInstance.get('/availability/schedule').then(res => res.data);
+
+export const saveMySchedule = (payload) =>
+    apiInstance.put('/availability/schedule', payload).then(res => res.data);
+
+export const getMyExceptions = () =>
+    apiInstance.get('/availability/exceptions').then(res => res.data.exceptions);
+
+export const addAvailabilityException = (payload) =>
+    apiInstance.post('/availability/exceptions', payload).then(res => res.data);
+
+export const deleteAvailabilityException = (id) =>
+    apiInstance.delete(`/availability/exceptions/${id}`).then(res => res.data);
