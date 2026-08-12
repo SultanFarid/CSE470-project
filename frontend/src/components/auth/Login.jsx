@@ -29,7 +29,15 @@ const Login = () => {
             if (token) {
                 localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
-                window.location.href = '/patient-dashboard';
+
+                const role = response.data.user?.role;
+                if (role === 'admin') {
+                    window.location.href = '/admin/users';
+                } else if (role === 'therapist') {
+                    window.location.href = '/therapist-dashboard';
+                } else {
+                    window.location.href = '/patient-dashboard';
+                }
             } else {
                 console.error("Token not found in response:", response.data);
                 alert("Login successful, but no token received. Check backend.");
@@ -83,7 +91,11 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <form onSubmit={handleLogin} className="login-form">
+                    <form 
+                        onSubmit={handleLogin} 
+                        className="login-form"
+                        autoComplete="on"
+                    >
                         <div className="input-group">
                             <label htmlFor="email">Email</label>
                             <div className="input-with-icon">
@@ -93,9 +105,11 @@ const Login = () => {
                                 </svg>
                                 <input 
                                     id="email"
-                                    type="email" 
+                                    name="email"
+                                    type="email"
                                     className="login-input"
-                                    placeholder="your.email@example.com" 
+                                    placeholder="your.email@example.com"
+                                    autoComplete="username"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required 
@@ -112,9 +126,11 @@ const Login = () => {
                                 </svg>
                                 <input 
                                     id="password"
-                                    type="password" 
+                                    name="password"
+                                    type="password"
                                     className="login-input"
-                                    placeholder="••••••••" 
+                                    placeholder="••••••••"
+                                    autoComplete="current-password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required 

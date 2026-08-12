@@ -1,0 +1,205 @@
+/* ===== Design tokens =====
+   Every admin page shares these through .admin-shell, so a color only
+   ever needs to change in one place. */
+.admin-shell {
+    --admin-primary: #6C5CE7;
+    --admin-primary-dark: #5C4DD6;
+    --admin-sidebar-bg: #14152B;
+    --admin-sidebar-text: #9497B3;
+    --admin-bg: #F4F5FA;
+    --admin-text: #1C2033;
+    --admin-muted: #8A93A6;
+    --admin-green: #1A9C5C;
+
+    display: flex;
+    min-height: 100vh;
+    background: var(--admin-bg);
+    color: var(--admin-text);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ===== Sidebar ===== */
+.admin-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--admin-sidebar-bg);
+    color: var(--admin-sidebar-text);
+    display: flex;
+    flex-direction: column;
+    padding: 22px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px 24px 8px;
+}
+
+.admin-brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #8E7CF3, var(--admin-primary));
+    flex-shrink: 0;
+}
+
+.admin-brand-name {
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 14.5px;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    margin-top: 8px;
+}
+
+.admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: var(--admin-sidebar-text);
+    font-size: 13.5px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.admin-nav-item:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.admin-nav-item:not(:disabled) {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.admin-nav-item:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-nav-item-active {
+    background: var(--admin-primary);
+    color: #FFFFFF;
+    opacity: 1;
+}
+
+.admin-nav-item-active:not(:disabled):hover {
+    background: var(--admin-primary);
+}
+
+.admin-nav-item:focus-visible,
+.admin-logout:focus-visible {
+    outline: 2px solid var(--admin-primary);
+    outline-offset: 2px;
+}
+
+.admin-logout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #F87171;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    padding-top: 16px;
+}
+
+.admin-logout:hover {
+    color: #FCA5A5;
+}
+
+/* ===== Main area + top bar ===== */
+.admin-main {
+    flex: 1;
+    min-width: 0;
+    padding: 28px 36px;
+    box-sizing: border-box;
+}
+
+.admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-topbar-title h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--admin-text);
+}
+
+.admin-badge-pill {
+    background: #ECE9FF;
+    color: var(--admin-primary);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.admin-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.admin-system-health {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--admin-green);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.admin-avatar {
+    color: var(--admin-primary);
+    display: flex;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .admin-sidebar {
+        width: 76px;
+        padding: 22px 10px;
+    }
+
+    .admin-brand-name,
+    .admin-nav-item span,
+    .admin-logout span {
+        display: none;
+    }
+
+    .admin-main {
+        padding: 20px;
+    }
+}

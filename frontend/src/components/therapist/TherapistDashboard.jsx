@@ -6,6 +6,7 @@ import {
     Briefcase, UserCog, Bot, Star
 } from 'lucide-react';
 import './TherapistDashboard.css';
+import NotificationBell from '../shared/NotificationBell';
 
 const NAV_ITEMS = [
     { label: 'Command Center', icon: LayoutDashboard, path: '/therapist-dashboard' },
@@ -13,9 +14,10 @@ const NAV_ITEMS = [
     { label: 'Active Caseload', icon: ClipboardList, path: null },
     { label: 'Prescription Studio', icon: FileText, path: null },
     { label: 'Patient Archives', icon: Archive, path: null },
-    { label: 'Group Classes', icon: Users, path: null },
+    { label: 'Group Classes', icon: Users, path: '/therapist-dashboard/group-proposals' },
     { label: 'Earnings & Jobs', icon: Briefcase, path: null },
     { label: 'Profile Editor', icon: UserCog, path: '/therapist-dashboard/profile' },
+    { label: 'Schedule Manager', icon: Calendar, path: '/therapist-dashboard/schedule' },
 ];
 
 // Mock data shaped to mirror the real relational schema
@@ -79,10 +81,7 @@ const TherapistDashboard = () => {
                     <span className="badge-role">Therapist Mode</span>
                 </div>
                 <div className="navbar-right">
-                    <div className="bell-wrapper">
-                        <Bell size={20} />
-                        <span className="alert-dot">2</span>
-                    </div>
+                    <NotificationBell />
                     <div className="user-chip">
                         <div className="avatar">{getInitials(user.name)}</div>
                         <span className="user-name">{user.name}</span>

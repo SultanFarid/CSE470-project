@@ -5,8 +5,15 @@ import PatientSignup from './components/auth/PatientSignup';
 import PatientDashboard from './components/patient/PatientDashboard';
 import TherapistDashboard from './components/therapist/TherapistDashboard';
 import TherapistProfileEditor from './components/therapist/TherapistProfileEditor';
-import AdminDashboard from './components/admin/AdminDashboard';
 import TherapistJobForm from './components/therapist/TherapistJobForm';
+import AdminUserManagement from "./components/admin/AdminUserManagement";
+import AdminSignup from "./components/auth/AdminSignup";
+import AdminVerificationDashboard from "./components/admin/AdminVerificationDashboard";
+import AdminAnalyticsDashboard from "./components/admin/AdminAnalyticsDashboard";
+import AdminGroupApprovals from "./components/admin/AdminGroupApprovals";
+import TherapistGroupProposals from "./components/therapist/TherapistGroupProposals";
+import PatientGroupSessions from "./components/patient/PatientGroupSessions";
+import ScheduleManager from './components/therapist/ScheduleManager';
 function App() {
   return (
     <Router>
@@ -18,8 +25,15 @@ function App() {
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
         <Route path="/apply" element={<TherapistJobForm />} />
         <Route path="/therapist-dashboard" element={<TherapistDashboard />} />
-<Route path="/therapist-dashboard/profile" element={<TherapistProfileEditor />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/therapist-dashboard/profile" element={<TherapistProfileEditor />} />
+        <Route path="/admin/users" element={<AdminUserManagement />} />
+        <Route path="/admin-signup" element={<AdminSignup />} />
+        <Route path="/admin/verification" element={<AdminVerificationDashboard />} />
+        <Route path="/admin/analytics" element={<AdminAnalyticsDashboard />} />
+        <Route path="/admin/group-approvals" element={<AdminGroupApprovals />} />
+        <Route path="/therapist-dashboard/group-proposals" element={<TherapistGroupProposals />} />
+        <Route path="/therapist-dashboard/schedule" element={<ScheduleManager />} />
+        <Route path="/patient/group-sessions" element={<PatientGroupSessions />} />
       </Routes>
     </Router>
   );

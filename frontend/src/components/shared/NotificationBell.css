@@ -1,0 +1,169 @@
+.nbell-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.nbell-trigger {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #4a4d68;
+    cursor: pointer;
+}
+
+.nbell-trigger:hover {
+    background: #f2f2f9;
+}
+
+.nbell-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #d1433f;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.nbell-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 340px;
+    max-height: 420px;
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #ececf5;
+    box-shadow: 0 12px 32px rgba(20, 21, 43, 0.16);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.nbell-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f7;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1a1c2e;
+    flex-shrink: 0;
+}
+
+.nbell-mark-all {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    color: #6c5ce7;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+.nbell-mark-all:hover {
+    background: #f1eeff;
+}
+
+.nbell-list {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.nbell-empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: #9497b3;
+    font-size: 13px;
+    margin: 0;
+}
+
+.nbell-item {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border: none;
+    border-bottom: 1px solid #f5f5fa;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.nbell-item:last-child {
+    border-bottom: none;
+}
+
+.nbell-item:hover {
+    background: #f9f9fd;
+}
+
+.nbell-item-unread {
+    background: #f6f4ff;
+}
+
+.nbell-item-unread:hover {
+    background: #efebff;
+}
+
+.nbell-item-icon {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #eef1ff;
+    color: #3161d1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nbell-item-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nbell-item-message {
+    font-size: 13px;
+    color: #2b2d42;
+    line-height: 1.4;
+}
+
+.nbell-item-time {
+    font-size: 11px;
+    color: #9497b3;
+}
+
+.nbell-item-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6c5ce7;
+    margin-top: 4px;
+}
+

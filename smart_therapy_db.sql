@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.1
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jul 07, 2026 at 05:58 AM
--- Server version: 10.4.22-MariaDB
--- PHP Version: 8.1.2
+-- Host: localhost
+-- Generation Time: Jul 14, 2026 at 04:40 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,13 +24,34 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `patient_profiles`
+--
+
+CREATE TABLE `patient_profiles` (
+  `user_id` int(11) NOT NULL,
+  `profile_photo_url` varchar(255) DEFAULT '',
+  `contact_number` varchar(20) DEFAULT '',
+  `location` varchar(255) DEFAULT '',
+  `preferred_language` varchar(50) DEFAULT 'English'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `patient_profiles`
+--
+
+INSERT INTO `patient_profiles` (`user_id`, `profile_photo_url`, `contact_number`, `location`, `preferred_language`) VALUES
+(1, '', '01712345678', 'Dhaka', 'English');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `system_settings`
 --
 
 CREATE TABLE `system_settings` (
   `setting_key` varchar(50) NOT NULL,
   `setting_value` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `system_settings`
@@ -77,7 +98,7 @@ CREATE TABLE `therapist_applications` (
   `truthfulness_attestation` tinyint(1) NOT NULL DEFAULT 0,
   `status` enum('pending','approved','rejected') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `therapist_applications`
@@ -101,38 +122,24 @@ CREATE TABLE `therapist_profiles` (
   `languages` varchar(255) DEFAULT '',
   `consultation_fee` decimal(10,2) DEFAULT 0.00,
   `session_type` enum('online','in-person','both') DEFAULT 'both'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `therapist_profiles`
 --
 
 INSERT INTO `therapist_profiles` (`user_id`, `profile_photo_url`, `biography`, `specialties`, `languages`, `consultation_fee`, `session_type`) VALUES
-(2, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(4, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(5, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(6, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(7, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(8, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(9, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(10, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(11, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(12, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both'),
-(13, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', '1500.00', 'both');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `patient_profiles`
---
-
-CREATE TABLE `patient_profiles` (
-  `user_id` int(11) NOT NULL,
-  `profile_photo_url` varchar(255) DEFAULT '',
-  `contact_number` varchar(50) DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `preferred_language` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+(2, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(4, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(5, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(6, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(7, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(8, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(9, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(10, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(11, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(12, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
+(13, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both');
 
 -- --------------------------------------------------------
 
@@ -147,7 +154,7 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `role` enum('patient','therapist','admin') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
@@ -166,11 +173,20 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`) VA
 (10, 'Dr. Nusrat Jahan', 'nusrat@therapy.com', 'password123', 'therapist', '2026-07-07 03:25:53'),
 (11, 'Dr. Imran Khan', 'imran@therapy.com', 'password123', 'therapist', '2026-07-07 03:25:53'),
 (12, 'Dr. Salma Begum', 'salma@therapy.com', 'password123', 'therapist', '2026-07-07 03:25:53'),
-(13, 'Dr. Zaid Hasan', 'zaid@therapy.com', 'password123', 'therapist', '2026-07-07 03:25:53');
+(13, 'Dr. Zaid Hasan', 'zaid@therapy.com', 'password123', 'therapist', '2026-07-07 03:25:53'),
+(14, 'Anika Rahman', 'anika@test.com', 'password123', 'patient', '2026-07-13 15:22:47'),
+(15, 'Tanvir Hasan', 'tanvir@test.com', 'password123', 'patient', '2026-07-13 15:22:47'),
+(16, 'Sadia Islam', 'sadia@test.com', 'password123', 'patient', '2026-07-13 15:22:47');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `patient_profiles`
+--
+ALTER TABLE `patient_profiles`
+  ADD PRIMARY KEY (`user_id`);
 
 --
 -- Indexes for table `system_settings`
@@ -184,12 +200,6 @@ ALTER TABLE `system_settings`
 ALTER TABLE `therapist_applications`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
-
---
--- Indexes for table `patient_profiles`
---
-ALTER TABLE `patient_profiles`
-  ADD PRIMARY KEY (`user_id`);
 
 --
 -- Indexes for table `therapist_profiles`
@@ -218,7 +228,7 @@ ALTER TABLE `therapist_applications`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- Constraints for dumped tables

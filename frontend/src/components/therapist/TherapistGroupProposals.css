@@ -1,0 +1,224 @@
+.tgp-container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    color: #1f2233;
+}
+
+.tgp-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #1a1c2e;
+}
+
+.tgp-header p {
+    font-size: 13.5px;
+    color: #6b6e89;
+    margin: 0 0 20px;
+}
+
+.tgp-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-bottom: 20px;
+}
+
+.tgp-alert-success {
+    background: #e6faf0;
+    color: #1a9c5c;
+    border: 1px solid #b6ecd0;
+}
+
+.tgp-alert-error {
+    background: #fdeaea;
+    color: #d1433f;
+    border: 1px solid #f9c5c5;
+}
+
+.tgp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 900px) {
+    .tgp-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tgp-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #ececf5;
+    padding: 22px;
+    box-shadow: 0 1px 3px rgba(20, 21, 43, 0.04);
+}
+
+.tgp-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: #6c5ce7;
+}
+
+.tgp-card-title h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    color: #1a1c2e;
+}
+
+.tgp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.tgp-field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.tgp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tgp-field label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #4a4d68;
+}
+
+.tgp-field input,
+.tgp-field select,
+.tgp-field textarea {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e3ef;
+    font-size: 13.5px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+}
+
+.tgp-field input:focus,
+.tgp-field select:focus,
+.tgp-field textarea:focus {
+    border-color: #6c5ce7;
+}
+
+.tgp-btn-submit {
+    margin-top: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #6c5ce7;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.tgp-btn-submit:hover:not(:disabled) {
+    background: #5c4dd6;
+}
+
+.tgp-btn-submit:disabled {
+    background: #cfc7ff;
+    cursor: not-allowed;
+}
+
+.tgp-state-msg {
+    text-align: center;
+    color: #9497b3;
+    font-size: 13.5px;
+    padding: 40px 0;
+}
+
+.tgp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.tgp-item {
+    background: #f8f8fc;
+    border: 1px solid #eeeef7;
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+
+.tgp-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.tgp-item-header h3 {
+    font-size: 14.5px;
+    font-weight: 600;
+    margin: 0;
+    color: #1a1c2e;
+}
+
+.tgp-item-sub {
+    font-size: 12px;
+    color: #8386a3;
+    margin: 4px 0 10px;
+}
+
+.tgp-item-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12.5px;
+    color: #4a4d68;
+    font-weight: 500;
+}
+
+.tgp-item-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tgp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.status-pending { background: #fff6e0; color: #b8860b; }
+.status-approved { background: #e6faf0; color: #1a9c5c; }
+.status-rejected { background: #fdeaea; color: #d1433f; }
+
+.tgp-rejection-note {
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: #fdeaea;
+    color: #d1433f;
+    border-radius: 6px;
+    font-size: 12px;
+}

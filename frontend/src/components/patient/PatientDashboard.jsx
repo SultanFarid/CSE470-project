@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Bell, Calendar, CheckCircle, Clock, Play, User, Star, Search, 
   Users, LogOut, ArrowRight, Settings, Heart, Sliders, MapPin, 
-  Globe, Phone, Video, ShieldAlert, Plus, CheckSquare, BarChart2
+  Globe, Phone, Video, ShieldAlert, Plus, CheckSquare, BarChart2, Check
 } from 'lucide-react';
 import './PatientDashboard.css';
 import { 
   getPatientProfile, updatePatientProfile, uploadPatientPhoto, SERVER_BASE_URL,
   getPatientTasks, createPatientTask, deletePatientTask, getTherapistDirectory,
   getAppointments, bookAppointment, cancelAppointment, getTherapistSlots,
-  submitReview, getPendingReview, getAllTherapistReviewSummaries
+  submitReview, getPendingReview, getAllTherapistReviewSummaries,
+  patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments
 } from '../../services/api';
 
 import ActiveAppointmentCard from './ActiveAppointmentCard';
@@ -19,7 +21,7 @@ import TherapistDirectoryModal from './TherapistDirectoryModal';
 import BookingModal from './BookingModal';
 import TasksModal from './TasksModal';
 import ReviewFeedbackModal from './ReviewFeedbackModal';
-
+import NotificationBell from '../shared/NotificationBell';
 
 const parseVideoUrl = (url) => {
   if (!url) return null;
@@ -73,17 +75,15 @@ const MOCK_THERAPISTS = [
 
 const scoreTherapist = (therapist, vitals, summaries = {}) => {
   let score = 0;
-  vitals.concerns.forEach((c) => { if (therapist.specialties.includes(c)) score += 1; });
+  vitals.concerns.forEach((c) => { if (therapist.specialties && therapist.specialties.includes(c)) score += 1; });
   if (vitals.genderPref === "No preference" || therapist.gender === vitals.genderPref) score += 1;
-  if (vitals.languagePref === "No preference" || therapist.languages.includes(vitals.languagePref)) score += 1;
-  if (vitals.formatPref === "Either" || therapist.formats.includes(vitals.formatPref)) score += 1;
+  if (vitals.languagePref === "No preference" || (therapist.languages && therapist.languages.includes(vitals.languagePref))) score += 1;
+  if (vitals.formatPref === "Either" || (therapist.formats && therapist.formats.includes(vitals.formatPref))) score += 1;
 
   // Feature 7: Weighted signals from patient reviews & feedback tags
   const fb = summaries[therapist.id];
   if (fb) {
-    // Star rating boost
     if (fb.averageRating >= 4.7) score += 0.5;
-    // Positive communication & clinical approach tag bonus
     if (fb.tagCounts) {
       if (fb.tagCounts['Listens carefully'] || fb.tagCounts['Warm and supportive']) score += 0.5;
       if (fb.tagCounts['Good at treatment'] || fb.tagCounts['Structured sessions']) score += 0.5;
@@ -93,6 +93,8 @@ const scoreTherapist = (therapist, vitals, summaries = {}) => {
 };
 
 export default function PatientDashboard() {
+  const navigate = useNavigate();
+
   const [patientUser, setPatientUser] = useState({
     name: 'Yasar Mostafa',
     email: '',
@@ -104,8 +106,12 @@ export default function PatientDashboard() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [showRatingSuccess, setShowRatingSuccess] = useState(false);
   const [groupJoinRequested, setGroupJoinRequested] = useState(false);
+
+  // Group Sessions State
+  const [groupSessions, setGroupSessions] = useState([]);
+  const [enrolledSessionIds, setEnrolledSessionIds] = useState(new Set());
+  const [joiningId, setJoiningId] = useState(null);
 
   // Feature 7: Review & Feedback State
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -128,10 +134,6 @@ export default function PatientDashboard() {
   const [tasksError, setTasksError] = useState('');
   const previewChecklistItems = checklistItems.slice(0, 3);
   const [showAllTasksModal, setShowAllTasksModal] = useState(false);
-  const [showAddTaskForm, setShowAddTaskForm] = useState(false);
-  const [newTask, setNewTask] = useState({ text: '', dueDate: '', dueTime: '', videoUrl: '' });
-  const [addTaskError, setAddTaskError] = useState('');
-  const [isAddingTask, setIsAddingTask] = useState(false);
 
   // Vitals State
   const [showVitalsModal, setShowVitalsModal] = useState(false);
@@ -164,37 +166,12 @@ export default function PatientDashboard() {
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
+  const [cancelNotification, setCancelNotification] = useState(null);
 
   const TIME_SLOT_OPTIONS = [
     '09:00 AM - 09:50 AM', '10:00 AM - 10:50 AM', '11:00 AM - 11:50 AM',
     '02:00 PM - 02:50 PM', '03:00 PM - 03:50 PM', '04:00 PM - 04:50 PM'
   ];
-
-
-  useEffect(() => {
-    const fetchPatientProfile = async () => {
-      try {
-        setLoading(true);
-        const data = await getPatientProfile();
-        if (data) {
-          setPatientUser({
-            name: data.name || 'Yasar Mostafa',
-            email: data.email,
-            location: data.location || 'Dhaka, Bangladesh',
-            language: data.preferred_language || 'English, Bengali',
-            contact: data.contact_number || '+880 1712-345678',
-            therapist: data.assigned_therapist || 'Dr. Sultan M. Farid',
-            profile_photo_url: data.profile_photo_url || ''
-          });
-        }
-      } catch (error) {
-        console.error("Error pulling live patient data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPatientProfile();
-  }, []);
 
   const DEFAULT_TASKS = [
     { id: 101, text: "Take Morning Medication (Sertraline 50mg)", dueDate: new Date().toISOString().slice(0, 10), dueTime: "8:00 AM", videoUrl: null },
@@ -215,26 +192,59 @@ export default function PatientDashboard() {
   ];
 
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const data = await getPatientProfile();
+        if (data) {
+          setPatientUser({
+            name: data.name || data.display_name || 'Yasar Mostafa',
+            email: data.email || '',
+            location: data.location || 'Dhaka, Bangladesh',
+            language: data.preferred_language || data.language || 'English, Bengali',
+            contact: data.contact_number || data.contact || '+880 1712-345678',
+            therapist: data.assigned_therapist || 'Dr. Sultan M. Farid',
+            profile_photo_url: data.profile_photo_url || ''
+          });
+        }
+
+        // Fetch Open Group Sessions
+        try {
+          if (typeof patientGetOpenGroupSessions === 'function') {
+            const sessionsRes = await patientGetOpenGroupSessions();
+            const sessionsList = Array.isArray(sessionsRes) ? sessionsRes : (sessionsRes?.data || []);
+            setGroupSessions(sessionsList);
+          }
+          if (typeof patientGetMyEnrollments === 'function') {
+            const enrollmentsRes = await patientGetMyEnrollments();
+            const myEnrollments = Array.isArray(enrollmentsRes) ? enrollmentsRes : (enrollmentsRes?.data || []);
+            setEnrolledSessionIds(new Set(myEnrollments.map(e => e.group_session_id)));
+          }
+        } catch (groupErr) {
+          console.error("Group sessions load error:", groupErr);
+        }
+
+      } catch (error) {
+        console.error("Error pulling live dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
     const fetchTasks = async () => {
       try {
         setTasksLoading(true);
-        setTasksError('');
         const data = await getPatientTasks();
-        if (data && data.length > 0) {
-          setChecklistItems(
-            data.map((t) => ({
-              id: t.id,
-              text: t.text,
-              dueDate: t.due_date,
-              dueTime: t.due_time || '',
-              videoUrl: t.video_url || null
-            }))
-          );
+        if (Array.isArray(data) && data.length > 0) {
+          setChecklistItems(data);
         } else {
           setChecklistItems(DEFAULT_TASKS);
         }
-      } catch (error) {
-        console.error("Error fetching tasks, loading defaults:", error);
+      } catch (err) {
         setChecklistItems(DEFAULT_TASKS);
       } finally {
         setTasksLoading(false);
@@ -243,66 +253,63 @@ export default function PatientDashboard() {
     fetchTasks();
   }, []);
 
-  const fetchPatientAppointments = async () => {
-    try {
-      setAppointmentsLoading(true);
-      const data = await getAppointments();
-      if (data && data.length > 0) {
-        setAppointments(data);
-      } else {
-        setAppointments(DEFAULT_APPOINTMENTS);
-      }
-    } catch (err) {
-      console.error("Error fetching appointments, loading defaults:", err);
-      setAppointments(DEFAULT_APPOINTMENTS);
-    } finally {
-      setAppointmentsLoading(false);
-    }
-  };
-
-
   useEffect(() => {
-    fetchPatientAppointments();
-  }, []);
-
-  useEffect(() => {
-    const fetchReviewData = async () => {
+    const fetchAppts = async () => {
       try {
-        const data = await getAllTherapistReviewSummaries();
-        if (data) setReviewSummaries(data);
+        setAppointmentsLoading(true);
+        const data = await getAppointments();
+        if (Array.isArray(data) && data.length > 0) {
+          setAppointments(data);
+        } else {
+          setAppointments(DEFAULT_APPOINTMENTS);
+        }
       } catch (err) {
-        console.error("Error loading review summaries:", err);
+        setAppointments(DEFAULT_APPOINTMENTS);
+      } finally {
+        setAppointmentsLoading(false);
       }
     };
-    fetchReviewData();
+    fetchAppts();
   }, []);
 
-
-  const toggleChecklistItem = async (id) => {
-    // Instantly remove only the checked task item from UI state
-    setChecklistItems((prev) => prev.filter((item) => item.id !== id));
-    setTasksError('');
-
-    // Sync deletion with backend if it's a valid database task ID
-    if (typeof id === 'number' && id < 100) {
+  useEffect(() => {
+    const fetchSummaries = async () => {
       try {
-        await deletePatientTask(id);
-      } catch (error) {
-        console.error("Task backend deletion error:", error);
+        const summaries = await getAllTherapistReviewSummaries();
+        if (summaries && typeof summaries === 'object') {
+          setReviewSummaries(summaries);
+        }
+      } catch (err) {
+        // Fallback
       }
+    };
+    fetchSummaries();
+  }, []);
+
+  const handleJoinGroup = async (sessionId) => {
+    try {
+      setJoiningId(sessionId);
+      if (typeof patientJoinGroupSession === 'function') {
+        await patientJoinGroupSession(sessionId);
+        setEnrolledSessionIds(prev => new Set([...prev, sessionId]));
+      }
+    } catch (err) {
+      alert("Failed to join group session: " + (err.response?.data?.message || err.message));
+    } finally {
+      setJoiningId(null);
     }
   };
 
-
-  const getInitials = (name) => {
-    if (!name || name === 'Loading...') return 'YM';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const getInitials = (fullName = '') => {
+    return fullName.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const getPhotoUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return `${SERVER_BASE_URL}${path}`;
+  const getPhotoUrl = (photoPath) => {
+    if (!photoPath) return null;
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) return photoPath;
+    const base = SERVER_BASE_URL.replace(/\/$/, '');
+    const cleanPath = photoPath.replace(/^\//, '');
+    return `${base}/${cleanPath}`;
   };
 
   const openEditModal = () => {
@@ -313,139 +320,152 @@ export default function PatientDashboard() {
       preferred_language: patientUser.language
     });
     setPhotoFile(null);
-    setPhotoPreview(null);
+    setPhotoPreview(patientUser.profile_photo_url ? getPhotoUrl(patientUser.profile_photo_url) : null);
     setSaveError('');
     setIsEditModalOpen(true);
   };
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);
-    setSaveError('');
+    setPhotoFile(null);
+    setPhotoPreview(null);
   };
 
   const handlePhotoSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setSaveError('Please select a valid image file (PNG, JPG, JPEG).');
+        return;
+      }
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      setSaveError('');
+    }
   };
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
+    setSaveError('');
     try {
-      setIsSaving(true);
-      setSaveError('');
-      let photoUrl = patientUser.profile_photo_url;
+      let updatedPhotoUrl = patientUser.profile_photo_url;
       if (photoFile) {
         const formData = new FormData();
         formData.append('photo', photoFile);
-        const uploadRes = await uploadPatientPhoto(formData);
-        if (uploadRes?.url) photoUrl = uploadRes.url;
+        const photoRes = await uploadPatientPhoto(formData);
+        if (photoRes && photoRes.profile_photo_url) {
+          updatedPhotoUrl = photoRes.profile_photo_url;
+        }
       }
-      await updatePatientProfile({
-        name: editForm.name,
-        contact_number: editForm.contact_number,
-        location: editForm.location,
-        preferred_language: editForm.preferred_language,
-        profile_photo_url: photoUrl
-      });
-      setPatientUser((prev) => ({
+
+      await updatePatientProfile(editForm);
+
+      setPatientUser(prev => ({
         ...prev,
         name: editForm.name,
         contact: editForm.contact_number,
         location: editForm.location,
         language: editForm.preferred_language,
-        profile_photo_url: photoUrl
+        profile_photo_url: updatedPhotoUrl
       }));
+
       closeEditModal();
     } catch (err) {
-      console.error("Error saving patient profile:", err);
-      setSaveError(err.response?.data?.message || "Failed to update profile. Please try again.");
+      setSaveError(err.response?.data?.message || 'Failed to update profile.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleAddTaskSubmit = async (e) => {
-    e.preventDefault();
-    if (!newTask.text.trim() || !newTask.dueDate) {
-      setAddTaskError('Please provide both a task description and a due date.');
+  const toggleTaskCompletion = async (id) => {
+    const isMock = id >= 100 && id <= 103;
+    if (isMock) {
+      setChecklistItems(prev => prev.filter(item => item.id !== id));
       return;
     }
     try {
-      setIsAddingTask(true);
-      setAddTaskError('');
-      const created = await createPatientTask({
-        text: newTask.text,
-        due_date: newTask.dueDate,
-        due_time: newTask.dueTime,
-        video_url: newTask.videoUrl
-      });
-      setChecklistItems((prev) => [
-        {
-          id: created.id,
-          text: created.text,
-          dueDate: created.due_date,
-          dueTime: created.due_time || '',
-          videoUrl: created.video_url || null
-        },
-        ...prev
-      ]);
-      setNewTask({ text: '', dueDate: '', dueTime: '', videoUrl: '' });
-      setShowAddTaskForm(false);
+      await deletePatientTask(id);
+      setChecklistItems(prev => prev.filter(item => item.id !== id));
     } catch (err) {
-      console.error("Error creating task:", err);
-      setAddTaskError(err.response?.data?.message || "Failed to create task.");
-    } finally {
-      setIsAddingTask(false);
+      setChecklistItems(prev => prev.filter(item => item.id !== id));
     }
   };
 
-  const cancelAddTask = () => {
-    setNewTask({ text: '', dueDate: '', dueTime: '', videoUrl: '' });
-    setAddTaskError('');
-    setShowAddTaskForm(false);
-  };
-
-  // Vitals Handlers
   const openVitalsModal = () => {
     setVitalsStep(0);
-    setVitalsData({ concerns: [], duration: '', severity: '', genderPref: '', languagePref: '', formatPref: '', notes: '' });
+    setVitalsData({
+      concerns: [], duration: '', severity: '',
+      genderPref: 'No preference', languagePref: 'No preference',
+      formatPref: 'Either', notes: ''
+    });
     setAiMatches([]);
     setShowVitalsModal(true);
   };
+
   const closeVitalsModal = () => setShowVitalsModal(false);
+
   const toggleConcern = (concern) => {
-    setVitalsData((prev) => ({
-      ...prev,
-      concerns: prev.concerns.includes(concern)
-        ? prev.concerns.filter((c) => c !== concern)
-        : [...prev.concerns, concern]
-    }));
+    setVitalsData(prev => {
+      const exists = prev.concerns.includes(concern);
+      const nextConcerns = exists ? prev.concerns.filter(c => c !== concern) : [...prev.concerns, concern];
+      return { ...prev, concerns: nextConcerns };
+    });
   };
+
   const setVitalsField = (field, value) => {
-    setVitalsData((prev) => ({ ...prev, [field]: value }));
+    setVitalsData(prev => ({ ...prev, [field]: value }));
   };
+
   const isVitalsStepValid = () => {
-    switch (vitalsStep) {
-      case 0: return vitalsData.concerns.length > 0;
-      case 1: return !!vitalsData.duration;
-      case 2: return !!vitalsData.severity;
-      case 3: return !!vitalsData.genderPref && !!vitalsData.languagePref;
-      case 4: return !!vitalsData.formatPref;
-      case 5: return true;
-      default: return true;
+    if (vitalsStep === 0) return vitalsData.concerns.length > 0;
+    if (vitalsStep === 1) return vitalsData.duration !== '';
+    if (vitalsStep === 2) return vitalsData.severity !== '';
+    if (vitalsStep === 3) return vitalsData.genderPref !== '';
+    if (vitalsStep === 4) return vitalsData.languagePref !== '';
+    if (vitalsStep === 5) return vitalsData.formatPref !== '';
+    return true;
+  };
+
+  const goVitalsNext = () => {
+    if (vitalsStep < TOTAL_VITALS_QUESTION_STEPS - 1) {
+      setVitalsStep(prev => prev + 1);
+    } else {
+      runAiMatchmaker();
     }
   };
-  const goVitalsNext = () => setVitalsStep((s) => s + 1);
-  const goVitalsBack = () => setVitalsStep((s) => Math.max(0, s - 1));
+
+  const goVitalsBack = () => {
+    if (vitalsStep > 0) setVitalsStep(prev => prev - 1);
+  };
+
+  const runAiMatchmaker = async () => {
+    let pool = MOCK_THERAPISTS;
+    try {
+      const dbTherapists = await getTherapistDirectory();
+      if (Array.isArray(dbTherapists) && dbTherapists.length > 0) {
+        pool = dbTherapists;
+      }
+    } catch (err) {
+      // Use fallback
+    }
+
+    const scored = pool.map(t => {
+      const score = scoreTherapist(t, vitalsData, reviewSummaries);
+      const maxPossible = (vitalsData.concerns.length || 1) + 3;
+      const matchPct = Math.min(99, Math.max(70, Math.round((score / maxPossible) * 100)));
+      return { ...t, matchScore: score, matchPct };
+    });
+
+    scored.sort((a, b) => b.matchScore - a.matchScore);
+    const top3 = scored.slice(0, 3);
+    setAiMatches(top3);
+    setVitalsStep(6);
+  };
 
   const handleFindWithAI = () => {
-    const scored = MOCK_THERAPISTS
-      .map((t) => ({ ...t, score: scoreTherapist(t, vitalsData, reviewSummaries) }))
-      .sort((a, b) => b.score - a.score);
-    setAiMatches(scored.slice(0, 3));
-    setVitalsStep(7);
+    closeVitalsModal();
+    openVitalsModal();
   };
 
   const handleSearchManually = () => {
@@ -453,210 +473,191 @@ export default function PatientDashboard() {
     openDirectoryModal();
   };
 
-  // Feature 7 Review Handlers
-  const openReviewModal = (therapist, apptId = 1) => {
-    setReviewTherapist(therapist || { id: 1, name: 'Dr. Ayesha Rahman', specialties: 'Anxiety, Depression' });
-    setReviewAppointmentId(apptId || 1);
-    setShowReviewModal(true);
-  };
-
-  const handleReviewSubmit = async (payload) => {
-    try {
-      await submitReview(payload);
-      setReviewSubmitted(true);
-      const updated = await getAllTherapistReviewSummaries();
-      if (updated) setReviewSummaries(updated);
-    } catch (err) {
-      console.error("Review submission error:", err);
-      setReviewSubmitted(true);
-    }
-  };
-
-
-  // Directory Handlers
   const openDirectoryModal = async () => {
     setShowDirectoryModal(true);
-    if (directoryTherapists.length === 0) {
-      try {
-        setDirectoryLoading(true);
-        setDirectoryError('');
-        const data = await getTherapistDirectory();
-        const formatted = (data || []).map((t) => ({
-          id: t.id,
-          name: t.name,
-          biography: t.biography || '',
-          specialties: t.specialties ? t.specialties.split(',').map((s) => s.trim()) : [],
-          languages: t.languages ? t.languages.split(',').map((l) => l.trim()) : [],
-          consultation_fee: t.consultation_fee ? Number(t.consultation_fee) : 0,
-          session_type: t.session_type || 'both',
-          profile_photo_url: t.profile_photo_url || ''
-        }));
-        setDirectoryTherapists(formatted);
-      } catch (err) {
-        console.error("Error loading directory:", err);
-        setDirectoryError("Failed to load therapist directory. Please try again.");
-      } finally {
-        setDirectoryLoading(false);
+    setDirectorySearch('');
+    setDirectorySpecialtyFilter('All');
+    setDirectoryLanguageFilter('All');
+    setDirectoryFormatFilter('All');
+    setDirectoryLoading(true);
+    setDirectoryError('');
+    try {
+      const data = await getTherapistDirectory();
+      if (Array.isArray(data) && data.length > 0) {
+        setDirectoryTherapists(data);
+      } else {
+        setDirectoryTherapists(MOCK_THERAPISTS);
       }
+    } catch (err) {
+      setDirectoryTherapists(MOCK_THERAPISTS);
+    } finally {
+      setDirectoryLoading(false);
     }
   };
 
   const closeDirectoryModal = () => setShowDirectoryModal(false);
 
-  const directorySpecialtyOptions = ['All', ...new Set(directoryTherapists.flatMap((t) => t.specialties))];
-  const directoryLanguageOptions = ['All', ...new Set(directoryTherapists.flatMap((t) => t.languages))];
-  const directoryFormatOptions = ['All', 'online', 'in-person', 'both'];
+  const directorySpecialtyOptions = ['All', ...CONCERN_OPTIONS];
+  const directoryLanguageOptions = ['All', 'English', 'Bengali'];
+  const directoryFormatOptions = ['All', 'Online Video', 'In-Person'];
 
-  const filteredDirectoryTherapists = directoryTherapists.filter((t) => {
-    const q = directorySearch.toLowerCase().trim();
-    const matchesSearch = !q || t.name.toLowerCase().includes(q) || t.specialties.some((s) => s.toLowerCase().includes(q));
-    const matchesSpecialty = directorySpecialtyFilter === 'All' || t.specialties.includes(directorySpecialtyFilter);
-    const matchesLanguage = directoryLanguageFilter === 'All' || t.languages.includes(directoryLanguageFilter);
-    const matchesFormat = directoryFormatFilter === 'All' || t.session_type === directoryFormatFilter || t.session_type === 'both';
-    return matchesSearch && matchesSpecialty && matchesLanguage && matchesFormat;
+  const filteredDirectoryTherapists = directoryTherapists.filter(t => {
+    const nameMatch = !directorySearch || t.name.toLowerCase().includes(directorySearch.toLowerCase()) || (t.bio && t.bio.toLowerCase().includes(directorySearch.toLowerCase()));
+    const specMatch = directorySpecialtyFilter === 'All' || (t.specialties && t.specialties.includes(directorySpecialtyFilter));
+    const langMatch = directoryLanguageFilter === 'All' || (t.languages && t.languages.includes(directoryLanguageFilter));
+    const formatMatch = directoryFormatFilter === 'All' || (t.formats && t.formats.includes(directoryFormatFilter));
+    return nameMatch && specMatch && langMatch && formatMatch;
   });
 
-  // Booking Handlers
   const openBookingModal = async (therapist) => {
     setSelectedTherapistForBooking(therapist);
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    setBookingForm({
+      date: tomorrow,
+      timeSlot: '10:00 AM - 10:50 AM',
+      sessionType: 'online'
+    });
     setBookingError('');
     setBookingSuccess('');
-    const defaultDate = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-    setBookingForm({
-      date: defaultDate,
-      timeSlot: '10:00 AM - 10:50 AM',
-      sessionType: therapist?.session_type === 'in-person' ? 'in-person' : 'online'
-    });
     setShowBookingModal(true);
-    if (therapist?.id) {
-      try {
-        const slotsData = await getTherapistSlots(therapist.id, defaultDate);
-        setBookedSlots(slotsData.bookedSlots || []);
-      } catch (err) {
-        console.error("Error checking slots:", err);
-      }
+    fetchBookedSlots(therapist.id, tomorrow);
+  };
+
+  const fetchBookedSlots = async (therapistId, date) => {
+    try {
+      const slots = await getTherapistSlots(therapistId, date);
+      setBookedSlots(slots || []);
+    } catch (err) {
+      setBookedSlots([]);
     }
   };
 
-  const handleBookingDateChange = async (newDate) => {
-    setBookingForm((prev) => ({ ...prev, date: newDate }));
-    if (selectedTherapistForBooking?.id) {
-      try {
-        const slotsData = await getTherapistSlots(selectedTherapistForBooking.id, newDate);
-        setBookedSlots(slotsData.bookedSlots || []);
-      } catch (err) {
-        console.error("Error checking slots:", err);
-      }
+  const handleBookingDateChange = (date) => {
+    setBookingForm(prev => ({ ...prev, date }));
+    if (selectedTherapistForBooking) {
+      fetchBookedSlots(selectedTherapistForBooking.id, date);
     }
   };
-
-  const [cancelNotification, setCancelNotification] = useState('');
 
   const handleConfirmBooking = async (e) => {
-    if (e) e.preventDefault();
-    if (!bookingForm.date || !bookingForm.timeSlot) {
-      setBookingError('Please select a date and time slot.');
-      return;
-    }
-
-    const newAppObj = {
-      id: Date.now(),
-      therapist_name: selectedTherapistForBooking?.name || "Dr. Sultan M. Farid",
-      therapist_specialties: selectedTherapistForBooking?.specialties?.join(', ') || "Clinical Psychology",
-      session_type: bookingForm.sessionType,
-      appointment_date: bookingForm.date,
-      time_slot: bookingForm.timeSlot,
-      status: "confirmed"
-    };
-
+    e.preventDefault();
+    if (!selectedTherapistForBooking) return;
+    setBookingLoading(true);
+    setBookingError('');
     try {
-      setBookingLoading(true);
-      setBookingError('');
-      await bookAppointment({
-        therapist_id: selectedTherapistForBooking?.id || 2,
+      const bookingData = {
+        therapist_id: selectedTherapistForBooking.id,
         appointment_date: bookingForm.date,
         time_slot: bookingForm.timeSlot,
         session_type: bookingForm.sessionType
-      });
-      setBookingSuccess('Appointment booked successfully!');
-      setAppointments((prev) => [newAppObj, ...prev.filter(a => a.status !== 'cancelled')]);
+      };
+      const result = await bookAppointment(bookingData);
+      setBookingSuccess('Appointment confirmed successfully!');
+
+      const newAppt = {
+        id: result.appointmentId || Date.now(),
+        therapist_name: selectedTherapistForBooking.name,
+        therapist_specialties: Array.isArray(selectedTherapistForBooking.specialties) ? selectedTherapistForBooking.specialties.join(', ') : selectedTherapistForBooking.specialties,
+        session_type: bookingForm.sessionType,
+        appointment_date: bookingForm.date,
+        time_slot: bookingForm.timeSlot,
+        status: 'confirmed',
+        profile_photo_url: selectedTherapistForBooking.profile_photo_url || ''
+      };
+
+      setAppointments(prev => [newAppt, ...prev]);
+
       setTimeout(() => {
         setShowBookingModal(false);
-        setShowVitalsModal(false);
-        setShowDirectoryModal(false);
-      }, 1200);
+        setBookingSuccess('');
+      }, 1500);
     } catch (err) {
-      console.error("Booking error, updating UI state directly:", err);
-      setAppointments((prev) => [newAppObj, ...prev.filter(a => a.status !== 'cancelled')]);
-      setBookingSuccess('Appointment booked successfully!');
-      setTimeout(() => {
-        setShowBookingModal(false);
-        setShowVitalsModal(false);
-        setShowDirectoryModal(false);
-      }, 1200);
+      setBookingError(err.response?.data?.message || 'Failed to confirm booking.');
     } finally {
       setBookingLoading(false);
     }
   };
 
   const handleCancelAppointment = async (appointmentId) => {
+    if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
     try {
       await cancelAppointment(appointmentId);
+      setAppointments(prev => prev.filter(appt => appt.id !== appointmentId));
+      setCancelNotification("Appointment canceled successfully.");
+      setTimeout(() => setCancelNotification(null), 5000);
     } catch (err) {
-      console.error("Error cancelling appointment:", err);
-    } finally {
-      // Remove cancelled appointment from state so it vanishes from tracker
-      setAppointments((prev) => prev.filter((app) => app.id !== appointmentId));
-      setCancelNotification('Appointment has been cancelled successfully.');
-      setTimeout(() => setCancelNotification(''), 4000);
+      setAppointments(prev => prev.filter(appt => appt.id !== appointmentId));
+      setCancelNotification("Appointment canceled successfully.");
+      setTimeout(() => setCancelNotification(null), 5000);
     }
   };
 
+  const openReviewModal = (appt) => {
+    setReviewTherapist({
+      id: appt.therapist_id || 1,
+      name: appt.therapist_name || 'Dr. Sultan M. Farid',
+      specialties: appt.therapist_specialties || 'Clinical Psychology'
+    });
+    setReviewAppointmentId(appt.id || 1);
+    setShowReviewModal(true);
+  };
+
+  const handleReviewSubmit = async (reviewPayload) => {
+    await submitReview(reviewPayload);
+    setReviewSubmitted(true);
+    setShowReviewModal(false);
+    const summaries = await getAllTherapistReviewSummaries();
+    if (summaries) setReviewSummaries(summaries);
+  };
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   const renderChecklistRow = (item) => {
     const video = parseVideoUrl(item.videoUrl);
-    const due = getDueInfo(item.dueDate, item.dueTime);
+    const dueInfo = getDueInfo(item.dueDate, item.dueTime);
 
     return (
-      <div key={item.id} className="checklist-row-container row-active" style={{ border: '2px solid #0284c7', borderRadius: '8px', padding: '14px', background: '#ffffff', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div className="checklist-row-top" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button className="checkbox-toggle-btn" onClick={() => toggleChecklistItem(item.id)}>
-              <div className="icon-unchecked"></div>
-            </button>
-            <span className="checklist-task-text text-bold" style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
-              {item.text}
-              <span className="due-today-badge">{due.label}</span>
-            </span>
+      <div key={item.id} className="checklist-row-card">
+        <div className="checklist-row-main">
+          <button
+            type="button"
+            className="checklist-toggle-btn"
+            onClick={() => toggleTaskCompletion(item.id)}
+            title="Mark as done"
+            aria-label={`Mark task ${item.text} as complete`}
+          >
+            <span className="checklist-toggle-box" />
+          </button>
+          <div className="checklist-item-content">
+            <span className="checklist-task-text">{item.text}</span>
+            <div className="checklist-meta-line">
+              <span className={`checklist-due-badge badge-${dueInfo.status}`}>
+                {dueInfo.label}
+              </span>
+              {video && (
+                <span className="checklist-video-tag">
+                  <Play size={11} /> Video Prescribed
+                </span>
+              )}
+            </div>
           </div>
         </div>
-
-        {video && (
-          <div className="video-player-placeholder" style={{ width: '100%', marginTop: '8px', background: '#0f172a', borderRadius: '8px', overflow: 'hidden' }}>
-            {video.type === 'youtube' ? (
-              <iframe
-                style={{ width: '100%', height: '220px', border: 'none', borderRadius: '8px' }}
-                src={video.embedUrl}
-                title={`Exercise video for ${item.text}`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <video style={{ width: '100%', height: '220px', borderRadius: '8px' }} controls preload="metadata">
-                <source src={video.url} />
-              </video>
-            )}
+        {video && video.type === 'youtube' && (
+          <div className="checklist-embedded-video">
+            <iframe
+              src={video.embedUrl}
+              title={item.text}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           </div>
         )}
       </div>
     );
   };
-
 
   return (
     <div className="patient-dashboard-container">
@@ -670,11 +671,8 @@ export default function PatientDashboard() {
           <span className="mode-badge">Patient Mode</span>
         </div>
         <div className="navbar-right">
-          <div className="notifications-box">
-            <Bell size={16} className="icon-bell" />
-            <span>Reminders (1)</span>
-          </div>
-          <div className="user-profile-tile" onClick={openEditModal}>
+          <NotificationBell />
+          <div className="user-profile-tile" onClick={openEditModal} style={{ cursor: 'pointer' }}>
             <div className="avatar-circle-sm">
               {patientUser.profile_photo_url ? (
                 <img src={getPhotoUrl(patientUser.profile_photo_url)} alt={patientUser.name} className="avatar-photo" />
@@ -687,24 +685,31 @@ export default function PatientDashboard() {
         </div>
       </header>
 
-
       <div className="dashboard-body">
         {/* B. LEFT NAVIGATION SIDEBAR */}
         <aside className="left-sidebar">
           <nav className="sidebar-menu">
-            <div className="menu-item active"><Heart size={18} /><span>Recovery Hub</span></div>
+            <div className="menu-item active" onClick={() => navigate('/patient-dashboard')} style={{ cursor: 'pointer' }}>
+              <Heart size={18} /><span>Recovery Hub</span>
+            </div>
             <div className="menu-item" onClick={() => openBookingModal({ id: 2, name: 'Dr. Sultan M. Farid', consultation_fee: 1500, session_type: 'both' })} style={{ cursor: 'pointer' }}>
               <Calendar size={18} /><span>My Appointments</span>
             </div>
-            <div className="menu-item"><CheckSquare size={18} /><span>Daily Checklist</span></div>
+            <div className="menu-item" onClick={() => setShowAllTasksModal(true)} style={{ cursor: 'pointer' }}>
+              <CheckSquare size={18} /><span>Daily Checklist</span>
+            </div>
             <div className="menu-item" onClick={openVitalsModal} style={{ cursor: 'pointer' }}>
               <Sliders size={18} /><span>AI Matchmaker</span>
             </div>
             <div className="menu-item" onClick={openDirectoryModal} style={{ cursor: 'pointer' }}>
               <Search size={18} /><span>Therapist Directory</span>
             </div>
-            <div className="menu-item"><Users size={18} /><span>Group Sessions</span></div>
-            <div className="menu-item"><BarChart2 size={18} /><span>Vitals & Progress</span></div>
+            <div className="menu-item" onClick={() => navigate('/patient/group-sessions')} style={{ cursor: 'pointer' }}>
+              <Users size={18} /><span>Group Sessions</span>
+            </div>
+            <div className="menu-item" onClick={openVitalsModal} style={{ cursor: 'pointer' }}>
+              <BarChart2 size={18} /><span>Vitals & Progress</span>
+            </div>
             <div className="menu-item" onClick={openEditModal} style={{ cursor: 'pointer' }}>
               <Settings size={18} /><span>Profile Settings</span>
             </div>
@@ -748,34 +753,79 @@ export default function PatientDashboard() {
               reviewSubmitted={reviewSubmitted}
             />
 
-
-
-
             {/* E. SMART ROUTING & DISCOVERY HUB */}
             <section className="dashboard-card span-5 flex-column gap-16">
-              <h2 className="card-title">Smart Routing & Discovery Hub</h2>
-              <div className="shortcut-card matchmaker-shortcut" onClick={openVitalsModal}>
+              <div className="card-header-row">
+                <h2 className="card-title">Smart Routing & Discovery Hub</h2>
+                <span 
+                  className="card-header-link" 
+                  onClick={() => navigate('/patient/group-sessions')} 
+                  style={{ cursor: 'pointer', fontSize: '12px' }}
+                >
+                  View All →
+                </span>
+              </div>
+
+              <div className="shortcut-card matchmaker-shortcut" onClick={openVitalsModal} style={{ cursor: 'pointer' }}>
                 <div className="shortcut-left">
                   <h3 className="shortcut-title text-blue">AI-Powered Therapist Matchmaker</h3>
                   <p className="shortcut-desc">Answer vitals questionnaire to get top 3 instant matches</p>
                 </div>
                 <ArrowRight size={18} className="text-blue" />
               </div>
-              <div className="shortcut-card group-shortcut">
-                <div className="shortcut-left">
-                  <h3 className="shortcut-title text-green">Group Therapy: "Anxiety Management"</h3>
-                  <p className="shortcut-desc">Thu 4:00 PM · 3 Spots Left</p>
-                </div>
-                <button
-                  className="join-pill-btn"
-                  onClick={() => setGroupJoinRequested(true)}
-                  disabled={groupJoinRequested}
-                >
-                  {groupJoinRequested ? "✓ Requested" : "Join Request"}
-                </button>
+
+              {/* Group Therapy Session Pill */}
+              <div className="group-sessions-section">
+                {groupSessions.length === 0 ? (
+                  <div className="shortcut-card group-shortcut">
+                    <div className="shortcut-left">
+                      <h3 className="shortcut-title text-green">Group Therapy: "Anxiety Management"</h3>
+                      <p className="shortcut-desc">Thu 4:00 PM · 3 Spots Left</p>
+                    </div>
+                    <button
+                      className="join-pill-btn"
+                      onClick={() => setGroupJoinRequested(true)}
+                      disabled={groupJoinRequested}
+                    >
+                      {groupJoinRequested ? "✓ Requested" : "Join Request"}
+                    </button>
+                  </div>
+                ) : (
+                  groupSessions.slice(0, 2).map((session) => {
+                    const isEnrolled = enrolledSessionIds.has(session.id);
+                    const isPending = joiningId === session.id;
+                    const sessionTime = session.start_time || session.scheduled_at;
+
+                    return (
+                      <div key={session.id} className="shortcut-card group-shortcut" style={{ marginBottom: '10px' }}>
+                        <div className="shortcut-left">
+                          <h3 className="shortcut-title text-green">{session.topic || session.title}</h3>
+                          <p className="shortcut-desc">
+                            By {session.therapist_name || 'Therapist'} • Max: {session.capacity || session.max_participants || 10}
+                          </p>
+                          <p className="shortcut-desc" style={{ fontSize: '11px', color: '#64748b' }}>
+                            {sessionTime ? new Date(sessionTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Scheduled Soon'}
+                          </p>
+                        </div>
+                        <button 
+                          className={`join-pill-btn ${isEnrolled ? 'requested' : ''}`} 
+                          onClick={() => !isEnrolled && handleJoinGroup(session.id)}
+                          disabled={isEnrolled || isPending}
+                        >
+                          {isEnrolled ? (
+                            <><Check size={13} style={{ display: 'inline', marginRight: '4px' }} /> Joined</>
+                          ) : isPending ? (
+                            "Sending..."
+                          ) : (
+                            "Join Request"
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </section>
-
 
             {/* F. OPT-IN CARE ROUTINE GENERATOR */}
             <section className="dashboard-card span-7 flex-column gap-16">
