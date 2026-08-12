@@ -5,7 +5,7 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const { submitApplication, updateProfile, getApplicationSettings, getProfile, uploadProfilePhoto } = require('../controllers/therapistController');
 const groupController = require('../controllers/groupSessionController');
 
-router.get('/settings', getApplicationSettings); // New route
+router.get('/settings', getApplicationSettings);
 router.post('/apply', submitApplication);
 router.post('/update-profile', updateProfile);
 router.get('/profile/:userId', getProfile);

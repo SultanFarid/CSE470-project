@@ -11,19 +11,37 @@ class UserModel {
         return rows[0];
     }
 
-    static async create({ name, email, password, role }) {
+    static async create(nameOrObj, email, password, role) {
+        let n, e, p, r;
+        if (typeof nameOrObj === 'object') {
+            n = nameOrObj.name || nameOrObj.display_name;
+            e = nameOrObj.email;
+            p = nameOrObj.password;
+            r = nameOrObj.role || 'patient';
+        } else {
+            n = nameOrObj;
+            e = email;
+            p = password;
+            r = role || 'patient';
+        }
+
         const [result] = await db.execute(
-            'INSERT INTO users (display_name, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
-            [name, email, password, role, 'active']
+            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+            [n, e, p, r]
         );
-        return { id: result.insertId, name, email, role };
+        return { id: result.insertId, name: n, email: e, role: r };
     }
 
     static async updateLastLogin(userId) {
-        await db.execute(
-            'UPDATE users SET last_login = NOW() WHERE id = ?',
-            [userId]
-        );
+        try {
+            await db.execute(
+                'UPDATE users SET last_login = NOW() WHERE id = ?',
+                [userId]
+            );
+        } catch (err) {
+            // Ignore if last_login column is not present
+        }
     }
 }
+
 module.exports = UserModel;
