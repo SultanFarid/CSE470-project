@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5001/api';
 
-// 1. Create a reusable axios instance
+
 const apiInstance = axios.create({
     baseURL: API_URL,
     headers: {
@@ -10,7 +10,7 @@ const apiInstance = axios.create({
     }
 });
 
-// 2. Add an interceptor to inject the token into headers automatically
+
 apiInstance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -24,10 +24,10 @@ apiInstance.interceptors.request.use(
     }
 );
 
-// --- Your App Functions (Updated to use the new apiInstance) ---
+
 
 export const login = async (email, password, role) => {
-    // Send the role in the request body
+
     const response = await apiInstance.post('/auth/login', { email, password, role });
     return response.data;
 };
@@ -55,7 +55,7 @@ export const getTherapistProfile = async (userId) => {
 };
 
 export const uploadProfilePhoto = async (formData) => {
-    // Overriding content-type for image files
+    
     const response = await apiInstance.post('/therapist/upload-photo', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
@@ -69,5 +69,13 @@ export const getPatientProfile = async () => {
 
 export const updatePatientProfile = async (profileData) => {
     const response = await apiInstance.put('/patient/profile', profileData);
+    return response.data;
+};
+
+export const uploadPatientPhoto = async (formData) => {
+    
+    const response = await apiInstance.post('/patient/upload-photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
 };
