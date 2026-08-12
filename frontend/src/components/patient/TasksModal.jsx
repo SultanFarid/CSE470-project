@@ -31,7 +31,7 @@ export default function TasksModal({
         ) : checklistItems.length === 0 ? (
           <p className="checklist-empty-text">All tasks completed! Great progress.</p>
         ) : (
-          <div className="checklist-group" style={{ marginBottom: 20 }}>
+          <div className="checklist-wrapper" style={{ marginBottom: 20 }}>
             {checklistItems.map(renderChecklistRow)}
           </div>
         )}

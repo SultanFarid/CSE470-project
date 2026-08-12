@@ -618,43 +618,52 @@ export default function PatientDashboard() {
   const renderChecklistRow = (item) => {
     const video = parseVideoUrl(item.videoUrl);
     const dueInfo = getDueInfo(item.dueDate, item.dueTime);
+    
+    const timeStampText = dueInfo.label
+      .replace('DUE TODAY · ', '')
+      .replace('OVERDUE · ', '')
+      .replace('DUE TODAY', '')
+      .replace('OVERDUE', '');
 
     return (
-      <div key={item.id} className="checklist-row-card">
-        <div className="checklist-row-main">
-          <button
-            type="button"
-            className="checklist-toggle-btn"
-            onClick={() => toggleTaskCompletion(item.id)}
-            title="Mark as done"
-            aria-label={`Mark task ${item.text} as complete`}
-          >
-            <span className="checklist-toggle-box" />
-          </button>
-          <div className="checklist-item-content">
-            <span className="checklist-task-text">{item.text}</span>
-            <div className="checklist-meta-line">
-              <span className={`checklist-due-badge badge-${dueInfo.status}`}>
-                {dueInfo.label}
-              </span>
-              {video && (
-                <span className="checklist-video-tag">
-                  <Play size={11} /> Video Prescribed
-                </span>
-              )}
+      <div key={item.id} className="checklist-row-container row-active" style={{ marginBottom: '12px' }}>
+        <div className="checklist-item-main">
+          <div className="checklist-row-top">
+            <button
+              type="button"
+              className="checkbox-toggle-btn"
+              onClick={() => toggleTaskCompletion(item.id)}
+              title="Mark as done"
+              aria-label={`Mark task ${item.text} as complete`}
+            >
+              <div className="icon-unchecked" />
+            </button>
+            <span className="checklist-task-text text-bold">{item.text}</span>
+            {dueInfo.status === 'today' && <span className="due-today-badge">DUE TODAY</span>}
+            {dueInfo.status === 'overdue' && <span className="due-today-badge due-overdue-badge">OVERDUE</span>}
+          </div>
+          {video && video.type === 'youtube' && (
+            <div className="video-player-placeholder" style={{ padding: '12px', background: 'transparent' }}>
+              <iframe
+                className="task-video-embed"
+                src={video.embedUrl}
+                title={item.text}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
-          </div>
+          )}
+          {video && video.type === 'file' && (
+            <div className="video-player-placeholder">
+              <div className="video-play-layer">
+                <div className="red-play-circle"><Play size={20} fill="white" color="white" /></div>
+                <span className="video-main-title">Prescribed Video</span>
+                <span className="video-sub-caption">Assigned by {patientUser.therapist.split(' ')[0] + ' ' + (patientUser.therapist.split(' ')[1] || '')}</span>
+              </div>
+            </div>
+          )}
         </div>
-        {video && video.type === 'youtube' && (
-          <div className="checklist-embedded-video">
-            <iframe
-              src={video.embedUrl}
-              title={item.text}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        )}
+        <span className="checklist-time-stamp">{timeStampText}</span>
       </div>
     );
   };
@@ -844,7 +853,7 @@ export default function PatientDashboard() {
                 ) : checklistItems.length === 0 ? (
                   <p className="checklist-empty-text">No daily tasks yet.</p>
                 ) : (
-                  <div className="checklist-group">
+                  <div className="checklist-wrapper">
                     {previewChecklistItems.map(renderChecklistRow)}
                   </div>
                 )}
@@ -852,9 +861,9 @@ export default function PatientDashboard() {
             </section>
 
             {/* G. PERSONAL PROFILE & PREFERENCES */}
-            <section className="dashboard-card span-5 flex-column gap-16">
-              <h2 className="card-title">Personal Profile & Preferences</h2>
-              <div className="profile-user-header-card">
+            <section className="dashboard-card span-5 flex-column">
+              <h2 className="card-title margin-bottom-16">Personal Profile & Preferences</h2>
+              <div className="profile-snapshot-tile">
                 <div className="avatar-circle-lg">
                   {patientUser.profile_photo_url ? (
                     <img src={getPhotoUrl(patientUser.profile_photo_url)} alt={patientUser.name} className="avatar-photo" />
@@ -862,12 +871,12 @@ export default function PatientDashboard() {
                     getInitials(patientUser.name)
                   )}
                 </div>
-                <div>
-                  <h3 className="profile-card-name">{patientUser.name}</h3>
-                  <p className="profile-card-role">Registered Patient Account</p>
+                <div className="profile-snapshot-meta">
+                  <h3 className="profile-snapshot-name">{patientUser.name}</h3>
+                  <p className="profile-snapshot-role">Registered Patient Account</p>
                 </div>
               </div>
-              <div className="profile-data-group">
+              <div className="profile-data-list">
                 <div className="profile-data-row">
                   <span className="data-field-label"><MapPin size={14} /> LOCATION:</span>
                   <span className="data-field-value">{patientUser.location}</span>
@@ -885,6 +894,9 @@ export default function PatientDashboard() {
                   <span className="data-field-value color-link-blue">{patientUser.therapist}</span>
                 </div>
               </div>
+              <button className="edit-profile-action-btn" onClick={openEditModal}>
+                <Settings size={16} /><span>Edit Profile Info</span>
+              </button>
             </section>
           </div>
         </main>
