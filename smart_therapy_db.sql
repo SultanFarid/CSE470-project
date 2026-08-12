@@ -235,8 +235,63 @@ ALTER TABLE `patient_profiles`
 --
 ALTER TABLE `therapist_profiles`
   ADD CONSTRAINT `therapist_profiles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `appointments`
+--
+
+CREATE TABLE IF NOT EXISTS `appointments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `patient_id` int(11) NOT NULL,
+  `therapist_id` int(11) NOT NULL,
+  `appointment_date` date NOT NULL,
+  `time_slot` varchar(50) NOT NULL,
+  `session_type` enum('online','in-person') DEFAULT 'online',
+  `status` enum('pending','confirmed','completed','cancelled') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `patient_id` (`patient_id`),
+  KEY `therapist_id` (`therapist_id`),
+  CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`therapist_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `appointments`
+--
+
+INSERT INTO `appointments` (`id`, `patient_id`, `therapist_id`, `appointment_date`, `time_slot`, `session_type`, `status`, `created_at`) VALUES
+(1, 1, 2, CURDATE() + INTERVAL 1 DAY, '10:00 AM - 10:50 AM', 'online', 'confirmed', CURRENT_TIMESTAMP());
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `therapist_reviews`
+--
+
+CREATE TABLE IF NOT EXISTS `therapist_reviews` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `appointment_id` int(11) NOT NULL,
+  `patient_id` int(11) NOT NULL,
+  `therapist_id` int(11) NOT NULL,
+  `rating` int(11) NOT NULL CHECK (`rating` >= 1 AND `rating` <= 5),
+  `tags` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_appointment_review` (`appointment_id`),
+  KEY `patient_id` (`patient_id`),
+  KEY `therapist_id` (`therapist_id`),
+  CONSTRAINT `therapist_reviews_ibfk_1` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `therapist_reviews_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `therapist_reviews_ibfk_3` FOREIGN KEY (`therapist_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
