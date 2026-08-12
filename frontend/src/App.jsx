@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/auth/Login';
+import PatientSignup from './components/auth/PatientSignup';
 import PatientDashboard from './components/patient/PatientDashboard';
 import TherapistDashboard from './components/therapist/TherapistDashboard';
 import TherapistProfileEditor from './components/therapist/TherapistProfileEditor';
@@ -13,6 +14,7 @@ function App() {
         {/* Make sure Navigate is imported at the top! */}
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/patient-signup" element={<PatientSignup />} />
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
         <Route path="/apply" element={<TherapistJobForm />} />
         <Route path="/therapist-dashboard" element={<TherapistDashboard />} />
