@@ -9,8 +9,7 @@ import './PatientDashboard.css';
 import { 
   getPatientProfile, updatePatientProfile, uploadPatientPhoto, SERVER_BASE_URL,
   getPatientTasks, createPatientTask, deletePatientTask, getTherapistDirectory,
-  getAppointments, bookAppointment, cancelAppointment, getTherapistSlots,
-  getTherapistAvailability,
+  getAppointments, bookAppointment, cancelAppointment, getTherapistSlots, getEffectiveAvailability,
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
   patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments
 } from '../../services/api';
@@ -167,13 +166,20 @@ export default function PatientDashboard() {
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [cancelNotification, setCancelNotification] = useState(null);
 
-  // Real slots pulled from the therapist's Schedule Manager (weekly grid +
-  // date exceptions), for whatever date is currently selected in the
-  // Booking Modal. Replaces the old hardcoded TIME_SLOT_OPTIONS list.
-  const [availableSlots, setAvailableSlots] = useState([]);
-  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  // Turns a 24h "HH:MM[:SS]" DB time into a "hh:mm AM/PM" label.
+  const formatTimeLabel = (t) => {
+    const [hStr, mStr] = t.slice(0, 5).split(':');
+    const h = Number(hStr);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${String(hour12).padStart(2, '0')}:${mStr} ${period}`;
+  };
+
+  const formatSlotLabel = (start, end) => `${formatTimeLabel(start)} - ${formatTimeLabel(end)}`;
 
   const DEFAULT_TASKS = [
     { id: 101, text: "Take Morning Medication (Sertraline 50mg)", dueDate: new Date().toISOString().slice(0, 10), dueTime: "8:00 AM", videoUrl: null },
@@ -528,25 +534,29 @@ export default function PatientDashboard() {
 
   const fetchBookedSlots = async (therapistId, date) => {
     try {
-      const result = await getTherapistSlots(therapistId, date);
-      setBookedSlots(result?.bookedSlots || []);
+      const data = await getTherapistSlots(therapistId, date);
+      setBookedSlots(data?.bookedSlots || []);
     } catch (err) {
       setBookedSlots([]);
     }
   };
 
-  // Pulls the therapist's real Schedule Manager availability (weekly grid +
-  // any date-specific exception) for the selected date.
+  // Pulls the therapist's weekly availability matrix (+ any date exception)
+  // for the chosen day and turns it into the list of bookable time slots.
+  // This is what makes the Schedule Manager actually gate patient booking:
+  // if the therapist unchecked a box (or blocked the date), it won't appear here.
   const fetchAvailableSlots = async (therapistId, date) => {
-    setAvailabilityLoading(true);
+    setSlotsLoading(true);
     try {
-      const result = await getTherapistAvailability(therapistId, date);
-      const day = result?.days?.find(d => d.date === date);
-      setAvailableSlots(day?.slots?.map(s => s.label) || []);
+      const data = await getEffectiveAvailability(therapistId, date);
+      const dayData = (data.days || []).find(d => d.date === date);
+      const slots = (dayData?.slots || []).map(s => formatSlotLabel(s.start_time, s.end_time));
+      setAvailableSlots(slots);
     } catch (err) {
+      console.error('Failed to load therapist availability', err);
       setAvailableSlots([]);
     } finally {
-      setAvailabilityLoading(false);
+      setSlotsLoading(false);
     }
   };
 
@@ -562,7 +572,7 @@ export default function PatientDashboard() {
     e.preventDefault();
     if (!selectedTherapistForBooking) return;
     if (!bookingForm.timeSlot) {
-      setBookingError('Please select a time slot.');
+      setBookingError('Please select an available time slot.');
       return;
     }
     setBookingLoading(true);
@@ -1000,7 +1010,7 @@ export default function PatientDashboard() {
         bookingSuccess={bookingSuccess}
         bookedSlots={bookedSlots}
         TIME_SLOT_OPTIONS={availableSlots}
-        availabilityLoading={availabilityLoading}
+        slotsLoading={slotsLoading}
         getPhotoUrl={getPhotoUrl}
         getInitials={getInitials}
       />

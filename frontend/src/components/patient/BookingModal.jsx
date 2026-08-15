@@ -14,7 +14,7 @@ export default function BookingModal({
   bookingSuccess,
   bookedSlots,
   TIME_SLOT_OPTIONS,
-  availabilityLoading,
+  slotsLoading,
   getPhotoUrl,
   getInitials
 }) {
@@ -66,7 +66,7 @@ export default function BookingModal({
 
           <div className="edit-modal-field">
             <label className="edit-modal-label">Select Open Time Slot</label>
-            {availabilityLoading ? (
+            {slotsLoading ? (
               <p className="checklist-empty-text">Loading this therapist's availability...</p>
             ) : TIME_SLOT_OPTIONS.length === 0 ? (
               <p className="checklist-empty-text">
@@ -116,7 +116,7 @@ export default function BookingModal({
             <button
               type="submit"
               className="edit-modal-save-btn"
-              disabled={bookingLoading || !bookingForm.timeSlot}
+              disabled={bookingLoading}
             >
               {bookingLoading ? 'Booking...' : 'Confirm Booking'}
             </button>
