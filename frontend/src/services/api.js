@@ -152,6 +152,43 @@ export const bookSession = async (therapistId) => {
     return response.data;
 };
 
+// --- Therapist: Sessions (Command Center) ---
+export const getMyTherapistSessions = () =>
+    apiInstance.get('/sessions/my-sessions/therapist').then(res => res.data);
+
+export const updateSessionStatus = (sessionId, status) =>
+    apiInstance.put(`/sessions/${sessionId}/status`, { status }).then(res => res.data);
+
+// --- Therapist: Prescription Studio (Feature 12) ---
+export const savePrescription = (payload) =>
+    apiInstance.post('/prescriptions/save', payload).then(res => res.data);
+
+export const getPrescriptionForSession = (sessionId) =>
+    apiInstance.get(`/prescriptions/session/${sessionId}`).then(res => res.data);
+
+// --- Therapist: Active Caseload (Feature 13) ---
+export const getMyCaseload = () =>
+    apiInstance.get('/caseload/my').then(res => res.data.data);
+
+// --- Therapist: Patient Archives (Feature 14) ---
+export const searchMyPatients = (search) =>
+    apiInstance.get('/archive/patients', { params: search ? { search } : {} }).then(res => res.data.data);
+
+export const getPatientHistory = (patientId) =>
+    apiInstance.get(`/archive/patients/${patientId}/history`).then(res => res.data.data);
+
+// --- Therapist: Earnings & Jobs (Feature 15) ---
+export const getMyEarnings = () =>
+    apiInstance.get('/earnings/my').then(res => res.data.data);
+
+// --- Therapist: Reviews summary (Command Center reputation card) ---
+export const getMyReviewSummary = () =>
+    apiInstance.get('/reviews/my-summary').then(res => res.data.data);
+
+// --- Therapist: send a real check-in notification to a patient ---
+export const sendCheckIn = (patientId, message) =>
+    apiInstance.post('/notifications/send-checkin', { patientId, message }).then(res => res.data);
+
 
 // --- Admin ---
 export const adminGetAllUsers = async (search, role) => {

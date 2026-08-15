@@ -79,3 +79,14 @@ exports.getAllTherapistSummaries = async (req, res) => {
         return res.status(500).json({ message: "Failed to load review summaries." });
     }
 };
+
+// Therapist's own Command Center reputation card.
+exports.getMySummary = async (req, res) => {
+    try {
+        const summary = await ReviewModel.getMySummary(req.user.id);
+        res.status(200).json({ success: true, data: summary });
+    } catch (err) {
+        console.error('Get review summary error:', err);
+        res.status(500).json({ message: 'Server error fetching review summary.' });
+    }
+};
