@@ -14,6 +14,7 @@ export default function BookingModal({
   bookingSuccess,
   bookedSlots,
   TIME_SLOT_OPTIONS,
+  slotsLoading,
   getPhotoUrl,
   getInitials
 }) {
@@ -65,23 +66,31 @@ export default function BookingModal({
 
           <div className="edit-modal-field">
             <label className="edit-modal-label">Select Open Time Slot</label>
-            <div className="time-slot-grid">
-              {TIME_SLOT_OPTIONS.map((slot) => {
-                const isBooked = bookedSlots.includes(slot);
-                const isSelected = bookingForm.timeSlot === slot;
-                return (
-                  <button
-                    key={slot}
-                    type="button"
-                    disabled={isBooked}
-                    className={`time-slot-btn ${isSelected ? 'time-slot-selected' : ''} ${isBooked ? 'time-slot-disabled' : ''}`}
-                    onClick={() => setBookingForm((prev) => ({ ...prev, timeSlot: slot }))}
-                  >
-                    {slot} {isBooked ? '(Booked)' : ''}
-                  </button>
-                );
-              })}
-            </div>
+            {slotsLoading ? (
+              <p className="checklist-empty-text">Loading this therapist's availability...</p>
+            ) : TIME_SLOT_OPTIONS.length === 0 ? (
+              <p className="checklist-empty-text">
+                This therapist has no available slots on the selected date. Try another date.
+              </p>
+            ) : (
+              <div className="time-slot-grid">
+                {TIME_SLOT_OPTIONS.map((slot) => {
+                  const isBooked = bookedSlots.includes(slot);
+                  const isSelected = bookingForm.timeSlot === slot;
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      disabled={isBooked}
+                      className={`time-slot-btn ${isSelected ? 'time-slot-selected' : ''} ${isBooked ? 'time-slot-disabled' : ''}`}
+                      onClick={() => setBookingForm((prev) => ({ ...prev, timeSlot: slot }))}
+                    >
+                      {slot} {isBooked ? '(Booked)' : ''}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="edit-modal-field">

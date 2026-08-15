@@ -1,10 +1,17 @@
 const db = require('../config/db');
 
+// Repointed from a nonexistent `therapist_reviews` table to the real
+// `reviews` table (see smart_therapy_db.sql). Also joins against `sessions`
+// instead of the nonexistent `appointments`. The external contract is kept
+// identical on purpose: callers (reviewController.js) still pass/receive an
+// "appointmentId", which is just mapped to `reviews.session_id` here — no
+// controller or frontend changes needed.
+
 const ReviewModel = {
     create: async (appointmentId, patientId, therapistId, rating, tags) => {
         const tagsString = Array.isArray(tags) ? JSON.stringify(tags) : tags;
         const query = `
-            INSERT INTO therapist_reviews (appointment_id, patient_id, therapist_id, rating, tags)
+            INSERT INTO reviews (session_id, patient_id, therapist_id, rating, tags)
             VALUES (?, ?, ?, ?, ?)
         `;
         const [result] = await db.query(query, [appointmentId, patientId, therapistId, rating, tagsString]);
@@ -13,30 +20,30 @@ const ReviewModel = {
 
     getByAppointmentId: async (appointmentId) => {
         const query = `
-            SELECT * FROM therapist_reviews WHERE appointment_id = ?
+            SELECT * FROM reviews WHERE session_id = ?
         `;
         const [rows] = await db.query(query, [appointmentId]);
         return rows[0] || null;
     },
 
     getPendingReviewForPatient: async (patientId) => {
-        // Find most recent completed appointment for this patient without a review
+        // Find most recent completed session for this patient without a review
         const query = `
             SELECT 
-                a.id AS appointment_id,
-                a.appointment_date,
-                a.time_slot,
-                a.session_type,
-                a.therapist_id,
-                u.name AS therapist_name,
+                s.id AS appointment_id,
+                s.scheduled_date AS appointment_date,
+                s.time_slot,
+                s.session_type,
+                s.therapist_id,
+                COALESCE(u.display_name, u.name) AS therapist_name,
                 tp.profile_photo_url AS therapist_photo,
                 tp.specialties AS therapist_specialties
-            FROM appointments a
-            JOIN users u ON a.therapist_id = u.id
+            FROM sessions s
+            JOIN users u ON s.therapist_id = u.id
             LEFT JOIN therapist_profiles tp ON u.id = tp.user_id
-            LEFT JOIN therapist_reviews tr ON a.id = tr.appointment_id
-            WHERE a.patient_id = ? AND a.status = 'completed' AND tr.id IS NULL
-            ORDER BY a.appointment_date DESC, a.id DESC
+            LEFT JOIN reviews r ON s.id = r.session_id
+            WHERE s.patient_id = ? AND s.status = 'completed' AND r.id IS NULL
+            ORDER BY s.scheduled_date DESC, s.id DESC
             LIMIT 1
         `;
         const [rows] = await db.query(query, [patientId]);
@@ -46,7 +53,7 @@ const ReviewModel = {
     getTherapistFeedbackSummary: async (therapistId) => {
         const query = `
             SELECT rating, tags
-            FROM therapist_reviews
+            FROM reviews
             WHERE therapist_id = ?
         `;
         const [rows] = await db.query(query, [therapistId]);
@@ -85,12 +92,12 @@ const ReviewModel = {
     },
 
     // Compact summary for the therapist's own Command Center dashboard
-    // (reputation card). Reuses therapist_reviews — same data source as
+    // (reputation card). Reuses `reviews` — same data source as
     // getTherapistFeedbackSummary above, reshaped to
     // { totalReviews, avgRating, topTags }.
     getMySummary: async (therapistId) => {
         const query = `
-            SELECT rating, tags FROM therapist_reviews WHERE therapist_id = ?
+            SELECT rating, tags FROM reviews WHERE therapist_id = ?
         `;
         const [rows] = await db.query(query, [therapistId]);
 
@@ -130,7 +137,7 @@ const ReviewModel = {
     getAllTherapistReviewSummaries: async () => {
         const query = `
             SELECT therapist_id, rating, tags
-            FROM therapist_reviews
+            FROM reviews
         `;
         const [rows] = await db.query(query);
         

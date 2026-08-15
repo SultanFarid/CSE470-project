@@ -9,7 +9,7 @@ import './PatientDashboard.css';
 import { 
   getPatientProfile, updatePatientProfile, uploadPatientPhoto, SERVER_BASE_URL,
   getPatientTasks, createPatientTask, deletePatientTask, getTherapistDirectory,
-  getAppointments, bookAppointment, cancelAppointment, getTherapistSlots,
+  getAppointments, bookAppointment, cancelAppointment, getTherapistSlots, getEffectiveAvailability,
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
   patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments
 } from '../../services/api';
@@ -159,19 +159,27 @@ export default function PatientDashboard() {
   const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState(null);
   const [bookingForm, setBookingForm] = useState({
     date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-    timeSlot: '10:00 AM - 10:50 AM',
+    timeSlot: '',
     sessionType: 'online'
   });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [cancelNotification, setCancelNotification] = useState(null);
 
-  const TIME_SLOT_OPTIONS = [
-    '09:00 AM - 09:50 AM', '10:00 AM - 10:50 AM', '11:00 AM - 11:50 AM',
-    '02:00 PM - 02:50 PM', '03:00 PM - 03:50 PM', '04:00 PM - 04:50 PM'
-  ];
+  // Turns a 24h "HH:MM[:SS]" DB time into a "hh:mm AM/PM" label.
+  const formatTimeLabel = (t) => {
+    const [hStr, mStr] = t.slice(0, 5).split(':');
+    const h = Number(hStr);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${String(hour12).padStart(2, '0')}:${mStr} ${period}`;
+  };
+
+  const formatSlotLabel = (start, end) => `${formatTimeLabel(start)} - ${formatTimeLabel(end)}`;
 
   const DEFAULT_TASKS = [
     { id: 101, text: "Take Morning Medication (Sertraline 50mg)", dueDate: new Date().toISOString().slice(0, 10), dueTime: "8:00 AM", videoUrl: null },
@@ -514,34 +522,59 @@ export default function PatientDashboard() {
     const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     setBookingForm({
       date: tomorrow,
-      timeSlot: '10:00 AM - 10:50 AM',
+      timeSlot: '',
       sessionType: 'online'
     });
     setBookingError('');
     setBookingSuccess('');
     setShowBookingModal(true);
     fetchBookedSlots(therapist.id, tomorrow);
+    fetchAvailableSlots(therapist.id, tomorrow);
   };
 
   const fetchBookedSlots = async (therapistId, date) => {
     try {
-      const slots = await getTherapistSlots(therapistId, date);
-      setBookedSlots(slots || []);
+      const data = await getTherapistSlots(therapistId, date);
+      setBookedSlots(data?.bookedSlots || []);
     } catch (err) {
       setBookedSlots([]);
     }
   };
 
+  // Pulls the therapist's weekly availability matrix (+ any date exception)
+  // for the chosen day and turns it into the list of bookable time slots.
+  // This is what makes the Schedule Manager actually gate patient booking:
+  // if the therapist unchecked a box (or blocked the date), it won't appear here.
+  const fetchAvailableSlots = async (therapistId, date) => {
+    setSlotsLoading(true);
+    try {
+      const data = await getEffectiveAvailability(therapistId, date);
+      const dayData = (data.days || []).find(d => d.date === date);
+      const slots = (dayData?.slots || []).map(s => formatSlotLabel(s.start_time, s.end_time));
+      setAvailableSlots(slots);
+    } catch (err) {
+      console.error('Failed to load therapist availability', err);
+      setAvailableSlots([]);
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
   const handleBookingDateChange = (date) => {
-    setBookingForm(prev => ({ ...prev, date }));
+    setBookingForm(prev => ({ ...prev, date, timeSlot: '' }));
     if (selectedTherapistForBooking) {
       fetchBookedSlots(selectedTherapistForBooking.id, date);
+      fetchAvailableSlots(selectedTherapistForBooking.id, date);
     }
   };
 
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
     if (!selectedTherapistForBooking) return;
+    if (!bookingForm.timeSlot) {
+      setBookingError('Please select an available time slot.');
+      return;
+    }
     setBookingLoading(true);
     setBookingError('');
     try {
@@ -976,7 +1009,8 @@ export default function PatientDashboard() {
         bookingError={bookingError}
         bookingSuccess={bookingSuccess}
         bookedSlots={bookedSlots}
-        TIME_SLOT_OPTIONS={TIME_SLOT_OPTIONS}
+        TIME_SLOT_OPTIONS={availableSlots}
+        slotsLoading={slotsLoading}
         getPhotoUrl={getPhotoUrl}
         getInitials={getInitials}
       />

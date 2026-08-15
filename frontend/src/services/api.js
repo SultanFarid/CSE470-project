@@ -126,6 +126,15 @@ export const getTherapistSlots = async (therapistId, date) => {
     return response.data;
 };
 
+// Reads the therapist's weekly availability matrix + date exceptions for a single day.
+// Backed by GET /api/availability/:therapistId/effective (public, no auth required).
+export const getEffectiveAvailability = async (therapistId, date) => {
+    const response = await apiInstance.get(`/availability/${therapistId}/effective`, {
+        params: { from: date, to: date }
+    });
+    return response.data;
+};
+
 // --- Feature 7: Review & Feedback API Endpoints ---
 export const submitReview = async (reviewData) => {
     const response = await apiInstance.post('/reviews/submit', reviewData);
@@ -305,4 +314,3 @@ export const addAvailabilityException = (payload) =>
 
 export const deleteAvailabilityException = (id) =>
     apiInstance.delete(`/availability/exceptions/${id}`).then(res => res.data);
-
