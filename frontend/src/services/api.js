@@ -306,3 +306,9 @@ export const addAvailabilityException = (payload) =>
 export const deleteAvailabilityException = (id) =>
     apiInstance.delete(`/availability/exceptions/${id}`).then(res => res.data);
 
+// --- Patient: read a therapist's real availability for a single date ---
+// (feeds the Booking Modal's slot list — replaces the old hardcoded list)
+export const getTherapistAvailability = (therapistId, date) =>
+    apiInstance
+        .get(`/availability/${therapistId}/effective`, { params: { from: date, to: date } })
+        .then(res => res.data);

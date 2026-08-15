@@ -10,6 +10,7 @@ import {
   getPatientProfile, updatePatientProfile, uploadPatientPhoto, SERVER_BASE_URL,
   getPatientTasks, createPatientTask, deletePatientTask, getTherapistDirectory,
   getAppointments, bookAppointment, cancelAppointment, getTherapistSlots,
+  getTherapistAvailability,
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
   patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments
 } from '../../services/api';
@@ -159,7 +160,7 @@ export default function PatientDashboard() {
   const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState(null);
   const [bookingForm, setBookingForm] = useState({
     date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-    timeSlot: '10:00 AM - 10:50 AM',
+    timeSlot: '',
     sessionType: 'online'
   });
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -168,10 +169,11 @@ export default function PatientDashboard() {
   const [bookedSlots, setBookedSlots] = useState([]);
   const [cancelNotification, setCancelNotification] = useState(null);
 
-  const TIME_SLOT_OPTIONS = [
-    '09:00 AM - 09:50 AM', '10:00 AM - 10:50 AM', '11:00 AM - 11:50 AM',
-    '02:00 PM - 02:50 PM', '03:00 PM - 03:50 PM', '04:00 PM - 04:50 PM'
-  ];
+  // Real slots pulled from the therapist's Schedule Manager (weekly grid +
+  // date exceptions), for whatever date is currently selected in the
+  // Booking Modal. Replaces the old hardcoded TIME_SLOT_OPTIONS list.
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   const DEFAULT_TASKS = [
     { id: 101, text: "Take Morning Medication (Sertraline 50mg)", dueDate: new Date().toISOString().slice(0, 10), dueTime: "8:00 AM", videoUrl: null },
@@ -514,34 +516,55 @@ export default function PatientDashboard() {
     const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     setBookingForm({
       date: tomorrow,
-      timeSlot: '10:00 AM - 10:50 AM',
+      timeSlot: '',
       sessionType: 'online'
     });
     setBookingError('');
     setBookingSuccess('');
     setShowBookingModal(true);
     fetchBookedSlots(therapist.id, tomorrow);
+    fetchAvailableSlots(therapist.id, tomorrow);
   };
 
   const fetchBookedSlots = async (therapistId, date) => {
     try {
-      const slots = await getTherapistSlots(therapistId, date);
-      setBookedSlots(slots || []);
+      const result = await getTherapistSlots(therapistId, date);
+      setBookedSlots(result?.bookedSlots || []);
     } catch (err) {
       setBookedSlots([]);
     }
   };
 
+  // Pulls the therapist's real Schedule Manager availability (weekly grid +
+  // any date-specific exception) for the selected date.
+  const fetchAvailableSlots = async (therapistId, date) => {
+    setAvailabilityLoading(true);
+    try {
+      const result = await getTherapistAvailability(therapistId, date);
+      const day = result?.days?.find(d => d.date === date);
+      setAvailableSlots(day?.slots?.map(s => s.label) || []);
+    } catch (err) {
+      setAvailableSlots([]);
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+
   const handleBookingDateChange = (date) => {
-    setBookingForm(prev => ({ ...prev, date }));
+    setBookingForm(prev => ({ ...prev, date, timeSlot: '' }));
     if (selectedTherapistForBooking) {
       fetchBookedSlots(selectedTherapistForBooking.id, date);
+      fetchAvailableSlots(selectedTherapistForBooking.id, date);
     }
   };
 
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
     if (!selectedTherapistForBooking) return;
+    if (!bookingForm.timeSlot) {
+      setBookingError('Please select a time slot.');
+      return;
+    }
     setBookingLoading(true);
     setBookingError('');
     try {
@@ -976,7 +999,8 @@ export default function PatientDashboard() {
         bookingError={bookingError}
         bookingSuccess={bookingSuccess}
         bookedSlots={bookedSlots}
-        TIME_SLOT_OPTIONS={TIME_SLOT_OPTIONS}
+        TIME_SLOT_OPTIONS={availableSlots}
+        availabilityLoading={availabilityLoading}
         getPhotoUrl={getPhotoUrl}
         getInitials={getInitials}
       />

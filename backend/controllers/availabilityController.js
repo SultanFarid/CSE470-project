@@ -112,13 +112,67 @@ const deleteMyException = async (req, res) => {
 // ===== Public/patient-facing: effective availability for a date range =====
 //
 // This merges the weekly template with date-specific exceptions, per-day.
-// It does NOT yet subtract confirmed bookings, because `sessions` currently
-// has no date/time columns (only patient_id, therapist_id, status). Once
-// booking adds e.g. `scheduled_date` + `start_time` to sessions, join it in
-// here to drop already-booked slots — and, using buffer_minutes, the slot(s)
-// immediately after each booking too. The response shape below (a flat list
-// of {start_time, end_time} per day) is designed to absorb that change
-// without breaking whoever consumes this endpoint.
+// `sessions.time_slot` now exists (see migration_add_time_slot_to_sessions.sql),
+// but booked-slot exclusion is deliberately left to the client: BookingModal
+// already calls GET /patient/therapist-slots for the selected date and grays
+// out anything already booked, so duplicating that filter here would just be
+// two sources of truth for the same thing.
+//
+// Each slot in the response gets a human-readable `label` (e.g.
+// "09:00 AM - 09:50 AM") in the exact format BookingModal already sends as
+// `time_slot` when booking, so the frontend doesn't need to reformat.
+// - Weekly-template slots are stored as one row per checked grid cell in
+//   ScheduleManager, so they're already the discrete bookable unit — just
+//   labeled here, not re-sliced.
+// - `custom_hours` exceptions store a single raw range, so that range is
+//   sliced into the therapist's normal slot_duration_minutes (+ buffer_minutes
+//   gap between slots) to produce the same kind of discrete, bookable slots.
+
+const pad2 = (n) => String(n).padStart(2, '0');
+
+const timeStrToMinutes = (timeStr) => {
+    // Accepts "HH:MM" or "HH:MM:SS" (mysql2 TIME columns come back as strings)
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+};
+
+const minutesToLabelPart = (totalMinutes) => {
+    const h = Math.floor(totalMinutes / 60) % 24;
+    const m = totalMinutes % 60;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${pad2(hour12)}:${pad2(m)} ${period}`;
+};
+
+const minutesToTimeStr = (totalMinutes) => {
+    const h = Math.floor(totalMinutes / 60) % 24;
+    const m = totalMinutes % 60;
+    return `${pad2(h)}:${pad2(m)}`;
+};
+
+const formatSlotLabel = (startTimeStr, endTimeStr) =>
+    `${minutesToLabelPart(timeStrToMinutes(startTimeStr))} - ${minutesToLabelPart(timeStrToMinutes(endTimeStr))}`;
+
+// Slices a raw [startTimeStr, endTimeStr) range into discrete
+// slotDurationMinutes-long bookable slots, skipping bufferMinutes between
+// each. Drops any trailing partial slot that wouldn't fully fit.
+const sliceRangeIntoSlots = (startTimeStr, endTimeStr, slotDurationMinutes, bufferMinutes) => {
+    const rangeStart = timeStrToMinutes(startTimeStr);
+    const rangeEnd = timeStrToMinutes(endTimeStr);
+    const slots = [];
+    let cursor = rangeStart;
+
+    while (cursor + slotDurationMinutes <= rangeEnd) {
+        const slotEnd = cursor + slotDurationMinutes;
+        slots.push({
+            start_time: minutesToTimeStr(cursor),
+            end_time: minutesToTimeStr(slotEnd),
+            label: `${minutesToLabelPart(cursor)} - ${minutesToLabelPart(slotEnd)}`
+        });
+        cursor = slotEnd + bufferMinutes;
+    }
+    return slots;
+};
 
 const getEffectiveAvailability = async (req, res) => {
     try {
@@ -128,9 +182,10 @@ const getEffectiveAvailability = async (req, res) => {
         defaultTo.setDate(defaultTo.getDate() + 13);
         const to = req.query.to || defaultTo.toISOString().slice(0, 10);
 
-        const [weeklyTemplate, exceptions] = await Promise.all([
+        const [weeklyTemplate, exceptions, settings] = await Promise.all([
             AvailabilityModel.getWeeklyTemplate(therapistId),
-            AvailabilityModel.getExceptionsInRange(therapistId, from, to)
+            AvailabilityModel.getExceptionsInRange(therapistId, from, to),
+            AvailabilityModel.getScheduleSettings(therapistId)
         ]);
 
         const exceptionsByDate = {};
@@ -152,11 +207,20 @@ const getEffectiveAvailability = async (req, res) => {
             if (exception && exception.type === 'blocked') {
                 slots = [];
             } else if (exception && exception.type === 'custom_hours') {
-                slots = [{ start_time: exception.start_time, end_time: exception.end_time }];
+                slots = sliceRangeIntoSlots(
+                    exception.start_time,
+                    exception.end_time,
+                    settings.slot_duration_minutes,
+                    settings.buffer_minutes
+                );
             } else {
                 slots = weeklyTemplate
                     .filter((s) => s.day_of_week === dayOfWeek)
-                    .map((s) => ({ start_time: s.start_time, end_time: s.end_time }));
+                    .map((s) => ({
+                        start_time: s.start_time,
+                        end_time: s.end_time,
+                        label: formatSlotLabel(s.start_time, s.end_time)
+                    }));
             }
 
             days.push({ date: dateKey, day_name: DAY_NAMES[dayOfWeek], slots });
