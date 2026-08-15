@@ -84,6 +84,49 @@ const ReviewModel = {
         };
     },
 
+    // Compact summary for the therapist's own Command Center dashboard
+    // (reputation card). Reuses therapist_reviews — same data source as
+    // getTherapistFeedbackSummary above, reshaped to
+    // { totalReviews, avgRating, topTags }.
+    getMySummary: async (therapistId) => {
+        const query = `
+            SELECT rating, tags FROM therapist_reviews WHERE therapist_id = ?
+        `;
+        const [rows] = await db.query(query, [therapistId]);
+
+        if (rows.length === 0) {
+            return { totalReviews: 0, avgRating: '0.0', topTags: [] };
+        }
+
+        const totalRating = rows.reduce((sum, r) => sum + r.rating, 0);
+        const tagCounts = {};
+
+        rows.forEach(r => {
+            let parsedTags = [];
+            try {
+                parsedTags = typeof r.tags === 'string' ? JSON.parse(r.tags) : (r.tags || []);
+            } catch (e) {
+                parsedTags = typeof r.tags === 'string' ? r.tags.split(',').map(s => s.trim()) : [];
+            }
+            if (Array.isArray(parsedTags)) {
+                parsedTags.forEach(tag => {
+                    if (tag) tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                });
+            }
+        });
+
+        const topTags = Object.entries(tagCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([tag]) => tag);
+
+        return {
+            totalReviews: rows.length,
+            avgRating: (totalRating / rows.length).toFixed(1),
+            topTags
+        };
+    },
+
     getAllTherapistReviewSummaries: async () => {
         const query = `
             SELECT therapist_id, rating, tags

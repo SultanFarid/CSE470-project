@@ -1,263 +1,293 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import {
-    Bell, Video, Calendar, AlertTriangle, CheckCircle, LogOut,
-    LayoutDashboard, ClipboardList, FileText, Archive, Users,
-    Briefcase, UserCog, Bot, Star
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useOutletContext, Link } from 'react-router-dom';
+import { Video, AlertTriangle, FileText, Star, History, PlayCircle } from 'lucide-react';
 import './TherapistDashboard.css';
-import NotificationBell from '../shared/NotificationBell';
+import {
+    getMyTherapistSessions, updateSessionStatus,
+    getMyCaseload, getMyEarnings, getMyReviewSummary, sendCheckIn
+} from '../../services/api';
 
-const NAV_ITEMS = [
-    { label: 'Command Center', icon: LayoutDashboard, path: '/therapist-dashboard' },
-    { label: 'Schedule Manager', icon: Calendar, path: null },
-    { label: 'Active Caseload', icon: ClipboardList, path: null },
-    { label: 'Prescription Studio', icon: FileText, path: null },
-    { label: 'Patient Archives', icon: Archive, path: null },
-    { label: 'Group Classes', icon: Users, path: '/therapist-dashboard/group-proposals' },
-    { label: 'Earnings & Jobs', icon: Briefcase, path: null },
-    { label: 'Profile Editor', icon: UserCog, path: '/therapist-dashboard/profile' },
-    { label: 'Schedule Manager', icon: Calendar, path: '/therapist-dashboard/schedule' },
-];
+const OPEN_STATUSES = ['pending', 'confirmed', 'in_progress'];
+const RED_FLAG_THRESHOLD = 40;
 
-// Mock data shaped to mirror the real relational schema
-const SCHEDULE = [
-    { session_id: 101, therapist_id: 6, patient_id: 12, patient_name: 'Patient A', time: '10:00 AM', session_type: 'online', session_status: 'in_progress' },
-    { session_id: 102, therapist_id: 6, patient_id: 15, patient_name: 'Patient B', time: '11:30 AM', session_type: 'in-person', session_status: 'confirmed' },
-    { session_id: 103, therapist_id: 6, patient_id: 19, patient_name: 'Patient C', time: '2:00 PM', session_type: 'online', session_status: 'confirmed' },
-];
-
-const COMPLIANCE = [
-    { patient_id: 12, patient_name: 'Patient A', adherence_rate: 85 },
-    { patient_id: 33, patient_name: 'Patient X', adherence_rate: 25 },
-    { patient_id: 15, patient_name: 'Patient B', adherence_rate: 60 },
-];
-
-const RED_FLAG = {
-    patient_id: 33,
-    patient_name: 'Patient X',
-    message: "missed medication check-offs and assigned YouTube exercise videos for 3 consecutive days."
+const adherenceClass = (rate) => (rate >= 75 ? 'success' : rate >= RED_FLAG_THRESHOLD ? 'warning' : 'danger');
+const isSameDay = (dateStr) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
 };
+const formatTime = (dateStr) => new Date(dateStr).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-const adherenceClass = (rate) => (rate >= 75 ? 'success' : rate >= 40 ? 'warning' : 'danger');
-const getInitials = (fullName = '') => {
-    return fullName
-        .split(' ')
-        .filter(Boolean)
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-};
 const TherapistDashboard = () => {
-    const navigate = useNavigate();
-    const [user, setUser] = useState(null);
+    const { user } = useOutletContext();
 
-    useEffect(() => {
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (!storedUser || storedUser.role !== 'therapist') {
-            navigate('/login');
-            return;
+    const [sessions, setSessions] = useState([]);
+    const [caseload, setCaseload] = useState([]);
+    const [earnings, setEarnings] = useState(null);
+    const [reviewSummary, setReviewSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [actionMsg, setActionMsg] = useState('');
+    const [sendingCheckin, setSendingCheckin] = useState(false);
+
+    const loadDashboardData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [sessionsData, caseloadData, earningsData, reviewData] = await Promise.all([
+                getMyTherapistSessions().catch(() => []),
+                getMyCaseload().catch(() => []),
+                getMyEarnings().catch(() => null),
+                getMyReviewSummary().catch(() => null),
+            ]);
+            setSessions(Array.isArray(sessionsData) ? sessionsData : []);
+            setCaseload(Array.isArray(caseloadData) ? caseloadData : []);
+            setEarnings(earningsData);
+            setReviewSummary(reviewData);
+        } catch (err) {
+            console.error('Failed to load dashboard data', err);
+        } finally {
+            setLoading(false);
         }
-        setUser(storedUser);
-    }, [navigate]);
+    }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        navigate('/login');
+    useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
+
+    const handleAdvanceStatus = async (sessionId, nextStatus) => {
+        setActionMsg('');
+        try {
+            await updateSessionStatus(sessionId, nextStatus);
+            setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, status: nextStatus } : s)));
+        } catch (err) {
+            console.error('Failed to update session status', err);
+            setActionMsg('Could not update that session — try again.');
+        }
     };
 
-    if (!user) {
-        return null;
+    const handleSendCheckIn = async (patientId, patientName) => {
+        setSendingCheckin(true);
+        setActionMsg('');
+        try {
+            await sendCheckIn(patientId, `Hi — just checking in. We noticed you haven't logged your daily care plan much this week. Let us know if anything needs adjusting.`);
+            setActionMsg(`Check-in message sent to ${patientName}.`);
+        } catch (err) {
+            console.error('Failed to send check-in', err);
+            setActionMsg('Could not send the check-in — try again.');
+        } finally {
+            setSendingCheckin(false);
+        }
+    };
+
+    const openSessions = sessions.filter((s) => OPEN_STATUSES.includes(s.status));
+    const todaysSessions = openSessions.filter((s) => isSameDay(s.scheduled_date || s.created_at));
+    // Fallback for existing bookings that predate scheduled_date/time support in the booking flow.
+    const scheduleToShow = todaysSessions.length > 0
+        ? todaysSessions
+        : [...openSessions].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3);
+    const showingFallbackSchedule = todaysSessions.length === 0 && scheduleToShow.length > 0;
+
+    const todaysEarnings = todaysSessions.reduce((sum, s) => sum + (Number(s.fee) || 0), 0);
+
+    const sortedCaseload = [...caseload].sort((a, b) => {
+        const aRate = a.adherence_rate === null ? 101 : a.adherence_rate;
+        const bRate = b.adherence_rate === null ? 101 : b.adherence_rate;
+        return aRate - bRate;
+    });
+    const complianceSnapshot = sortedCaseload.slice(0, 4);
+    const patientsNeedingAttention = sortedCaseload.filter((c) => c.adherence_rate !== null && c.adherence_rate < RED_FLAG_THRESHOLD);
+    const topFlag = patientsNeedingAttention[0] || null;
+
+    if (loading) {
+        return <p className="dashboard-loading">Loading your dashboard...</p>;
     }
 
     return (
-        <div className="dashboard-shell">
-            {/* Top Navbar */}
-            <header className="navbar">
-                <div className="navbar-left">
-                    <div className="brand-logo">S</div>
-                    <span className="brand-name">Smart Recovery Portal</span>
-                    <span className="badge-role">Therapist Mode</span>
+        <div className="dashboard-grid">
+
+            {actionMsg && <div className="card span-12 action-toast">{actionMsg}</div>}
+
+            {/* Tier 1: Welcome banner */}
+            <div className="card span-12 pulse-banner">
+                <div>
+                    <h1 className="pulse-title">Good to see you, {user.name} 👋</h1>
+                    <p className="pulse-subtitle">Here's what's happening in your practice today.</p>
                 </div>
-                <div className="navbar-right">
-                    <NotificationBell />
-                    <div className="user-chip">
-                        <div className="avatar">{getInitials(user.name)}</div>
-                        <span className="user-name">{user.name}</span>
-                    </div>
+                <div className="pulse-metrics">
+                    <div className="pill pill-metric">📅 {todaysSessions.length} session{todaysSessions.length === 1 ? '' : 's'} today</div>
+                    <div className="pill pill-metric">💰 ${todaysEarnings.toLocaleString()} expected today</div>
+                    {patientsNeedingAttention.length > 0 ? (
+                        <div className="pill pill-danger">
+                            <AlertTriangle size={14} /> {patientsNeedingAttention.length} patient{patientsNeedingAttention.length === 1 ? '' : 's'} need{patientsNeedingAttention.length === 1 ? 's' : ''} attention
+                        </div>
+                    ) : (
+                        <div className="pill pill-metric">✅ All patients on track</div>
+                    )}
                 </div>
-            </header>
+            </div>
 
-            {/* Left Sidebar */}
-            <aside className="sidebar">
-                <nav className="nav-list">
-                    {NAV_ITEMS.map((item, idx) => {
-                        const Icon = item.icon;
-                        const isActive = idx === 0;
-                        const className = `nav-item ${isActive ? 'active' : ''}`;
-
-                        if (item.path && !isActive) {
-                            return (
-                                <Link key={item.label} to={item.path} className={className}>
-                                    <Icon size={18} />
-                                    <span>{item.label}</span>
-                                </Link>
-                            );
-                        }
-                        return (
-                            <div key={item.label} className={className}>
-                                <Icon size={18} />
-                                <span>{item.label}</span>
-                            </div>
-                        );
-                    })}
-                </nav>
-                <button className="logout-btn" onClick={handleLogout}>
-                    <LogOut size={18} />
-                    <span>Logout</span>
-                </button>
-            </aside>
-
-            {/* Main Content */}
-            <main className="main-content">
-                <div className="dashboard-grid">
-
-                    {/* Tier 1: Daily Pulse Banner */}
-                    <div className="card span-12 pulse-banner">
-                        <div>
-                            <h1 className="pulse-title">Good Morning, {user.name} 👋</h1>
-                            <p className="pulse-subtitle">Here is your daily practice overview and urgent triage feed</p>
-                        </div>
-                        <div className="pulse-metrics">
-                            <div className="pill pill-online">● Online (Taking Patients)</div>
-                            <div className="pill pill-metric">📅 Today's Bookings: 4</div>
-                            <div className="pill pill-metric">💰 Today's Est. Revenue: $450</div>
-                            <div className="pill pill-danger">
-                                <AlertTriangle size={14} /> 1 Critical Flag
-                            </div>
-                        </div>
+            {/* Tier 2 Left: Today's schedule */}
+            <div className="card span-7 schedule-card">
+                <div className="card-header">
+                    <div>
+                        <h2>{showingFallbackSchedule ? 'Recent Sessions' : "Today's Schedule"}</h2>
+                        <p className="card-subtitle">Sessions you can start, and quick access to patient notes.</p>
                     </div>
-
-                    {/* Tier 2 Left: Schedule & Telehealth Hub */}
-                    <div className="card span-7 schedule-card">
-                        <div className="card-header">
-                            <h2>Today's Schedule & Telehealth Hub</h2>
-                            <span className="link">View Matrix →</span>
-                        </div>
-                        <div className="appointment-list">
-                            {SCHEDULE.map((appt) => (
-                                <div key={appt.session_id} className="appointment-row">
-                                    <div className="appointment-info">
-                                        <span className="appointment-time">{appt.time} — {appt.patient_name}</span>
-                                        {appt.session_type === 'online' ? (
-                                            <span className="badge badge-online">
-                                                <Video size={12} /> Online Video
-                                            </span>
-                                        ) : (
-                                            <span className="badge badge-in-person">🏥 In-Person</span>
-                                        )}
-                                        <button className="btn-ai-briefing">
-                                            <Bot size={13} /> Read AI Briefing
+                    <Link to="/therapist-dashboard/schedule" className="link">Edit Schedule →</Link>
+                </div>
+                {showingFallbackSchedule && (
+                    <p className="schedule-fallback-note">
+                        Nothing's scheduled for today yet — showing your most recent bookings instead.
+                    </p>
+                )}
+                {scheduleToShow.length === 0 ? (
+                    <p className="empty-state-msg">No upcoming sessions right now.</p>
+                ) : (
+                    <div className="appointment-list">
+                        {scheduleToShow.map((appt) => (
+                            <div key={appt.id} className="appointment-row">
+                                <div className="appointment-info">
+                                    <span className="appointment-time">
+                                        {appt.scheduled_date ? formatTime(`${appt.scheduled_date}T${appt.scheduled_time || '00:00'}`) : formatTime(appt.created_at)} — {appt.patient_name}
+                                    </span>
+                                    {appt.session_type === 'online' ? (
+                                        <span className="badge badge-online">
+                                            <Video size={12} /> Online
+                                        </span>
+                                    ) : (
+                                        <span className="badge badge-in-person">🏥 In-Person</span>
+                                    )}
+                                    <Link to="/therapist-dashboard/archive" className="btn-ai-briefing">
+                                        <History size={13} /> View Patient History
+                                    </Link>
+                                </div>
+                                <div className="appointment-action">
+                                    {appt.status === 'in_progress' ? (
+                                        <Link to="/therapist-dashboard/prescriptions" className="btn-launch-room">
+                                            <FileText size={14} /> Write Session Notes
+                                        </Link>
+                                    ) : (
+                                        <button className="btn-launch-room" onClick={() => handleAdvanceStatus(appt.id, 'in_progress')}>
+                                            <PlayCircle size={14} /> Start Session
                                         </button>
-                                    </div>
-                                    <div className="appointment-action">
-                                        {appt.session_type === 'online' ? (
-                                            <button className="btn-launch-room">
-                                                <Video size={14} /> Launch Room
-                                            </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Tier 2 Right: Needs attention + quick actions */}
+            <div className="span-5 stack-col">
+                <div className="card red-flag-card">
+                    <div>
+                        <h2 className="card-header-simple">Needs Your Attention</h2>
+                        <p className="card-subtitle">Patients who've fallen behind on their daily care plan.</p>
+                    </div>
+                    {topFlag ? (
+                        <div className="alert-card">
+                            <span className="alert-title">⚠️ Falling behind on care plan</span>
+                            <p className="alert-message">
+                                {topFlag.patient_name} has completed only {topFlag.adherence_rate}% of their daily checklist this week.
+                            </p>
+                            <div className="alert-actions">
+                                <button
+                                    className="btn-checkin"
+                                    disabled={sendingCheckin}
+                                    onClick={() => handleSendCheckIn(topFlag.patient_id, topFlag.patient_name)}
+                                >
+                                    ✉️ {sendingCheckin ? 'Sending...' : 'Send Check-In'}
+                                </button>
+                                <Link to="/therapist-dashboard/archive" className="btn-care-plan">View Patient Details</Link>
+                            </div>
+                            {patientsNeedingAttention.length > 1 && (
+                                <Link to="/therapist-dashboard/caseload" className="alert-more-link">
+                                    +{patientsNeedingAttention.length - 1} more patient{patientsNeedingAttention.length - 1 === 1 ? '' : 's'} need attention →
+                                </Link>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="empty-state-msg">All your patients are on track — nice work!</p>
+                    )}
+                </div>
+
+                <div className="card shortcuts-card">
+                    <h3 className="card-header-simple">Quick Actions</h3>
+                    <div className="shortcuts-grid">
+                        <Link to="/therapist-dashboard/prescriptions" className="shortcut-btn shortcut-primary">+ Write Session Notes</Link>
+                        <Link to="/therapist-dashboard/group-proposals" className="shortcut-btn shortcut-secondary">+ Propose Group Session</Link>
+                        <Link to="/therapist-dashboard/schedule" className="shortcut-btn shortcut-muted">📅 Edit My Schedule</Link>
+                        <Link to="/therapist-dashboard/archive" className="shortcut-btn shortcut-muted">🗄 Patient History</Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Tier 3 Left: Patient progress overview */}
+            <div className="card span-7 compliance-card">
+                <div className="card-header">
+                    <div>
+                        <h2>Patient Progress Overview</h2>
+                        <p className="card-subtitle">How well each patient is keeping up with their care plan.</p>
+                    </div>
+                    <Link to="/therapist-dashboard/caseload" className="link">View All ({caseload.length}) →</Link>
+                </div>
+                {complianceSnapshot.length === 0 ? (
+                    <p className="empty-state-msg">No patients yet — once someone books with you, they'll show up here.</p>
+                ) : (
+                    <div className="compliance-list">
+                        {complianceSnapshot.map((c) => {
+                            const level = c.adherence_rate === null ? null : adherenceClass(c.adherence_rate);
+                            return (
+                                <div key={c.patient_id} className="compliance-row">
+                                    <div className="compliance-top">
+                                        <span className="compliance-name">{c.patient_name}</span>
+                                        {level ? (
+                                            <span className={`compliance-percent text-${level}`}>{c.adherence_rate}%</span>
                                         ) : (
-                                            <span className="badge-confirmed">
-                                                <CheckCircle size={14} /> Confirmed
-                                            </span>
+                                            <span className="compliance-percent text-muted-inline">No care plan yet</span>
                                         )}
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Tier 2 Right: Red-Flag Feed & Shortcuts */}
-                    <div className="span-5 stack-col">
-                        <div className="card red-flag-card">
-                            <h2 className="card-header-simple">Clinical Red-Flag Feed</h2>
-                            <div className="alert-card">
-                                <span className="alert-title">🚨 High-Priority Adherence Alert</span>
-                                <p className="alert-message">
-                                    {RED_FLAG.patient_name} {RED_FLAG.message}
-                                </p>
-                                <div className="alert-actions">
-                                    <button className="btn-checkin">✉️ Send Check-In</button>
-                                    <button className="btn-care-plan">View Care Plan</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="card shortcuts-card">
-                            <h3 className="card-header-simple">Quick Command Shortcuts</h3>
-                            <div className="shortcuts-grid">
-                                <button className="shortcut-btn shortcut-primary">+ Prescription Studio</button>
-                                <button className="shortcut-btn shortcut-secondary">+ Propose Group Class</button>
-                                <button className="shortcut-btn shortcut-muted">📅 Log Time-Off Override</button>
-                                <button className="shortcut-btn shortcut-muted">👤 Invite Patient</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Tier 3 Left: Caseload Compliance Snapshot */}
-                    <div className="card span-7 compliance-card">
-                        <div className="card-header">
-                            <h2>Active Caseload Compliance Snapshot</h2>
-                            <span className="link">View All (18) →</span>
-                        </div>
-                        <div className="compliance-list">
-                            {COMPLIANCE.map((c) => {
-                                const level = adherenceClass(c.adherence_rate);
-                                return (
-                                    <div key={c.patient_id} className="compliance-row">
-                                        <div className="compliance-top">
-                                            <span className="compliance-name">{c.patient_name} — Daily Care Checklist & Exercises</span>
-                                            <span className={`compliance-percent text-${level}`}>{c.adherence_rate}%</span>
-                                        </div>
-                                        <div className="progress-bar">
-                                            <div className={`bar-fill fill-${level}`} style={{ width: `${c.adherence_rate}%` }}></div>
-                                        </div>
+                                    <div className="progress-bar">
+                                        <div className={`bar-fill ${level ? `fill-${level}` : ''}`} style={{ width: `${c.adherence_rate || 0}%` }}></div>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+                            );
+                        })}
                     </div>
+                )}
+            </div>
 
-                    {/* Tier 3 Right: Practice Performance Mini-Card */}
-                    <div className="card span-5 performance-card">
-                        <h2 className="card-header-simple">Practice Performance & Analytics</h2>
-                        <div className="stats-grid">
-                            <div className="stat-tile">
-                                <span className="stat-label">Monthly Revenue</span>
-                                <span className="stat-value">$4,250</span>
-                            </div>
-                            <div className="stat-tile">
-                                <span className="stat-label">Completed Sessions</span>
-                                <span className="stat-value">34</span>
-                            </div>
-                        </div>
-                        <div className="reputation-box">
-                            <span className="reputation-title">AI Matchmaker Signals & Reputation</span>
-                            <div className="rating-row">
-                                <span className="rating">
-                                    <Star size={16} fill="currentColor" /> 4.9 / 5.0
-                                </span>
-                                <span className="rating-count">(42 Patient Reviews)</span>
-                            </div>
-                            <div className="tag-row">
-                                <span className="tag-pill tag-primary"># Communication Style</span>
-                                <span className="tag-pill tag-muted"># Clinical Approach</span>
-                            </div>
-                        </div>
-                    </div>
-
+            {/* Tier 3 Right: This month at a glance */}
+            <div className="card span-5 performance-card">
+                <div>
+                    <h2 className="card-header-simple">This Month at a Glance</h2>
+                    <p className="card-subtitle">A quick snapshot — see full numbers on the Earnings page.</p>
                 </div>
-            </main>
+                <div className="stats-grid stats-grid-3">
+                    <div className="stat-tile">
+                        <span className="stat-label">Earnings</span>
+                        <span className="stat-value">${(earnings?.currentMonthRevenue ?? 0).toLocaleString()}</span>
+                    </div>
+                    <div className="stat-tile">
+                        <span className="stat-label">Sessions Done</span>
+                        <span className="stat-value">{earnings?.completedSessions ?? 0}</span>
+                    </div>
+                    <div className="stat-tile">
+                        <span className="stat-label">Avg. Rating</span>
+                        <span className="stat-value">
+                            {reviewSummary && Number(reviewSummary.totalReviews) > 0 ? (
+                                <><Star size={15} fill="currentColor" style={{ marginRight: 3 }} />{reviewSummary.avgRating}</>
+                            ) : '—'}
+                        </span>
+                    </div>
+                </div>
+                {reviewSummary && Number(reviewSummary.totalReviews) > 0 ? (
+                    <p className="reputation-footnote">Based on {reviewSummary.totalReviews} patient review{reviewSummary.totalReviews === 1 ? '' : 's'}{reviewSummary.topTags.length > 0 ? ` · often praised for ${reviewSummary.topTags[0]}` : ''}</p>
+                ) : (
+                    <p className="reputation-footnote">No patient reviews yet.</p>
+                )}
+                <Link to="/therapist-dashboard/earnings" className="link view-earnings-link">View Earnings Details →</Link>
+            </div>
+
         </div>
     );
 };

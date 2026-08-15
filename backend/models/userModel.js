@@ -11,6 +11,9 @@ class UserModel {
         return rows[0];
     }
 
+    // Accepts either positional args (name, email, password, role) or a
+    // single { name, email, password, role } object — both call styles are
+    // used across the codebase (patient self-signup vs. admin verification).
     static async create(nameOrObj, email, password, role) {
         let n, e, p, r;
         if (typeof nameOrObj === 'object') {
@@ -25,9 +28,12 @@ class UserModel {
             r = role || 'patient';
         }
 
+        // Live schema uses display_name/status (not the `name` column from
+        // the stale SQL dump) — matches what patientModel, adminUserModel,
+        // and the reminder jobs already assume elsewhere.
         const [result] = await db.execute(
-            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-            [n, e, p, r]
+            'INSERT INTO users (display_name, email, password, role, status) VALUES (?, ?, ?, ?, ?)',
+            [n, e, p, r, 'active']
         );
         return { id: result.insertId, name: n, email: e, role: r };
     }

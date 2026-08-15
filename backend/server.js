@@ -13,6 +13,10 @@ const adminVerificationRoutes = require('./routes/adminVerificationRoutes');
 const adminGroupApprovalRoutes = require('./routes/adminGroupApprovalRoutes');
 const groupSessionRoutes = require('./routes/groupSessionRoutes');
 const availabilityRoutes = require('./routes/availabilityRoutes');
+const prescriptionRoutes = require('./routes/prescriptionRoutes');
+const caseloadRoutes = require('./routes/caseloadRoutes');
+const archiveRoutes = require('./routes/archiveRoutes');
+const earningsRoutes = require('./routes/earningsRoutes');
 const { startExerciseReminderJob } = require('./jobs/exerciseReminderJob');
 const { startBookNextSessionJob } = require('./jobs/bookNextSessionJob');
 
@@ -36,6 +40,13 @@ app.use('/api/sessions', require('./routes/sessionRoutes'));
 app.use('/api/admin', adminGroupApprovalRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/groups', groupSessionRoutes);
+
+// Therapist Dashboard build-out: Active Caseload, Prescription Studio,
+// Patient Archives, and Earnings & Jobs.
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/caseload', caseloadRoutes);
+app.use('/api/archive', archiveRoutes);
+app.use('/api/earnings', earningsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
