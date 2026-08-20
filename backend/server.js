@@ -17,6 +17,7 @@ const prescriptionRoutes = require('./routes/prescriptionRoutes');
 const caseloadRoutes = require('./routes/caseloadRoutes');
 const archiveRoutes = require('./routes/archiveRoutes');
 const earningsRoutes = require('./routes/earningsRoutes');
+const therapistDirectoryRoutes = require('./routes/therapistDirectoryRoutes');
 const { startExerciseReminderJob } = require('./jobs/exerciseReminderJob');
 const { startBookNextSessionJob } = require('./jobs/bookNextSessionJob');
 
@@ -47,6 +48,7 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/caseload', caseloadRoutes);
 app.use('/api/archive', archiveRoutes);
 app.use('/api/earnings', earningsRoutes);
+app.use('/api/patient', therapistDirectoryRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
