@@ -16,8 +16,7 @@ const NAV_ITEMS = [
     { label: 'My Patients', icon: ClipboardList, path: '/therapist-dashboard/caseload' },
     { label: 'Session Notes', icon: FileText, path: '/therapist-dashboard/prescriptions' },
     { label: 'Patient History', icon: Archive, path: '/therapist-dashboard/archive' },
-    { label: 'Propose Group', icon: PlusCircle, path: '/therapist-dashboard/group-proposals' },
-    { label: 'Manage Groups', icon: Users, path: '/therapist-dashboard/manage-groups' },
+    { label: 'Group Sessions', icon: Users, path: '/therapist-dashboard/group-proposals' },
     { label: 'Earnings', icon: Briefcase, path: '/therapist-dashboard/earnings' },
     { label: 'My Profile', icon: UserCog, path: '/therapist-dashboard/profile' },
 ];

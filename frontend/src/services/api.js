@@ -284,10 +284,19 @@ export const adminRejectGroupProposal = (id, reason) =>
 
 // --- Therapist: Group Proposals ---
 export const therapistProposeGroup = (data) =>
-    apiInstance.post('/therapist/groups/propose', data).then(res => res.data);
+    apiInstance.post('/groups/propose', data).then(res => res.data);
 
 export const therapistGetMyProposals = () =>
-    apiInstance.get('/therapist/groups/my-proposals').then(res => res.data.data);
+    apiInstance.get('/groups/my-proposals').then(res => res.data.data);
+// --- Therapist: Manage Group Session (Feature 20) ---
+export const therapistGetEnrolledPatients = (sessionId) =>
+    apiInstance.get(`/groups/${sessionId}/enrolled`).then(res => res.data.data);
+
+export const therapistMarkAttendance = (enrollmentId, attended) =>
+    apiInstance.put(`/groups/enrollment/${enrollmentId}/attendance`, { attended }).then(res => res.data);
+
+export const therapistWriteSessionNotes = (sessionId, notes) =>
+    apiInstance.put(`/groups/${sessionId}/notes`, { notes }).then(res => res.data);
 
 // --- Patient: Group Sessions ---
 export const patientGetOpenGroupSessions = () =>
