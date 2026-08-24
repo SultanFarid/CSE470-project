@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import {
     LogOut, LayoutDashboard, Calendar, ClipboardList, FileText,
-    Archive, Users, Briefcase, UserCog
+    Archive, Users, Briefcase, UserCog, Menu, X
 } from 'lucide-react';
 import './TherapistDashboard.css';
 import NotificationBell from '../shared/NotificationBell';
@@ -35,6 +35,8 @@ const TherapistLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [user, setUser] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const sidebarRef = useRef(null);
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -44,6 +46,22 @@ const TherapistLayout = () => {
         }
         setUser(storedUser);
     }, [navigate]);
+
+    // Close sidebar when navigating to a new route
+    useEffect(() => {
+        setSidebarOpen(false);
+    }, [location.pathname]);
+
+    // Close sidebar when clicking outside of it
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+                setSidebarOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [sidebarOpen]);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -59,6 +77,14 @@ const TherapistLayout = () => {
             {/* Top Navbar — persistent across every page */}
             <header className="navbar">
                 <div className="navbar-left">
+                    {/* Hamburger — only visible on small screens */}
+                    <button
+                        className="hamburger-btn"
+                        onClick={() => setSidebarOpen((prev) => !prev)}
+                        aria-label="Toggle navigation"
+                    >
+                        {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+                    </button>
                     <div className="brand-logo">S</div>
                     <span className="brand-name">Smart Recovery Portal</span>
                     <span className="badge-role">Therapist</span>
@@ -72,8 +98,13 @@ const TherapistLayout = () => {
                 </div>
             </header>
 
+            {/* Overlay — dims the page behind the open sidebar on mobile */}
+            {sidebarOpen && (
+                <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+            )}
+
             {/* Left Sidebar — persistent across every page, highlights the current route */}
-            <aside className="sidebar">
+            <aside ref={sidebarRef} className={`sidebar${sidebarOpen ? ' open' : ''}`}>
                 <nav className="nav-list">
                     {NAV_ITEMS.map((item) => {
                         const Icon = item.icon;
