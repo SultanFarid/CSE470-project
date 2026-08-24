@@ -1,0 +1,350 @@
+.tms-container {
+    padding: 24px 32px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tms-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #1a1c2e;
+}
+
+.tms-header p {
+    font-size: 13.5px;
+    color: #6b6e89;
+    margin: 0 0 20px;
+}
+
+.tms-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-bottom: 16px;
+}
+
+.tms-alert-success {
+    background: #e6faf0;
+    color: #1a9c5c;
+    border: 1px solid #b6ecd0;
+}
+
+.tms-alert-error {
+    background: #fdeaea;
+    color: #d1433f;
+    border: 1px solid #f5c6c6;
+}
+
+.tms-grid {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.tms-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #ececf5;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(20, 21, 43, 0.04);
+}
+
+.tms-list-card {
+    flex: 1;
+    min-width: 0;
+    max-width: 340px;
+}
+
+.tms-detail-card {
+    flex: 2;
+    min-width: 0;
+}
+
+.tms-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    color: #6c5ce7;
+}
+
+.tms-card-title h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+    color: #1a1c2e;
+}
+
+.tms-state-msg {
+    color: #9497b3;
+    font-size: 13px;
+    padding: 16px 0;
+    text-align: center;
+    margin: 0;
+}
+
+/* Session list */
+.tms-session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tms-session-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #ececf5;
+    background: #fbfbfe;
+    cursor: pointer;
+}
+
+.tms-session-item:hover {
+    background: #f4f2ff;
+}
+
+.tms-session-item-active {
+    background: #f1eeff;
+    border-color: #6c5ce7;
+}
+
+.tms-session-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.tms-session-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1a1c2e;
+}
+
+.tms-completed-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #1a9c5c;
+    background: #e6faf0;
+    padding: 2px 7px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.tms-session-sub {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: #9497b3;
+}
+
+/* Detail panel */
+.tms-detail-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: #9497b3;
+    margin: -8px 0 16px;
+}
+
+.tms-section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: #6b6e89;
+    margin: 18px 0 10px;
+}
+
+.tms-patient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.tms-patient-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f8f8fc;
+}
+
+.tms-patient-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.tms-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #6c5ce7;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tms-patient-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1c2e;
+}
+
+.tms-patient-email {
+    font-size: 11.5px;
+    color: #9497b3;
+}
+
+.tms-patient-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.tms-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.tms-status-requested {
+    background: #fff6e0;
+    color: #b8860b;
+}
+
+.tms-status-confirmed {
+    background: #e8f0ff;
+    color: #3161d1;
+}
+
+.tms-status-attended {
+    background: #e6faf0;
+    color: #1a9c5c;
+}
+
+.tms-status-absent {
+    background: #fdeaea;
+    color: #d1433f;
+}
+
+.tms-attend-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #ececf5;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.tms-attend-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tms-attend-present {
+    color: #1a9c5c;
+}
+
+.tms-attend-present:hover:not(:disabled) {
+    background: #e6faf0;
+}
+
+.tms-attend-absent {
+    color: #d1433f;
+}
+
+.tms-attend-absent:hover:not(:disabled) {
+    background: #fdeaea;
+}
+
+/* Notes */
+.tms-notes-hint {
+    font-size: 12px;
+    color: #9497b3;
+    margin: 0 0 10px;
+}
+
+.tms-notes-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e3ef;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.tms-notes-textarea:focus {
+    border-color: #6c5ce7;
+}
+
+.tms-btn-save {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    background: #6c5ce7;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.tms-btn-save:hover:not(:disabled) {
+    background: #5c4dd6;
+}
+
+.tms-btn-save:disabled {
+    background: #cfc7ff;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .tms-grid {
+        flex-direction: column;
+    }
+
+    .tms-list-card {
+        max-width: 100%;
+    }
+}
