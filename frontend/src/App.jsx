@@ -19,6 +19,7 @@ import AdminGroupApprovals from "./components/admin/AdminGroupApprovals";
 import TherapistGroupProposals from "./components/therapist/TherapistGroupProposals";
 import PatientGroupSessions from "./components/patient/PatientGroupSessions";
 import ScheduleManager from './components/therapist/ScheduleManager';
+import TherapistManageGroupSession from "./components/therapist/TherapistManageGroupSession";
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="group-proposals" element={<TherapistGroupProposals />} />
           <Route path="earnings" element={<EarningsJobs />} />
           <Route path="profile" element={<TherapistProfileEditor />} />
+          <Route path="manage-groups" element={<TherapistManageGroupSession />} />
         </Route>
 
         <Route path="/admin/users" element={<AdminUserManagement />} />
