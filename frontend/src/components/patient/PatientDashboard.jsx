@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Bell, Calendar, CheckCircle, Clock, Play, User, Star, Search, 
   Users, LogOut, ArrowRight, Settings, Heart, Sliders, MapPin, 
-  Globe, Phone, Video, ShieldAlert, Plus, CheckSquare, BarChart2, Check
+  Globe, Phone, Video, ShieldAlert, Plus, CheckSquare, BarChart2, Check, FileText
 } from 'lucide-react';
 import './PatientDashboard.css';
 import { 
@@ -11,7 +11,8 @@ import {
   getPatientTasks, createPatientTask, deletePatientTask, getTherapistDirectory,
   getAppointments, bookAppointment, cancelAppointment, getTherapistSlots, getEffectiveAvailability,
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
-  patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments
+  patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments,
+  saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan
 } from '../../services/api';
 
 import ActiveAppointmentCard from './ActiveAppointmentCard';
@@ -22,6 +23,7 @@ import BookingModal from './BookingModal';
 import TasksModal from './TasksModal';
 import ReviewFeedbackModal from './ReviewFeedbackModal';
 import NotificationBell from '../shared/NotificationBell';
+import CarePlanPromptCard from './CarePlanPromptCard';
 
 const parseVideoUrl = (url) => {
   if (!url) return null;
@@ -96,17 +98,24 @@ export default function PatientDashboard() {
   const navigate = useNavigate();
 
   const [patientUser, setPatientUser] = useState({
-    name: 'Yasar Mostafa',
+    name: '',
     email: '',
-    location: 'Dhaka, Bangladesh',
-    language: 'English, Bengali',
-    contact: '+880 1712-345678',
-    therapist: 'Dr. Sultan M. Farid',
+    location: '',
+    language: '',
+    contact: '',
+    therapist: '',
     profile_photo_url: ''
   });
 
   const [loading, setLoading] = useState(true);
   const [groupJoinRequested, setGroupJoinRequested] = useState(false);
+
+  // Feature 6b: Real streak counter
+  const [streak, setStreak] = useState(0);
+
+  // Feature 6a: Care plan opt-in prompt
+  const [pendingCarePlan, setPendingCarePlan] = useState(null);
+  const [carePlanDismissed, setCarePlanDismissed] = useState(false);
 
   // Group Sessions State
   const [groupSessions, setGroupSessions] = useState([]);
@@ -115,8 +124,9 @@ export default function PatientDashboard() {
 
   // Feature 7: Review & Feedback State
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewTherapist, setReviewTherapist] = useState({ id: 1, name: 'Dr. Ayesha Rahman', specialties: 'Anxiety, Depression' });
-  const [reviewAppointmentId, setReviewAppointmentId] = useState(1);
+  const [reviewTherapist, setReviewTherapist] = useState(null);
+  const [reviewAppointmentId, setReviewAppointmentId] = useState(null);
+  const [pendingReview, setPendingReview] = useState(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewSummaries, setReviewSummaries] = useState({});
 
@@ -181,24 +191,6 @@ export default function PatientDashboard() {
 
   const formatSlotLabel = (start, end) => `${formatTimeLabel(start)} - ${formatTimeLabel(end)}`;
 
-  const DEFAULT_TASKS = [
-    { id: 101, text: "Take Morning Medication (Sertraline 50mg)", dueDate: new Date().toISOString().slice(0, 10), dueTime: "8:00 AM", videoUrl: null },
-    { id: 102, text: "Complete 5-Minute Daily Mood Journaling", dueDate: new Date().toISOString().slice(0, 10), dueTime: "10:30 AM", videoUrl: null },
-    { id: 103, text: "15-Min Guided Mindfulness Breathing Exercise", dueDate: new Date().toISOString().slice(0, 10), dueTime: "", videoUrl: "https://www.youtube.com/watch?v=inpok4MKVLM" }
-  ];
-
-  const DEFAULT_APPOINTMENTS = [
-    {
-      id: 1,
-      therapist_id: 5,
-      therapist_name: "Dr. Sultan M. Farid",
-      therapist_specialties: "Clinical Psychology",
-      session_type: "online",
-      appointment_date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-      time_slot: "10:00 AM - 10:50 AM",
-      status: "confirmed"
-    }
-  ];
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -207,14 +199,39 @@ export default function PatientDashboard() {
         const data = await getPatientProfile();
         if (data) {
           setPatientUser({
-            name: data.name || data.display_name || 'Yasar Mostafa',
+            name: data.name || data.display_name || '',
             email: data.email || '',
-            location: data.location || 'Dhaka, Bangladesh',
-            language: data.preferred_language || data.language || 'English, Bengali',
-            contact: data.contact_number || data.contact || '+880 1712-345678',
-            therapist: data.assigned_therapist || 'Dr. Sultan M. Farid',
+            location: data.location || '',
+            language: data.preferred_language || data.language || '',
+            contact: data.contact_number || data.contact || '',
+            therapist: data.assigned_therapist || '',
             profile_photo_url: data.profile_photo_url || ''
           });
+        }
+
+        // Feature 7: check for a real completed-but-unreviewed session (no
+        // fake "Dr. Ayesha" banner — only show this when one actually exists)
+        try {
+          const pendingRes = await getPendingReview();
+          setPendingReview(pendingRes && pendingRes.hasPending ? pendingRes.review : null);
+        } catch (pendingErr) {
+          setPendingReview(null);
+        }
+
+        // Feature 6b: Load the real streak counter
+        try {
+          const s = await getMyStreak();
+          setStreak(typeof s === 'number' ? s : 0);
+        } catch {
+          setStreak(0);
+        }
+
+        // Feature 6a: Check if there is a pending care plan to prompt
+        try {
+          const cp = await getPendingCarePlan();
+          setPendingCarePlan(cp || null);
+        } catch {
+          setPendingCarePlan(null);
         }
 
         // Fetch Open Group Sessions
@@ -248,13 +265,9 @@ export default function PatientDashboard() {
       try {
         setTasksLoading(true);
         const data = await getPatientTasks();
-        if (Array.isArray(data) && data.length > 0) {
-          setChecklistItems(data);
-        } else {
-          setChecklistItems(DEFAULT_TASKS);
-        }
+        setChecklistItems(Array.isArray(data) ? data : []);
       } catch (err) {
-        setChecklistItems(DEFAULT_TASKS);
+        setChecklistItems([]);
       } finally {
         setTasksLoading(false);
       }
@@ -267,13 +280,9 @@ export default function PatientDashboard() {
       try {
         setAppointmentsLoading(true);
         const data = await getAppointments();
-        if (Array.isArray(data) && data.length > 0) {
-          setAppointments(data);
-        } else {
-          setAppointments(DEFAULT_APPOINTMENTS);
-        }
+        setAppointments(Array.isArray(data) ? data : []);
       } catch (err) {
-        setAppointments(DEFAULT_APPOINTMENTS);
+        setAppointments([]);
       } finally {
         setAppointmentsLoading(false);
       }
@@ -308,6 +317,8 @@ export default function PatientDashboard() {
       setJoiningId(null);
     }
   };
+
+  const displayOrPlaceholder = (value, placeholder = 'Not set yet') => (value ? value : placeholder);
 
   const getInitials = (fullName = '') => {
     return fullName.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -388,15 +399,16 @@ export default function PatientDashboard() {
   };
 
   const toggleTaskCompletion = async (id) => {
-    const isMock = id >= 100 && id <= 103;
-    if (isMock) {
-      setChecklistItems(prev => prev.filter(item => item.id !== id));
-      return;
-    }
     try {
-      await deletePatientTask(id);
+      await completeTask(id);
       setChecklistItems(prev => prev.filter(item => item.id !== id));
+      // Refresh streak after completing a task
+      try {
+        const s = await getMyStreak();
+        setStreak(typeof s === 'number' ? s : 0);
+      } catch { /* streak refresh is non-critical */ }
     } catch (err) {
+      // Remove optimistically even on error
       setChecklistItems(prev => prev.filter(item => item.id !== id));
     }
   };
@@ -449,6 +461,10 @@ export default function PatientDashboard() {
   };
 
   const runAiMatchmaker = async () => {
+    // Persist the completed questionnaire so a therapist can review a
+    // pre-session briefing later — non-blocking, doesn't affect this flow.
+    saveVitals(vitalsData).catch(() => {});
+
     let pool = MOCK_THERAPISTS;
     try {
       const dbTherapists = await getTherapistDirectory();
@@ -630,16 +646,17 @@ export default function PatientDashboard() {
 
   const openReviewModal = (appt) => {
     setReviewTherapist({
-      id: appt.therapist_id || 1,
-      name: appt.therapist_name || 'Dr. Sultan M. Farid',
-      specialties: appt.therapist_specialties || 'Clinical Psychology'
+      id: appt.therapist_id,
+      name: appt.therapist_name,
+      specialties: appt.therapist_specialties
     });
-    setReviewAppointmentId(appt.id || 1);
+    setReviewAppointmentId(appt.id);
     setShowReviewModal(true);
   };
 
   const handleReviewSubmit = async (reviewPayload) => {
     await submitReview(reviewPayload);
+    setPendingReview(null);
     setReviewSubmitted(true);
     setShowReviewModal(false);
     const summaries = await getAllTherapistReviewSummaries();
@@ -752,6 +769,9 @@ export default function PatientDashboard() {
             <div className="menu-item" onClick={() => navigate('/patient/group-sessions')} style={{ cursor: 'pointer' }}>
               <Users size={18} /><span>Group Sessions</span>
             </div>
+            <div className="menu-item" onClick={() => navigate('/patient/prescriptions')} style={{ cursor: 'pointer' }}>
+              <FileText size={18} /><span>My Prescriptions</span>
+            </div>
             <div className="menu-item" onClick={openVitalsModal} style={{ cursor: 'pointer' }}>
               <BarChart2 size={18} /><span>Vitals & Progress</span>
             </div>
@@ -773,10 +793,16 @@ export default function PatientDashboard() {
             <section className="dashboard-card span-12 banner-card">
               <div className="banner-left">
                 <h1 className="banner-welcome">Welcome back, {patientUser.name.split(' ')[0]} 👋</h1>
-                <p className="banner-subtitle">You're on a 5-day care plan streak! Keep up the great progress.</p>
+                <p className="banner-subtitle">
+                  {streak > 0
+                    ? `You're on a ${streak}-day care plan streak! Keep up the great progress.`
+                    : 'Complete your daily tasks to start building your care streak!'}
+                </p>
               </div>
               <div className="banner-right">
-                <div className="streak-pill">★ 5-Day Streak</div>
+                {streak > 0 && (
+                  <div className="streak-pill">★ {streak}-Day Streak</div>
+                )}
                 <div className="reminder-pill">
                   <Clock size={14} /><span>Next: Tomorrow 10:00 AM</span>
                 </div>
@@ -795,7 +821,9 @@ export default function PatientDashboard() {
               openBookingModal={openBookingModal}
               cancelNotification={cancelNotification}
               openReviewModal={openReviewModal}
+              pendingReview={pendingReview}
               reviewSubmitted={reviewSubmitted}
+              lastReviewedTherapist={reviewTherapist}
             />
 
             {/* E. SMART ROUTING & DISCOVERY HUB */}
@@ -881,6 +909,26 @@ export default function PatientDashboard() {
                 </span>
               </div>
 
+              {/* Feature 6a: Care Plan Opt-In Prompt Card */}
+              {pendingCarePlan && !carePlanDismissed && (
+                <CarePlanPromptCard
+                  pendingCarePlan={pendingCarePlan}
+                  onAccepted={(newItems) => {
+                    // Map the accepted care plan items into the task list format
+                    const formatted = newItems.map(item => ({
+                      id: item.id,
+                      text: item.title,
+                      videoUrl: item.youtube_url || null,
+                      dueDate: null,
+                      dueTime: null,
+                    }));
+                    setChecklistItems(prev => [...formatted, ...prev]);
+                    setPendingCarePlan(null);
+                  }}
+                  onDismiss={() => setCarePlanDismissed(true)}
+                />
+              )}
+
               <div className="checklist-container">
                 {tasksLoading ? (
                   <p className="checklist-empty-text">Loading your tasks...</p>
@@ -915,19 +963,19 @@ export default function PatientDashboard() {
               <div className="profile-data-list">
                 <div className="profile-data-row">
                   <span className="data-field-label"><MapPin size={14} /> LOCATION:</span>
-                  <span className="data-field-value">{patientUser.location}</span>
+                  <span className="data-field-value">{displayOrPlaceholder(patientUser.location)}</span>
                 </div>
                 <div className="profile-data-row">
                   <span className="data-field-label"><Globe size={14} /> LANGUAGE:</span>
-                  <span className="data-field-value">{patientUser.language}</span>
+                  <span className="data-field-value">{displayOrPlaceholder(patientUser.language)}</span>
                 </div>
                 <div className="profile-data-row">
                   <span className="data-field-label"><Phone size={14} /> CONTACT:</span>
-                  <span className="data-field-value">{patientUser.contact}</span>
+                  <span className="data-field-value">{displayOrPlaceholder(patientUser.contact)}</span>
                 </div>
                 <div className="profile-data-row">
                   <span className="data-field-label"><Video size={14} /> THERAPIST:</span>
-                  <span className="data-field-value color-link-blue">{patientUser.therapist}</span>
+                  <span className="data-field-value color-link-blue">{displayOrPlaceholder(patientUser.therapist, 'No therapist assigned yet')}</span>
                 </div>
               </div>
               <button className="edit-profile-action-btn" onClick={openEditModal}>

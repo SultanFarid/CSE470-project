@@ -18,7 +18,9 @@ const TherapistProfileEditor = () => {
         specialties: '',
         languages: '',
         consultation_fee: '',
-        session_type: 'both'
+        session_type: 'both',
+        hospital_name: '',
+        qualification: ''
     });
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -41,7 +43,9 @@ const TherapistProfileEditor = () => {
                     specialties: data.specialties || '',
                     languages: data.languages || '',
                     consultation_fee: data.consultation_fee || '',
-                    session_type: data.session_type || 'both'
+                    session_type: data.session_type || 'both',
+                    hospital_name: data.hospital_name || '',
+                    qualification: data.qualification || ''
                 });
             } catch (err) {
                 setMessage({ text: 'Could not load existing profile. You can still fill it out below.', type: 'error' });
@@ -137,6 +141,28 @@ const TherapistProfileEditor = () => {
                             className="form-input"
                             value={profile.languages}
                             onChange={(e) => setProfile({ ...profile, languages: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Qualification <span className="field-hint">(shown on your prescription letterhead)</span></label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            placeholder="e.g. MBBS, MD Psychiatry"
+                            value={profile.qualification}
+                            onChange={(e) => setProfile({ ...profile, qualification: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Hospital / Clinic Name <span className="field-hint">(shown on your prescription letterhead)</span></label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            placeholder="e.g. Smart Therapy Clinic"
+                            value={profile.hospital_name}
+                            onChange={(e) => setProfile({ ...profile, hospital_name: e.target.value })}
                         />
                     </div>
 

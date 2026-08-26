@@ -1,74 +1,168 @@
-.ps-container {
-    --bg-main: #f8fafc; --bg-card: #ffffff; --border-color: #e2e8f0;
-    --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8;
-    --color-primary: #0284c7; --color-success: #10b981; --color-danger: #f43f5e;
-    max-width: 820px; margin: 0 auto;
-    color: var(--text-primary);
-}
+.ps-container { max-width: 780px; margin: 0 auto; padding-bottom: 40px; }
 
-
-.ps-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.ps-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
 .ps-header-icon {
     width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: var(--color-primary);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.ps-header h1 { font-size: 22px; margin: 0 0 4px; }
-.ps-header p { font-size: 13.5px; color: var(--text-secondary); margin: 0; }
+.ps-header h1 { font-size: 20px; margin: 0 0 3px; color: var(--text-primary); }
+.ps-header p { font-size: 13px; color: var(--text-secondary); margin: 0; }
 
-.ps-alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 13.5px; margin-bottom: 20px; }
-.ps-alert-success { background: #e6faf0; color: #1a9c5c; border: 1px solid #b6ecd0; }
-.ps-alert-error { background: #fdeaea; color: #d1433f; border: 1px solid #f8c9c9; }
-
-.ps-state-msg { color: var(--text-muted); font-size: 13.5px; }
-.ps-items-empty { padding: 16px; border: 1px dashed var(--border-color); border-radius: 10px; text-align: center; }
-
-.ps-field, .ps-session-picker { margin-bottom: 20px; }
-.ps-field label, .ps-session-picker label {
-    display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;
+.ps-alert {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; margin-bottom: 16px;
 }
-.ps-field textarea, .ps-session-picker select {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 10px;
-    font-size: 13.5px; font-family: inherit; background: var(--bg-card); color: var(--text-primary);
-    box-sizing: border-box; resize: vertical;
+.ps-alert-success { background: #ecfdf5; color: #047857; }
+.ps-alert-error { background: #fef2f2; color: #b91c1c; }
+
+.ps-field { margin-bottom: 18px; }
+.ps-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.ps-label-hint { font-weight: 400; color: var(--text-muted); font-size: 12px; }
+.ps-field select, .ps-field textarea {
+    width: 100%; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px;
+    font-size: 13.5px; font-family: inherit; box-sizing: border-box; resize: vertical; background: #fff; color: var(--text-primary);
 }
-.ps-field textarea:focus, .ps-session-picker select:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.ps-field select:focus, .ps-field textarea:focus { outline: none; border-color: var(--color-primary); }
 
-.ps-session-picker { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.04); }
+.ps-session-picker { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; }
 
-.ps-form { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px; box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.04); }
+.ps-state-msg { font-size: 13px; color: var(--text-muted); margin: 4px 0; }
+.ps-items-empty {
+    border: 1px dashed var(--border-color); border-radius: 10px; padding: 14px; text-align: center; margin-top: 8px;
+}
 
-.ps-items-section { margin-bottom: 20px; }
-.ps-items-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+/* --- Pre-Session Briefing card --- */
+.ps-briefing-card {
+    background: linear-gradient(135deg, #eef2ff, #e0f2fe);
+    border: 1px solid #c7d2fe;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+.ps-briefing-label {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #4338ca; margin-bottom: 6px;
+}
+.ps-briefing-text { font-size: 13.5px; line-height: 1.55; color: #1e1b4b; margin: 0; }
+.ps-briefing-crisis {
+    display: flex; align-items: center; gap: 6px; margin-top: 10px; padding: 8px 10px;
+    background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 8px;
+    font-size: 12px; font-weight: 700;
+}
+
+.ps-form { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+
+/* --- Medicine / Test search + Rx list --- */
+.ps-rx-section { margin-bottom: 22px; border-top: 1px solid var(--border-color); padding-top: 18px; }
+.ps-rx-section-label {
+    display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 8px;
+}
+.ps-search-box { position: relative; }
+.ps-search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.ps-search-box input {
+    width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 10px;
+    padding: 9px 12px 9px 32px; font-size: 13.5px; font-family: inherit;
+}
+.ps-search-box input:focus { outline: none; border-color: var(--color-primary); }
+
+.ps-dropdown {
+    margin-top: 4px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden;
+    max-height: 220px; overflow-y: auto; box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+}
+.ps-dropdown-msg { padding: 10px 12px; font-size: 12.5px; color: var(--text-muted); margin: 0; }
+.ps-dropdown-item {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%;
+    text-align: left; padding: 9px 12px; border: none; background: #fff; cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+}
+.ps-dropdown-item:last-child { border-bottom: none; }
+.ps-dropdown-item:hover { background: #f0f9ff; }
+.ps-dropdown-item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.ps-dropdown-item-meta { font-size: 11px; color: var(--text-muted); }
+.ps-dropdown-freeform { color: var(--color-primary); font-weight: 600; font-size: 12.5px; }
+
+.ps-rx-list { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.ps-rx-row, .ps-test-row {
+    border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; background: #fafcff;
+}
+.ps-rx-row-top { display: flex; align-items: center; gap: 8px; }
+.ps-rx-index { font-size: 12.5px; font-weight: 700; color: var(--text-muted); }
+.ps-rx-name { font-size: 13.5px; font-weight: 700; color: var(--text-primary); flex: 1; }
+.ps-rx-dosage {
+    width: 140px; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 9px; font-size: 12.5px;
+}
+.ps-rx-row-bottom { display: flex; align-items: center; gap: 10px; margin-top: 9px; flex-wrap: wrap; }
+.ps-dose-slots { display: flex; align-items: center; gap: 6px; }
+.ps-dose-chip {
+    display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600;
+    padding: 4px 9px; border-radius: 999px; border: 1px solid var(--border-color); color: var(--text-secondary);
+    cursor: pointer; background: #fff;
+}
+.ps-dose-chip input { margin: 0; }
+.ps-dose-chip-on { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+.ps-freq-code {
+    font-family: monospace; font-size: 12px; font-weight: 700; color: var(--color-primary);
+    background: #f0f9ff; padding: 3px 7px; border-radius: 6px;
+}
+.ps-rx-duration { width: 68px; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 9px; font-size: 12.5px; }
+.ps-rx-instructions {
+    flex: 1; min-width: 140px; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 9px; font-size: 12.5px;
+}
+
+.ps-test-row { display: flex; align-items: center; gap: 8px; }
+.ps-test-notes { flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 9px; font-size: 12.5px; }
+
+.ps-btn-remove {
+    background: none; border: none; color: var(--color-danger); cursor: pointer; padding: 4px;
+    display: flex; align-items: center; flex-shrink: 0;
+}
+.ps-btn-remove:hover { opacity: 0.75; }
+
+/* --- Daily Checklist (existing feature, kept) --- */
+.ps-items-section { margin-bottom: 20px; border-top: 1px solid var(--border-color); padding-top: 18px; }
+.ps-items-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.ps-items-header label { font-size: 13px; font-weight: 700; color: var(--text-primary); }
 .ps-add-btns { display: flex; gap: 8px; }
 .ps-btn-add {
-    display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; color: var(--text-secondary);
-    border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; font-size: 12.5px;
-    font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+    padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-color); background: #fff;
+    color: var(--text-secondary); cursor: pointer;
 }
-.ps-btn-add:hover { background: #e2e8f0; }
+.ps-btn-add:hover { background: #f8fafc; }
 
-.ps-items-list { display: flex; flex-direction: column; gap: 10px; }
-.ps-item-row {
-    display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border-color);
-    border-radius: 10px; flex-wrap: wrap;
+.ps-items-list { display: flex; flex-direction: column; gap: 8px; }
+.ps-item-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ps-item-row input[type="text"], .ps-item-row input[type="url"] {
+    flex: 1; min-width: 160px; border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 10px; font-size: 12.5px;
 }
-.ps-item-row input[type="text"] { flex: 1; min-width: 160px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; }
 .ps-item-badge {
-    display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700;
-    padding: 4px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.02em; flex-shrink: 0;
+    display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 5px 9px;
+    border-radius: 999px; flex-shrink: 0;
 }
-.ps-item-badge.medication { background: #fef3c7; color: #92400e; }
-.ps-item-badge.exercise { background: #dcfce7; color: #166534; }
-.ps-youtube-field { display: flex; align-items: center; gap: 6px; color: #b91c1c; min-width: 220px; flex: 1; }
-.ps-youtube-field input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; }
-.ps-btn-remove { background: none; border: none; color: var(--color-danger); cursor: pointer; padding: 6px; flex-shrink: 0; }
-.ps-btn-remove:hover { color: #be123c; }
+.ps-item-badge.medication { background: #ecfdf5; color: #047857; }
+.ps-item-badge.exercise { background: #eff6ff; color: #1d4ed8; }
+.ps-youtube-field { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 160px; color: var(--text-muted); }
+.ps-youtube-field input { flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; }
 
-.ps-completed-note { font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px; }
+.ps-completed-note {
+    font-size: 12px; color: var(--text-muted); background: #f8fafc; border: 1px solid var(--border-color);
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 14px;
+}
 
+.ps-submit-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ps-btn-submit {
     background: var(--color-primary); color: white; border: none; border-radius: 10px;
-    padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%;
+    padding: 11px 22px; font-size: 13.5px; font-weight: 700; cursor: pointer;
 }
-.ps-btn-submit:hover { background: #0369a1; }
+.ps-btn-submit:hover { background: var(--color-primary-hover); }
 .ps-btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.ps-btn-download {
+    display: flex; align-items: center; gap: 6px; background: #fff; color: var(--color-primary);
+    border: 1px solid var(--color-primary); border-radius: 10px; padding: 10px 18px;
+    font-size: 13.5px; font-weight: 700; cursor: pointer;
+}
+.ps-btn-download:hover { background: #f0f9ff; }
+.ps-btn-download:disabled { opacity: 0.6; cursor: not-allowed; }

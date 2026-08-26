@@ -1,0 +1,41 @@
+.pp-container { max-width: 700px; margin: 0 auto; padding: 24px 16px 40px; }
+
+.pp-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+.pp-header-icon {
+    width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pp-header h1 { font-size: 20px; margin: 0 0 3px; color: #0f172a; }
+.pp-header p { font-size: 13px; color: #475569; margin: 0; }
+
+.pp-alert {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; margin-bottom: 16px; background: #fef2f2; color: #b91c1c;
+}
+
+.pp-state-msg { font-size: 13.5px; color: #94a3b8; text-align: center; padding: 30px 10px; }
+
+.pp-list { display: flex; flex-direction: column; gap: 10px; }
+.pp-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px;
+}
+.pp-card-main { display: flex; align-items: center; gap: 12px; }
+.pp-card-icon {
+    width: 38px; height: 38px; border-radius: 10px; background: #f1f5f9; color: #475569;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pp-doctor-name { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0 0 2px; }
+.pp-session-date { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #64748b; margin: 0; }
+
+.pp-btn-download {
+    display: flex; align-items: center; gap: 6px; background: #0284c7; color: white; border: none;
+    border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+}
+.pp-btn-download:hover { background: #0369a1; }
+.pp-btn-download:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.pp-pending-tag {
+    font-size: 11.5px; font-weight: 600; color: #94a3b8; background: #f8fafc; border: 1px solid #e2e8f0;
+    padding: 6px 10px; border-radius: 999px; flex-shrink: 0;
+}

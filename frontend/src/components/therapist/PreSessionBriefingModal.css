@@ -1,0 +1,136 @@
+.psb-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+}
+
+.psb-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px 26px 22px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 86vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.psb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.psb-header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #0284c7;
+    background: #e0f2fe;
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+
+.psb-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    display: flex;
+}
+.psb-close-btn:hover { color: #0f172a; }
+
+.psb-state-msg { color: #94a3b8; font-size: 13.5px; padding: 10px 0; }
+.psb-error { color: #d1433f; }
+
+.psb-patient-name { font-size: 19px; margin: 0 0 2px; color: #0f172a; }
+.psb-patient-meta { font-size: 12.5px; color: #64748b; margin: 0 0 14px; }
+
+.psb-crisis-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+
+.psb-summary-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+.psb-summary-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #0284c7;
+    margin-bottom: 6px;
+}
+.psb-summary-text {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #1e293b;
+    margin: 0;
+}
+
+.psb-raw-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.psb-raw-item { display: flex; flex-direction: column; gap: 4px; }
+.psb-raw-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #94a3b8;
+}
+.psb-raw-value { font-size: 13px; color: #334155; }
+
+.psb-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.psb-chip {
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 999px;
+}
+
+.psb-close-footer-btn {
+    width: 100%;
+    margin-top: 18px;
+    background: #0284c7;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.psb-close-footer-btn:hover { background: #0369a1; }

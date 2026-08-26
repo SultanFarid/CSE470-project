@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
-import { Video, AlertTriangle, FileText, Star, History, PlayCircle } from 'lucide-react';
+import {
+    Video, AlertTriangle, FileText, Star, History, PlayCircle, Sparkles,
+    Calendar, DollarSign, CheckCircle2, Mail, Archive, Building2,
+    UserCog, Users, Briefcase, ClipboardCheck, Plus, ArrowRight
+} from 'lucide-react';
 import './TherapistDashboard.css';
+import PreSessionBriefingModal from './PreSessionBriefingModal';
 import {
     getMyTherapistSessions, updateSessionStatus,
     getMyCaseload, getMyEarnings, getMyReviewSummary, sendCheckIn
@@ -29,6 +34,7 @@ const TherapistDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [actionMsg, setActionMsg] = useState('');
     const [sendingCheckin, setSendingCheckin] = useState(false);
+    const [briefingSessionId, setBriefingSessionId] = useState(null);
 
     const loadDashboardData = useCallback(async () => {
         setLoading(true);
@@ -112,14 +118,14 @@ const TherapistDashboard = () => {
                     <p className="pulse-subtitle">Here's what's happening in your practice today.</p>
                 </div>
                 <div className="pulse-metrics">
-                    <div className="pill pill-metric">📅 {todaysSessions.length} session{todaysSessions.length === 1 ? '' : 's'} today</div>
-                    <div className="pill pill-metric">💰 ${todaysEarnings.toLocaleString()} expected today</div>
+                    <div className="pill pill-metric"><Calendar size={14} /> {todaysSessions.length} session{todaysSessions.length === 1 ? '' : 's'} today</div>
+                    <div className="pill pill-metric"><DollarSign size={14} /> ${todaysEarnings.toLocaleString()} expected today</div>
                     {patientsNeedingAttention.length > 0 ? (
                         <div className="pill pill-danger">
                             <AlertTriangle size={14} /> {patientsNeedingAttention.length} patient{patientsNeedingAttention.length === 1 ? '' : 's'} need{patientsNeedingAttention.length === 1 ? 's' : ''} attention
                         </div>
                     ) : (
-                        <div className="pill pill-metric">✅ All patients on track</div>
+                        <div className="pill pill-success"><CheckCircle2 size={14} /> All patients on track</div>
                     )}
                 </div>
             </div>
@@ -128,10 +134,10 @@ const TherapistDashboard = () => {
             <div className="card span-7 schedule-card">
                 <div className="card-header">
                     <div>
-                        <h2>{showingFallbackSchedule ? 'Recent Sessions' : "Today's Schedule"}</h2>
+                        <h2><Calendar size={16} className="header-icon" />{showingFallbackSchedule ? 'Recent Sessions' : "Today's Schedule"}</h2>
                         <p className="card-subtitle">Sessions you can start, and quick access to patient notes.</p>
                     </div>
-                    <Link to="/therapist-dashboard/schedule" className="link">Edit Schedule →</Link>
+                    <Link to="/therapist-dashboard/schedule" className="link">Edit Schedule <ArrowRight size={12} /></Link>
                 </div>
                 {showingFallbackSchedule && (
                     <p className="schedule-fallback-note">
@@ -144,31 +150,47 @@ const TherapistDashboard = () => {
                     <div className="appointment-list">
                         {scheduleToShow.map((appt) => (
                             <div key={appt.id} className="appointment-row">
-                                <div className="appointment-info">
-                                    <span className="appointment-time">
-                                        {appt.scheduled_date ? formatTime(`${appt.scheduled_date}T${appt.scheduled_time || '00:00'}`) : formatTime(appt.created_at)} — {appt.patient_name}
-                                    </span>
+                                <div className="appointment-row-top">
+                                    <div className="appointment-identity">
+                                        <span className="appointment-time">
+                                            {appt.scheduled_date ? formatTime(`${appt.scheduled_date}T${appt.scheduled_time || '00:00'}`) : formatTime(appt.created_at)}
+                                        </span>
+                                        <span className="appointment-patient">{appt.patient_name}</span>
+                                    </div>
                                     {appt.session_type === 'online' ? (
                                         <span className="badge badge-online">
                                             <Video size={12} /> Online
                                         </span>
                                     ) : (
-                                        <span className="badge badge-in-person">🏥 In-Person</span>
+                                        <span className="badge badge-in-person">
+                                            <Building2 size={12} /> In-Person
+                                        </span>
                                     )}
-                                    <Link to="/therapist-dashboard/archive" className="btn-ai-briefing">
-                                        <History size={13} /> View Patient History
-                                    </Link>
                                 </div>
-                                <div className="appointment-action">
-                                    {appt.status === 'in_progress' ? (
-                                        <Link to="/therapist-dashboard/prescriptions" className="btn-launch-room">
-                                            <FileText size={14} /> Write Session Notes
+                                <div className="appointment-row-bottom">
+                                    <div className="appointment-meta-actions">
+                                        <Link to="/therapist-dashboard/archive" className="btn-ai-briefing">
+                                            <History size={13} /> Patient History
                                         </Link>
-                                    ) : (
-                                        <button className="btn-launch-room" onClick={() => handleAdvanceStatus(appt.id, 'in_progress')}>
-                                            <PlayCircle size={14} /> Start Session
+                                        <button
+                                            type="button"
+                                            className="btn-presession-briefing"
+                                            onClick={() => setBriefingSessionId(appt.id)}
+                                        >
+                                            <Sparkles size={13} /> Pre-Session Briefing
                                         </button>
-                                    )}
+                                    </div>
+                                    <div className="appointment-action">
+                                        {appt.status === 'in_progress' ? (
+                                            <Link to={`/therapist-dashboard/prescriptions?session=${appt.id}`} className="btn-launch-room">
+                                                <FileText size={14} /> Create Prescription
+                                            </Link>
+                                        ) : (
+                                            <button className="btn-launch-room" onClick={() => handleAdvanceStatus(appt.id, 'in_progress')}>
+                                                <PlayCircle size={14} /> Start Session
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -180,12 +202,12 @@ const TherapistDashboard = () => {
             <div className="span-5 stack-col">
                 <div className="card red-flag-card">
                     <div>
-                        <h2 className="card-header-simple">Needs Your Attention</h2>
+                        <h2 className="card-header-simple"><AlertTriangle size={16} className="header-icon header-icon-danger" />Needs Your Attention</h2>
                         <p className="card-subtitle">Patients who've fallen behind on their daily care plan.</p>
                     </div>
                     {topFlag ? (
                         <div className="alert-card">
-                            <span className="alert-title">⚠️ Falling behind on care plan</span>
+                            <span className="alert-title"><AlertTriangle size={13} /> Falling behind on care plan</span>
                             <p className="alert-message">
                                 {topFlag.patient_name} has completed only {topFlag.adherence_rate}% of their daily checklist this week.
                             </p>
@@ -195,28 +217,39 @@ const TherapistDashboard = () => {
                                     disabled={sendingCheckin}
                                     onClick={() => handleSendCheckIn(topFlag.patient_id, topFlag.patient_name)}
                                 >
-                                    ✉️ {sendingCheckin ? 'Sending...' : 'Send Check-In'}
+                                    <Mail size={13} /> {sendingCheckin ? 'Sending...' : 'Send Check-In'}
                                 </button>
                                 <Link to="/therapist-dashboard/archive" className="btn-care-plan">View Patient Details</Link>
                             </div>
                             {patientsNeedingAttention.length > 1 && (
                                 <Link to="/therapist-dashboard/caseload" className="alert-more-link">
-                                    +{patientsNeedingAttention.length - 1} more patient{patientsNeedingAttention.length - 1 === 1 ? '' : 's'} need attention →
+                                    +{patientsNeedingAttention.length - 1} more patient{patientsNeedingAttention.length - 1 === 1 ? '' : 's'} need attention <ArrowRight size={12} />
                                 </Link>
                             )}
                         </div>
                     ) : (
-                        <p className="empty-state-msg">All your patients are on track — nice work!</p>
+                        <p className="empty-state-msg"><CheckCircle2 size={14} className="empty-state-icon" /> All your patients are on track — nice work!</p>
                     )}
                 </div>
 
                 <div className="card shortcuts-card">
                     <h3 className="card-header-simple">Quick Actions</h3>
-                    <div className="shortcuts-grid">
-                        <Link to="/therapist-dashboard/prescriptions" className="shortcut-btn shortcut-primary">+ Write Session Notes</Link>
-                        <Link to="/therapist-dashboard/group-proposals" className="shortcut-btn shortcut-secondary">+ Propose Group Session</Link>
-                        <Link to="/therapist-dashboard/schedule" className="shortcut-btn shortcut-muted">📅 Edit My Schedule</Link>
-                        <Link to="/therapist-dashboard/archive" className="shortcut-btn shortcut-muted">🗄 Patient History</Link>
+                    <div className="shortcuts-row">
+                        <Link to="/therapist-dashboard/prescriptions" className="shortcut-chip shortcut-primary">
+                            <Plus size={14} /> Create Prescription
+                        </Link>
+                        <Link to="/therapist-dashboard/group-proposals" className="shortcut-chip shortcut-secondary">
+                            <Users size={14} /> Propose Group Session
+                        </Link>
+                        <Link to="/therapist-dashboard/schedule" className="shortcut-chip shortcut-muted">
+                            <Calendar size={14} /> Edit My Schedule
+                        </Link>
+                        <Link to="/therapist-dashboard/profile" className="shortcut-chip shortcut-muted">
+                            <UserCog size={14} /> Edit My Profile
+                        </Link>
+                        <Link to="/therapist-dashboard/archive" className="shortcut-chip shortcut-muted">
+                            <Archive size={14} /> Patient History
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -225,10 +258,10 @@ const TherapistDashboard = () => {
             <div className="card span-7 compliance-card">
                 <div className="card-header">
                     <div>
-                        <h2>Patient Progress Overview</h2>
+                        <h2><ClipboardCheck size={16} className="header-icon" />Patient Progress Overview</h2>
                         <p className="card-subtitle">How well each patient is keeping up with their care plan.</p>
                     </div>
-                    <Link to="/therapist-dashboard/caseload" className="link">View All ({caseload.length}) →</Link>
+                    <Link to="/therapist-dashboard/caseload" className="link">View All ({caseload.length}) <ArrowRight size={12} /></Link>
                 </div>
                 {complianceSnapshot.length === 0 ? (
                     <p className="empty-state-msg">No patients yet — once someone books with you, they'll show up here.</p>
@@ -259,7 +292,7 @@ const TherapistDashboard = () => {
             {/* Tier 3 Right: This month at a glance */}
             <div className="card span-5 performance-card">
                 <div>
-                    <h2 className="card-header-simple">This Month at a Glance</h2>
+                    <h2 className="card-header-simple"><Briefcase size={16} className="header-icon" />This Month at a Glance</h2>
                     <p className="card-subtitle">A quick snapshot — see full numbers on the Earnings page.</p>
                 </div>
                 <div className="stats-grid stats-grid-3">
@@ -285,8 +318,10 @@ const TherapistDashboard = () => {
                 ) : (
                     <p className="reputation-footnote">No patient reviews yet.</p>
                 )}
-                <Link to="/therapist-dashboard/earnings" className="link view-earnings-link">View Earnings Details →</Link>
+                <Link to="/therapist-dashboard/earnings" className="link view-earnings-link">View Earnings Details <ArrowRight size={12} /></Link>
             </div>
+
+            <PreSessionBriefingModal sessionId={briefingSessionId} onClose={() => setBriefingSessionId(null)} />
 
         </div>
     );

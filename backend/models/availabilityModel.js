@@ -42,21 +42,25 @@ const replaceWeeklyTemplate = async (therapistId, slots) => {
 
 const getScheduleSettings = async (therapistId) => {
     const [rows] = await db.query(
-        `SELECT slot_duration_minutes, buffer_minutes
+        `SELECT slot_duration_minutes, buffer_minutes, last_confirmed_at
          FROM therapist_schedule_settings
          WHERE therapist_id = ?`,
         [therapistId]
     );
-    return rows[0] || { slot_duration_minutes: 30, buffer_minutes: 0 };
+    return rows[0] || { slot_duration_minutes: 30, buffer_minutes: 0, last_confirmed_at: null };
 };
 
+// Called every time ScheduleManager saves — this doubles as the therapist's
+// "yes, this is confirmed" signal, which the weekend reminder job checks
+// against so it stops nagging once they've actually looked at it.
 const upsertScheduleSettings = async (therapistId, slotDurationMinutes, bufferMinutes) => {
     await db.query(
-        `INSERT INTO therapist_schedule_settings (therapist_id, slot_duration_minutes, buffer_minutes)
-         VALUES (?, ?, ?)
+        `INSERT INTO therapist_schedule_settings (therapist_id, slot_duration_minutes, buffer_minutes, last_confirmed_at)
+         VALUES (?, ?, ?, NOW())
          ON DUPLICATE KEY UPDATE
             slot_duration_minutes = VALUES(slot_duration_minutes),
-            buffer_minutes = VALUES(buffer_minutes)`,
+            buffer_minutes = VALUES(buffer_minutes),
+            last_confirmed_at = NOW()`,
         [therapistId, slotDurationMinutes, bufferMinutes]
     );
 };

@@ -37,6 +37,47 @@ const PatientModel = {
         const query = "UPDATE users SET display_name = ? WHERE id = ?";
         const [result] = await db.query(query, [name, userId]);
         return result;
+    },
+
+    // Feature 6b: Record that the patient completed at least one task today.
+    // Uses INSERT IGNORE so it's safe to call multiple times per day.
+    recordTaskCompletion: async (userId) => {
+        await db.query(
+            `INSERT IGNORE INTO task_completions (patient_id, completed_date)
+             VALUES (?, CURDATE())`,
+            [userId]
+        );
+    },
+
+    // Feature 6b: Count consecutive days (ending today) where the patient
+    // has at least one recorded completion. Returns 0 if they have none.
+    getStreak: async (userId) => {
+        // Pull all completion dates descending, then walk backwards in JS
+        // to find the first gap — safe and index-friendly even for large sets.
+        const [rows] = await db.query(
+            `SELECT completed_date FROM task_completions
+             WHERE patient_id = ?
+             ORDER BY completed_date DESC`,
+            [userId]
+        );
+        if (rows.length === 0) return 0;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let streak = 0;
+        let expected = new Date(today);
+
+        for (const row of rows) {
+            const d = new Date(row.completed_date);
+            d.setHours(0, 0, 0, 0);
+            if (d.getTime() === expected.getTime()) {
+                streak++;
+                expected.setDate(expected.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        return streak;
     }
 };
 

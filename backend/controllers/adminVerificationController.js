@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const AdminVerificationModel = require('../models/adminVerificationModel');
 const AdminUserModel = require('../models/adminUserModel');
 const UserModel = require('../models/userModel');
+const SettingsModel = require('../models/settingsModel');
 
 const listApplications = async (req, res) => {
     try {
@@ -111,4 +112,35 @@ const scheduleViva = async (req, res) => {
     }
 };
 
-module.exports = { listApplications, getApplicationDetails, approveApplication, rejectApplication, scheduleViva };
+module.exports = {
+    listApplications,
+    getApplicationDetails,
+    approveApplication,
+    rejectApplication,
+    scheduleViva,
+    getSettings,
+    saveSettings,
+};
+
+// ─── System Settings (Application Deadline) ──────────────────────────────────
+
+async function getSettings(req, res) {
+    try {
+        const deadline = await SettingsModel.getDeadline();
+        res.status(200).json({ deadline });
+    } catch (err) {
+        console.error('Get settings error:', err);
+        res.status(500).json({ message: 'Server error fetching settings.' });
+    }
+}
+
+async function saveSettings(req, res) {
+    try {
+        const { date, time, isActive } = req.body;
+        await SettingsModel.saveDeadline({ date, time, isActive });
+        res.status(200).json({ message: 'Settings saved.' });
+    } catch (err) {
+        console.error('Save settings error:', err);
+        res.status(500).json({ message: 'Server error saving settings.' });
+    }
+}

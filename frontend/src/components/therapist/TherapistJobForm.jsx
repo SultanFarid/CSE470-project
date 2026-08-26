@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { applyForJob, getSystemSettings } from '../../services/api';
+import { applyForJob, getApplicationSettings } from '../../services/api';
+import { getSystemTime } from '../../utils/systemTime';
 import './JobForm.css';
 
 const TherapistJobForm = () => {
     const [isExpired, setIsExpired] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [deadlineLabel, setDeadlineLabel] = useState('');
     const [message, setMessage] = useState({ text: '', type: '' });
 
     // Massive Form State
@@ -17,19 +19,27 @@ const TherapistJobForm = () => {
         immunization_proof: false, physical_capability: false, truthfulness_attestation: false,
     });
 
-    // Check Deadline on Load
+    // Check Deadline on Load — uses dev time override if active
     useEffect(() => {
         const checkDeadline = async () => {
             try {
-                const settings = await getSystemSettings();
-                const deadlineDate = new Date(settings.deadline);
-                const currentDate = new Date(); // Compares against current exact time
-
-                if (currentDate > deadlineDate) {
+                const { deadline, isOpen } = await getApplicationSettings();
+                if (!isOpen) {
                     setIsExpired(true);
+                    if (deadline?.date) {
+                        const d = new Date(`${deadline.date}T${deadline.time || '23:59'}:00`);
+                        setDeadlineLabel(d.toLocaleString([], { dateStyle: 'long', timeStyle: 'short' }));
+                    }
+                } else if (deadline?.date && deadline?.isActive) {
+                    // Show a soft "closes on" notice even when still open
+                    const now = getSystemTime(); // respects dev override
+                    const d = new Date(`${deadline.date}T${deadline.time || '23:59'}:00`);
+                    if (d > now) {
+                        setDeadlineLabel(d.toLocaleString([], { dateStyle: 'long', timeStyle: 'short' }));
+                    }
                 }
             } catch (error) {
-                console.error("Could not fetch deadline.");
+                console.error("Could not fetch deadline settings.");
             } finally {
                 setIsLoading(false);
             }
@@ -66,9 +76,17 @@ const TherapistJobForm = () => {
         return (
             <div className="job-form-wrapper">
                 <div className="deadline-expired-card">
-                    <h2>Application Closed</h2>
-                    <p>Deadline expired, wait for the next intake.</p>
-                    <p style={{marginTop: '15px', fontSize: '13px'}}>If you believe this is an error, please contact hospital administration.</p>
+                    <div style={{ fontSize: '48px', marginBottom: '12px' }}>🚫</div>
+                    <h2>Applications Are Closed</h2>
+                    <p>The submission deadline has passed.</p>
+                    {deadlineLabel && (
+                        <p style={{ marginTop: '8px', fontSize: '14px', color: '#6b7280' }}>
+                            Closed on: <strong>{deadlineLabel}</strong>
+                        </p>
+                    )}
+                    <p style={{ marginTop: '16px', fontSize: '13px', color: '#9ca3af' }}>
+                        If you believe this is an error, please contact hospital administration.
+                    </p>
                 </div>
             </div>
         );
@@ -80,6 +98,22 @@ const TherapistJobForm = () => {
                 <div className="form-header">
                     <h2>Therapist Job Application</h2>
                     <p>Tell us about yourself and your experience</p>
+                    {deadlineLabel && (
+                        <div style={{
+                            marginTop: '10px',
+                            background: '#FEF3C7',
+                            border: '1px solid #FDE68A',
+                            borderRadius: '8px',
+                            padding: '8px 14px',
+                            fontSize: '13px',
+                            color: '#92400E',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                        }}>
+                            ⏰ Application deadline: <strong>{deadlineLabel}</strong>
+                        </div>
+                    )}
                 </div>
 
                 {message.text && <div className={`alert alert-${message.type}`}>{message.text}</div>}

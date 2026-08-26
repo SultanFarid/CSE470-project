@@ -16,7 +16,8 @@ const getMySchedule = async (req, res) => {
             success: true,
             slots,
             slotDurationMinutes: settings.slot_duration_minutes,
-            bufferMinutes: settings.buffer_minutes
+            bufferMinutes: settings.buffer_minutes,
+            lastConfirmedAt: settings.last_confirmed_at
         });
     } catch (err) {
         console.error('Get schedule error:', err);
@@ -47,7 +48,7 @@ const saveMySchedule = async (req, res) => {
             bufferMinutes || 0
         );
 
-        res.status(200).json({ message: 'Weekly schedule updated successfully.' });
+        res.status(200).json({ message: 'Weekly schedule updated successfully.', confirmedAt: new Date().toISOString() });
     } catch (err) {
         console.error('Save schedule error:', err);
         res.status(500).json({ message: 'Server error saving schedule.' });
