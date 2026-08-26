@@ -21,12 +21,28 @@ export default function ActiveAppointmentCard({
   return (
     <section className="dashboard-card span-7 flex-column gap-16">
       <div className="card-header-row">
-        <h2 className="card-title">Active Appointment & Visual Tracker</h2>
+        <div>
+          <h2 className="card-title">Active Appointment & Visual Tracker</h2>
+          {activeAppointments.length > 1 && (
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              Showing 1 of {activeAppointments.length} upcoming appointments
+            </span>
+          )}
+        </div>
         <span
           className="card-header-link"
           onClick={() => {
-            if (openBookingModal) openBookingModal({ id: 2, name: 'Dr. Sultan M. Farid', consultation_fee: 1500, session_type: 'both' });
-            else openDirectoryModal();
+            if (currentApp && openBookingModal) {
+              openBookingModal({ 
+                id: currentApp.therapist_id, 
+                name: currentApp.therapist_name, 
+                consultation_fee: currentApp.consultation_fee, 
+                session_type: 'both',
+                profile_photo_url: currentApp.therapist_photo
+              });
+            } else if (openDirectoryModal) {
+              openDirectoryModal();
+            }
           }}
           style={{ cursor: 'pointer' }}
         >

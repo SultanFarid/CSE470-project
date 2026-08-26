@@ -66,11 +66,11 @@ const LANGUAGE_PREF_OPTIONS = ["No preference", "English", "Bengali"];
 const FORMAT_PREF_OPTIONS = ["Either", "Online Video", "In-Person"];
 
 const MOCK_THERAPISTS = [
-  { id: 1, name: "Dr. Ayesha Rahman", specialties: ["Anxiety", "Depression", "Sleep Problems"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "10+ years helping clients manage anxiety and mood disorders." },
-  { id: 2, name: "Dr. Sultan M. Farid", specialties: ["Stress & Burnout", "Relationship Issues", "Self-Esteem"], languages: ["English"], gender: "Male", formats: ["Online Video"], rating: 4.9, bio: "CBT-focused practice for stress and relationship dynamics." },
-  { id: 3, name: "Dr. Farzana Islam", specialties: ["Trauma / PTSD", "Grief & Loss"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.7, bio: "Trauma-informed, patient-centered care." },
-  { id: 4, name: "Dr. Tanvir Ahmed", specialties: ["Substance Use", "Anxiety", "Depression"], languages: ["English"], gender: "Male", formats: ["In-Person"], rating: 4.6, bio: "Recovery-oriented and dual-diagnosis treatment." },
-  { id: 5, name: "Dr. Nusrat Jahan", specialties: ["Self-Esteem", "Relationship Issues", "Stress & Burnout"], languages: ["Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "Warm, collaborative, humanistic therapy style." }
+  { id: 4, name: "Dr. Ayesha Rahman", specialties: ["Anxiety", "Depression", "Sleep Problems"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "10+ years helping clients manage anxiety and mood disorders." },
+  { id: 5, name: "Dr. Sultan M. Farid", specialties: ["Stress & Burnout", "Relationship Issues", "Self-Esteem"], languages: ["English"], gender: "Male", formats: ["Online Video"], rating: 4.9, bio: "CBT-focused practice for stress and relationship dynamics." },
+  { id: 6, name: "Dr. Farzana Islam", specialties: ["Trauma / PTSD", "Grief & Loss"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.7, bio: "Trauma-informed, patient-centered care." },
+  { id: 7, name: "Dr. Tanvir Ahmed", specialties: ["Substance Use", "Anxiety", "Depression"], languages: ["English"], gender: "Male", formats: ["In-Person"], rating: 4.6, bio: "Recovery-oriented and dual-diagnosis treatment." },
+  { id: 10, name: "Dr. Nusrat Jahan", specialties: ["Self-Esteem", "Relationship Issues", "Stress & Burnout"], languages: ["Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "Warm, collaborative, humanistic therapy style." }
 ];
 
 const scoreTherapist = (therapist, vitals, summaries = {}) => {
@@ -190,6 +190,7 @@ export default function PatientDashboard() {
   const DEFAULT_APPOINTMENTS = [
     {
       id: 1,
+      therapist_id: 5,
       therapist_name: "Dr. Sultan M. Farid",
       therapist_specialties: "Clinical Psychology",
       session_type: "online",
@@ -577,18 +578,19 @@ export default function PatientDashboard() {
     }
     setBookingLoading(true);
     setBookingError('');
+    const bookingData = {
+      therapist_id: selectedTherapistForBooking.id,
+      appointment_date: bookingForm.date,
+      time_slot: bookingForm.timeSlot,
+      session_type: bookingForm.sessionType
+    };
     try {
-      const bookingData = {
-        therapist_id: selectedTherapistForBooking.id,
-        appointment_date: bookingForm.date,
-        time_slot: bookingForm.timeSlot,
-        session_type: bookingForm.sessionType
-      };
       const result = await bookAppointment(bookingData);
       setBookingSuccess('Appointment confirmed successfully!');
 
       const newAppt = {
         id: result.appointmentId || Date.now(),
+        therapist_id: selectedTherapistForBooking.id,
         therapist_name: selectedTherapistForBooking.name,
         therapist_specialties: Array.isArray(selectedTherapistForBooking.specialties) ? selectedTherapistForBooking.specialties.join(', ') : selectedTherapistForBooking.specialties,
         session_type: bookingForm.sessionType,
@@ -605,7 +607,8 @@ export default function PatientDashboard() {
         setBookingSuccess('');
       }, 1500);
     } catch (err) {
-      setBookingError(err.response?.data?.message || 'Failed to confirm booking.');
+      const keys = Object.keys(selectedTherapistForBooking || {}).join(',');
+      setBookingError(`Failed: ${err.response?.data?.message || 'Error'} (Payload: ${JSON.stringify(bookingData)}) (Therapist keys: ${keys})`);
     } finally {
       setBookingLoading(false);
     }
@@ -734,7 +737,7 @@ export default function PatientDashboard() {
             <div className="menu-item active" onClick={() => navigate('/patient-dashboard')} style={{ cursor: 'pointer' }}>
               <Heart size={18} /><span>Recovery Hub</span>
             </div>
-            <div className="menu-item" onClick={() => openBookingModal({ id: 2, name: 'Dr. Sultan M. Farid', consultation_fee: 1500, session_type: 'both' })} style={{ cursor: 'pointer' }}>
+            <div className="menu-item" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
               <Calendar size={18} /><span>My Appointments</span>
             </div>
             <div className="menu-item" onClick={() => setShowAllTasksModal(true)} style={{ cursor: 'pointer' }}>
