@@ -12,4 +12,8 @@ router.put('/applications/:id/approve', verifyToken, isAdmin, controller.approve
 router.put('/applications/:id/reject', verifyToken, isAdmin, controller.rejectApplication);
 router.put('/applications/:id/schedule-viva', verifyToken, isAdmin, controller.scheduleViva);
 
+// System Settings — application deadline
+router.get('/settings', verifyToken, isAdmin, controller.getSettings);
+router.put('/settings/deadline', verifyToken, isAdmin, controller.saveSettings);
+
 module.exports = router;

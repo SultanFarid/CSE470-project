@@ -12,15 +12,17 @@ class TherapistProfileModel {
     static async upsert(userId, data) {
         const query = `
             INSERT INTO therapist_profiles
-                (user_id, profile_photo_url, biography, specialties, languages, consultation_fee, session_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (user_id, profile_photo_url, biography, specialties, languages, consultation_fee, session_type, hospital_name, qualification)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 profile_photo_url = VALUES(profile_photo_url),
                 biography = VALUES(biography),
                 specialties = VALUES(specialties),
                 languages = VALUES(languages),
                 consultation_fee = VALUES(consultation_fee),
-                session_type = VALUES(session_type)
+                session_type = VALUES(session_type),
+                hospital_name = VALUES(hospital_name),
+                qualification = VALUES(qualification)
         `;
         const values = [
             userId,
@@ -29,7 +31,9 @@ class TherapistProfileModel {
             data.specialties || '',
             data.languages || '',
             data.consultation_fee || 0,
-            data.session_type || 'both'
+            data.session_type || 'both',
+            data.hospital_name || '',
+            data.qualification || ''
         ];
         const [result] = await db.execute(query, values);
         return result;

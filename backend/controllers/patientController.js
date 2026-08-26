@@ -69,3 +69,44 @@ exports.getAppointments = appointmentController.getAppointments;
 exports.bookAppointment = appointmentController.bookAppointment;
 exports.cancelAppointment = appointmentController.cancelAppointment;
 exports.getTherapistSlots = appointmentController.getTherapistSlots;
+
+// Feature 6b: Return the patient's current care-plan streak (consecutive days
+// with at least one task completion).
+exports.getStreak = async (req, res) => {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized.' });
+    try {
+        const streak = await PatientModel.getStreak(userId);
+        return res.status(200).json({ streak });
+    } catch (err) {
+        console.error('Streak fetch error:', err);
+        return res.status(500).json({ message: 'Server error fetching streak.' });
+    }
+};
+
+// Feature 6b: Mark a task as complete — records today's date for the streak
+// counter and then removes the task from the active checklist.
+exports.completeTask = async (req, res) => {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized.' });
+
+    const taskId = parseInt(req.params.id, 10);
+    if (!taskId) return res.status(400).json({ message: 'Invalid task ID.' });
+
+    try {
+        // 1. Record the completion date (safe to call multiple times today)
+        await PatientModel.recordTaskCompletion(userId);
+
+        // 2. Delete the task from the patient's active list
+        const db = require('../config/db');
+        await db.query(
+            `DELETE FROM care_plan_items WHERE id = ? AND patient_id = ?`,
+            [taskId, userId]
+        );
+
+        return res.status(200).json({ message: 'Task completed.' });
+    } catch (err) {
+        console.error('Complete task error:', err);
+        return res.status(500).json({ message: 'Server error completing task.' });
+    }
+};

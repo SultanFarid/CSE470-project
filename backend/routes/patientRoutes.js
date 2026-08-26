@@ -14,4 +14,8 @@ router.post('/appointments/book', verifyToken, patientController.bookAppointment
 router.put('/appointments/:id/cancel', verifyToken, patientController.cancelAppointment);
 router.get('/therapist-slots', verifyToken, patientController.getTherapistSlots);
 
+// Feature 6b: Streak & task completion
+router.get('/streak', verifyToken, patientController.getStreak);
+router.post('/tasks/:id/complete', verifyToken, patientController.completeTask);
+
 module.exports = router;

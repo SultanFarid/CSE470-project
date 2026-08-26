@@ -1,23 +1,29 @@
 const db = require('../config/db');
 const TherapistProfileModel = require('../models/therapistProfileModel');
+const SettingsModel = require('../models/settingsModel');
 
-
-// Fetch the application deadline for the frontend
+// Fetch the application deadline for the frontend (public — no auth needed)
 const getApplicationSettings = async (req, res) => {
     try {
-        const [rows] = await db.execute("SELECT setting_value FROM system_settings WHERE setting_key = 'application_deadline'");
-        if (rows.length > 0) {
-            res.status(200).json({ deadline: rows[0].setting_value });
-        } else {
-            res.status(404).json({ message: 'Deadline not set' });
-        }
+        const deadline = await SettingsModel.getDeadline();
+        const open = await SettingsModel.isApplicationOpen();
+        res.status(200).json({ deadline, isOpen: open });
     } catch (error) {
+        console.error('Get application settings error:', error);
         res.status(500).json({ message: 'Database error fetching settings.' });
     }
 };
 
 // Handle massive application payload
 const submitApplication = async (req, res) => {
+    // Server-side deadline enforcement — reject if window has closed
+    const open = await SettingsModel.isApplicationOpen().catch(() => true);
+    if (!open) {
+        return res.status(403).json({
+            message: 'Applications are currently closed. The submission deadline has passed.'
+        });
+    }
+
     const data = req.body;
     
     try {
@@ -66,7 +72,7 @@ const getProfile = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-    const { user_id, profile_photo_url, biography, specialties, languages, consultation_fee, session_type } = req.body;
+    const { user_id, profile_photo_url, biography, specialties, languages, consultation_fee, session_type, hospital_name, qualification } = req.body;
 
     if (!user_id) {
         return res.status(400).json({ message: 'user_id is required.' });
@@ -84,7 +90,9 @@ const updateProfile = async (req, res) => {
             specialties,
             languages,
             consultation_fee: parseFloat(consultation_fee) || 0,
-            session_type
+            session_type,
+            hospital_name,
+            qualification
         });
         res.status(200).json({ message: 'Profile updated successfully!' });
     } catch (error) {

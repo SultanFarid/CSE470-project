@@ -100,6 +100,21 @@ export const deletePatientTask = async (taskId) => {
     return response.data;
 };
 
+// Feature 6b: Mark a task as done — records date for streak + removes from list
+export const completeTask = async (taskId) =>
+    apiInstance.post(`/patient/tasks/${taskId}/complete`).then(res => res.data);
+
+// Feature 6b: Get the patient's current streak (consecutive days with completions)
+export const getMyStreak = () =>
+    apiInstance.get('/patient/streak').then(res => res.data.streak);
+
+// Feature 6a: Care plan opt-in prompt
+export const getPendingCarePlan = () =>
+    apiInstance.get('/prescriptions/patient/pending-care-plan').then(res => res.data);
+
+export const acceptCarePlan = (prescriptionId) =>
+    apiInstance.put(`/prescriptions/patient/${prescriptionId}/accept-care-plan`).then(res => res.data);
+
 export const getTherapistDirectory = async () => {
     const response = await apiInstance.get('/patient/therapist-directory');
     return response.data;
@@ -174,6 +189,31 @@ export const savePrescription = (payload) =>
 
 export const getPrescriptionForSession = (sessionId) =>
     apiInstance.get(`/prescriptions/session/${sessionId}`).then(res => res.data);
+
+export const getPrescriptionPdfDataForTherapist = (sessionId) =>
+    apiInstance.get(`/prescriptions/pdf-data/session/${sessionId}`).then(res => res.data);
+
+// --- Therapist: Pre-Session Patient Briefings (Feature 11) ---
+export const getPreSessionBriefing = (sessionId) =>
+    apiInstance.get(`/briefings/session/${sessionId}`).then(res => res.data);
+
+// --- Therapist: Medicine & Test catalog search (Prescription Builder) ---
+export const searchMedicines = (q) =>
+    apiInstance.get('/catalog/medicines/search', { params: { q } }).then(res => res.data);
+
+export const searchTests = (q) =>
+    apiInstance.get('/catalog/tests/search', { params: { q } }).then(res => res.data);
+
+// --- Patient: Vitals Check persistence (backs the pre-session briefing) ---
+export const saveVitals = (vitalsData) =>
+    apiInstance.post('/vitals/save', vitalsData).then(res => res.data);
+
+// --- Patient: My Prescriptions ---
+export const getMyPrescriptionsList = () =>
+    apiInstance.get('/prescriptions/patient/my').then(res => res.data);
+
+export const getPrescriptionPdfDataForPatient = (sessionId) =>
+    apiInstance.get(`/prescriptions/patient/session/${sessionId}/pdf-data`).then(res => res.data);
 
 // --- Therapist: Active Caseload (Feature 13) ---
 export const getMyCaseload = () =>
@@ -323,3 +363,14 @@ export const addAvailabilityException = (payload) =>
 
 export const deleteAvailabilityException = (id) =>
     apiInstance.delete(`/availability/exceptions/${id}`).then(res => res.data);
+
+// --- Admin: System Settings (Application Deadline) ---
+export const getAdminSettings = () =>
+    apiInstance.get('/admin/verification/settings').then(res => res.data);
+
+export const saveDeadline = ({ date, time, isActive }) =>
+    apiInstance.put('/admin/verification/settings/deadline', { date, time, isActive }).then(res => res.data);
+
+// --- Public: Check if applications are open (used by job form, no auth) ---
+export const getApplicationSettings = () =>
+    apiInstance.get('/therapist/settings').then(res => res.data);

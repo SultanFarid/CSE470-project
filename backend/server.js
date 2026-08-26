@@ -20,6 +20,7 @@ const earningsRoutes = require('./routes/earningsRoutes');
 const therapistDirectoryRoutes = require('./routes/therapistDirectoryRoutes');
 const { startExerciseReminderJob } = require('./jobs/exerciseReminderJob');
 const { startBookNextSessionJob } = require('./jobs/bookNextSessionJob');
+const { startScheduleConfirmationReminderJob } = require('./jobs/scheduleConfirmationReminderJob');
 
 const app = express();
 
@@ -50,9 +51,15 @@ app.use('/api/archive', archiveRoutes);
 app.use('/api/earnings', earningsRoutes);
 app.use('/api/patient', therapistDirectoryRoutes);
 
+// Feature 11 (Pre-Session Briefings) + Prescription Builder upgrade (Feature 12)
+app.use('/api/vitals', require('./routes/vitalsRoutes'));
+app.use('/api/catalog', require('./routes/catalogRoutes'));
+app.use('/api/briefings', require('./routes/briefingRoutes'));
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
     if (typeof startExerciseReminderJob === 'function') startExerciseReminderJob();
     if (typeof startBookNextSessionJob === 'function') startBookNextSessionJob();
+    if (typeof startScheduleConfirmationReminderJob === 'function') startScheduleConfirmationReminderJob();
 });
