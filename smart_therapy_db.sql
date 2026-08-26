@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 15, 2026 at 05:44 PM
+-- Generation Time: Aug 26, 2026 at 10:38 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -254,6 +254,158 @@ INSERT INTO `group_session_enrollments` (`id`, `group_session_id`, `patient_id`,
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `medical_tests`
+--
+
+CREATE TABLE `medical_tests` (
+  `id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `medical_tests`
+--
+
+INSERT INTO `medical_tests` (`id`, `name`, `category`, `description`, `is_active`) VALUES
+(1, 'PHQ-9 Depression Screening', 'Psychiatric Screening', 'Patient Health Questionnaire — depression severity', 1),
+(2, 'GAD-7 Anxiety Screening', 'Psychiatric Screening', 'Generalized Anxiety Disorder 7-item scale', 1),
+(3, 'MMSE (Mini-Mental State Exam)', 'Psychiatric Screening', 'Cognitive impairment screening', 1),
+(4, 'Beck Depression Inventory', 'Psychiatric Screening', 'Self-report depression severity measure', 1),
+(5, 'Sleep Study (Polysomnography)', 'Sleep', 'Overnight monitoring for sleep disorders', 1),
+(6, 'Complete Blood Count (CBC)', 'Blood / Hematology', 'General blood health panel', 1),
+(7, 'Thyroid Function Test (TSH, T3, T4)', 'Endocrine', 'Screens for thyroid-related mood symptoms', 1),
+(8, 'Fasting Blood Sugar', 'Endocrine', 'Baseline glucose level', 1),
+(9, 'HbA1c', 'Endocrine', '3-month average blood sugar level', 1),
+(10, 'Lipid Profile', 'Cardiovascular', 'Cholesterol and triglyceride panel', 1),
+(11, 'Liver Function Test (LFT)', 'Hepatic', 'Checks liver health — relevant before starting many psychiatric meds', 1),
+(12, 'Renal Function Test (RFT / Creatinine)', 'Renal', 'Checks kidney function — relevant for Lithium monitoring', 1),
+(13, 'Vitamin D Level', 'Vitamin / Nutrition', 'Screens for deficiency linked to mood symptoms', 1),
+(14, 'Vitamin B12 Level', 'Vitamin / Nutrition', 'Screens for deficiency linked to fatigue/mood symptoms', 1),
+(15, 'Serum Electrolytes', 'Blood Chemistry', 'Sodium, Potassium, Chloride levels', 1),
+(16, 'ESR (Erythrocyte Sedimentation Rate)', 'Blood / Inflammation', 'General inflammation marker', 1),
+(17, 'CRP (C-Reactive Protein)', 'Blood / Inflammation', 'General inflammation marker', 1),
+(18, 'Urine Routine Examination', 'Urinalysis', 'General urine screening', 1),
+(19, 'Lithium Serum Level', 'Drug Monitoring', 'Required periodic monitoring for patients on Lithium', 1),
+(20, 'Prolactin Level', 'Endocrine', 'Monitors side effects of some antipsychotics', 1),
+(21, 'Cortisol Level', 'Endocrine', 'Assesses stress-hormone / adrenal function', 1),
+(22, 'Drug Toxicology Screen', 'Toxicology', 'Screens for substance use', 1),
+(23, 'ECG (Electrocardiogram)', 'Cardiovascular', 'Heart rhythm check — relevant before some psychiatric medications', 1),
+(24, 'EEG (Electroencephalogram)', 'Neurological', 'Brain electrical activity', 1),
+(25, 'MRI Brain', 'Imaging', 'Detailed brain imaging', 1),
+(26, 'CT Scan Brain', 'Imaging', 'Brain imaging, faster than MRI', 1),
+(27, 'Chest X-Ray', 'Imaging', 'General chest screening', 1),
+(28, 'Pregnancy Test (Beta-hCG)', 'Reproductive Health', 'Required before prescribing certain medications', 1),
+(29, 'HIV Screening', 'Infectious Disease', 'Standard screening panel', 1),
+(30, 'Hepatitis B Screening', 'Infectious Disease', 'Standard screening panel', 1),
+(31, 'Folate Level', 'Vitamin / Nutrition', 'Screens for deficiency linked to mood symptoms', 1),
+(32, 'Testosterone Level', 'Endocrine', 'Hormone panel', 1),
+(33, 'Serum Calcium', 'Blood Chemistry', 'Electrolyte / bone health panel', 1),
+(34, 'C-Peptide Test', 'Endocrine', 'Assesses insulin production', 1),
+(35, 'Pharmacogenomic Panel (Psychiatric Medication Response)', 'Genetic', 'Guides medication choice based on genetic markers', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `medicines`
+--
+
+CREATE TABLE `medicines` (
+  `id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `generic_name` varchar(150) DEFAULT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `common_strength` varchar(50) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `medicines`
+--
+
+INSERT INTO `medicines` (`id`, `name`, `generic_name`, `category`, `common_strength`, `is_active`) VALUES
+(1, 'Sertraline', 'Sertraline HCl', 'Antidepressant (SSRI)', '50mg', 1),
+(2, 'Fluoxetine', 'Fluoxetine HCl', 'Antidepressant (SSRI)', '20mg', 1),
+(3, 'Escitalopram', 'Escitalopram Oxalate', 'Antidepressant (SSRI)', '10mg', 1),
+(4, 'Paroxetine', 'Paroxetine HCl', 'Antidepressant (SSRI)', '20mg', 1),
+(5, 'Citalopram', 'Citalopram HBr', 'Antidepressant (SSRI)', '20mg', 1),
+(6, 'Venlafaxine', 'Venlafaxine HCl', 'Antidepressant (SNRI)', '75mg', 1),
+(7, 'Duloxetine', 'Duloxetine HCl', 'Antidepressant (SNRI)', '30mg', 1),
+(8, 'Bupropion', 'Bupropion HCl', 'Antidepressant (NDRI)', '150mg', 1),
+(9, 'Mirtazapine', 'Mirtazapine', 'Antidepressant (NaSSA)', '15mg', 1),
+(10, 'Amitriptyline', 'Amitriptyline HCl', 'Antidepressant (TCA)', '25mg', 1),
+(11, 'Nortriptyline', 'Nortriptyline HCl', 'Antidepressant (TCA)', '25mg', 1),
+(12, 'Imipramine', 'Imipramine HCl', 'Antidepressant (TCA)', '25mg', 1),
+(13, 'Clomipramine', 'Clomipramine HCl', 'Antidepressant (TCA)', '25mg', 1),
+(14, 'Alprazolam', 'Alprazolam', 'Anxiolytic (Benzodiazepine)', '0.5mg', 1),
+(15, 'Diazepam', 'Diazepam', 'Anxiolytic (Benzodiazepine)', '5mg', 1),
+(16, 'Lorazepam', 'Lorazepam', 'Anxiolytic (Benzodiazepine)', '1mg', 1),
+(17, 'Clonazepam', 'Clonazepam', 'Anxiolytic (Benzodiazepine)', '0.5mg', 1),
+(18, 'Buspirone', 'Buspirone HCl', 'Anxiolytic (Non-benzodiazepine)', '10mg', 1),
+(19, 'Hydroxyzine', 'Hydroxyzine HCl', 'Anxiolytic / Antihistamine', '25mg', 1),
+(20, 'Propranolol', 'Propranolol HCl', 'Beta-blocker (anxiety/tremor)', '10mg', 1),
+(21, 'Lithium Carbonate', 'Lithium Carbonate', 'Mood Stabilizer', '300mg', 1),
+(22, 'Sodium Valproate', 'Valproic Acid', 'Mood Stabilizer', '200mg', 1),
+(23, 'Lamotrigine', 'Lamotrigine', 'Mood Stabilizer', '25mg', 1),
+(24, 'Carbamazepine', 'Carbamazepine', 'Mood Stabilizer', '200mg', 1),
+(25, 'Quetiapine', 'Quetiapine Fumarate', 'Antipsychotic (Atypical)', '25mg', 1),
+(26, 'Olanzapine', 'Olanzapine', 'Antipsychotic (Atypical)', '5mg', 1),
+(27, 'Risperidone', 'Risperidone', 'Antipsychotic (Atypical)', '2mg', 1),
+(28, 'Aripiprazole', 'Aripiprazole', 'Antipsychotic (Atypical)', '10mg', 1),
+(29, 'Haloperidol', 'Haloperidol', 'Antipsychotic (Typical)', '5mg', 1),
+(30, 'Zolpidem', 'Zolpidem Tartrate', 'Sleep Aid', '10mg', 1),
+(31, 'Zopiclone', 'Zopiclone', 'Sleep Aid', '7.5mg', 1),
+(32, 'Melatonin', 'Melatonin', 'Sleep Aid (Supplement)', '3mg', 1),
+(33, 'Methylphenidate', 'Methylphenidate HCl', 'ADHD (Stimulant)', '10mg', 1),
+(34, 'Atomoxetine', 'Atomoxetine HCl', 'ADHD (Non-stimulant)', '25mg', 1),
+(35, 'Donepezil', 'Donepezil HCl', 'Cognitive / Dementia', '5mg', 1),
+(36, 'Memantine', 'Memantine HCl', 'Cognitive / Dementia', '10mg', 1),
+(37, 'Paracetamol', 'Acetaminophen', 'Analgesic', '500mg', 1),
+(38, 'Ibuprofen', 'Ibuprofen', 'Analgesic / NSAID', '400mg', 1),
+(39, 'Aspirin', 'Acetylsalicylic Acid', 'Analgesic / NSAID', '75mg', 1),
+(40, 'Naproxen', 'Naproxen Sodium', 'Analgesic / NSAID', '250mg', 1),
+(41, 'Diclofenac', 'Diclofenac Sodium', 'Analgesic / NSAID', '50mg', 1),
+(42, 'Omeprazole', 'Omeprazole', 'Gastrointestinal (PPI)', '20mg', 1),
+(43, 'Esomeprazole', 'Esomeprazole', 'Gastrointestinal (PPI)', '20mg', 1),
+(44, 'Pantoprazole', 'Pantoprazole', 'Gastrointestinal (PPI)', '40mg', 1),
+(45, 'Ranitidine', 'Ranitidine HCl', 'Gastrointestinal (H2 Blocker)', '150mg', 1),
+(46, 'Domperidone', 'Domperidone', 'Gastrointestinal (Antiemetic)', '10mg', 1),
+(47, 'Ondansetron', 'Ondansetron HCl', 'Gastrointestinal (Antiemetic)', '4mg', 1),
+(48, 'Loperamide', 'Loperamide HCl', 'Gastrointestinal (Antidiarrheal)', '2mg', 1),
+(49, 'ORS', 'Oral Rehydration Salts', 'Gastrointestinal (Rehydration)', '1 sachet', 1),
+(50, 'Amlodipine', 'Amlodipine Besylate', 'Cardiovascular (CCB)', '5mg', 1),
+(51, 'Atorvastatin', 'Atorvastatin Calcium', 'Cardiovascular (Statin)', '20mg', 1),
+(52, 'Losartan', 'Losartan Potassium', 'Cardiovascular (ARB)', '50mg', 1),
+(53, 'Metoprolol', 'Metoprolol Tartrate', 'Cardiovascular (Beta-blocker)', '50mg', 1),
+(54, 'Metformin', 'Metformin HCl', 'Antidiabetic', '500mg', 1),
+(55, 'Insulin (Regular)', 'Human Insulin', 'Antidiabetic', '100 IU/mL', 1),
+(56, 'Levothyroxine', 'Levothyroxine Sodium', 'Endocrine (Thyroid)', '50mcg', 1),
+(57, 'Prednisolone', 'Prednisolone', 'Corticosteroid', '5mg', 1),
+(58, 'Salbutamol Inhaler', 'Salbutamol', 'Respiratory (Bronchodilator)', '100mcg/puff', 1),
+(59, 'Montelukast', 'Montelukast Sodium', 'Respiratory (Leukotriene)', '10mg', 1),
+(60, 'Cetirizine', 'Cetirizine HCl', 'Antihistamine', '10mg', 1),
+(61, 'Loratadine', 'Loratadine', 'Antihistamine', '10mg', 1),
+(62, 'Fexofenadine', 'Fexofenadine HCl', 'Antihistamine', '120mg', 1),
+(63, 'Azithromycin', 'Azithromycin', 'Antibiotic (Macrolide)', '500mg', 1),
+(64, 'Amoxicillin', 'Amoxicillin', 'Antibiotic (Penicillin)', '500mg', 1),
+(65, 'Ciprofloxacin', 'Ciprofloxacin HCl', 'Antibiotic (Fluoroquinolone)', '500mg', 1),
+(66, 'Doxycycline', 'Doxycycline Hyclate', 'Antibiotic (Tetracycline)', '100mg', 1),
+(67, 'Metronidazole', 'Metronidazole', 'Antibiotic / Antiprotozoal', '400mg', 1),
+(68, 'Vitamin D3', 'Cholecalciferol', 'Vitamin / Supplement', '1000 IU', 1),
+(69, 'Vitamin B Complex', 'B-Complex Vitamins', 'Vitamin / Supplement', '1 tablet', 1),
+(70, 'Folic Acid', 'Folic Acid', 'Vitamin / Supplement', '5mg', 1),
+(71, 'Iron (Ferrous Sulfate)', 'Ferrous Sulfate', 'Vitamin / Supplement', '325mg', 1),
+(72, 'Calcium Carbonate', 'Calcium Carbonate', 'Vitamin / Supplement', '500mg', 1),
+(73, 'Multivitamin', 'Multivitamin & Minerals', 'Vitamin / Supplement', '1 tablet', 1),
+(74, 'Omega-3', 'Fish Oil (EPA/DHA)', 'Vitamin / Supplement', '1000mg', 1),
+(75, 'Zinc Sulfate', 'Zinc Sulfate', 'Vitamin / Supplement', '20mg', 1),
+(76, 'Vitamin B12 (Methylcobalamin)', 'Methylcobalamin', 'Vitamin / Supplement', '1500mcg', 1);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `notifications`
 --
 
@@ -296,7 +448,9 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `type`, `is_read`, `cre
 (23, 12, 'Your group session \"Building Healthy Habits\" status was updated to rejected.', 'group_session_update', 0, '2026-08-05 00:40:43'),
 (24, 13, 'You have a new session booked.', 'booking_alert', 1, '2026-08-05 00:40:43'),
 (25, 13, 'Your group session \"Self-Esteem Support Group\" status was updated to pending.', 'group_session_update', 0, '2026-08-04 00:40:43'),
-(26, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-15 15:26:27');
+(26, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-15 15:26:27'),
+(27, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-26 03:32:20'),
+(28, 29, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-26 07:59:41');
 
 -- --------------------------------------------------------
 
@@ -337,6 +491,25 @@ INSERT INTO `patient_profiles` (`user_id`, `profile_photo_url`, `contact_number`
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `patient_vitals`
+--
+
+CREATE TABLE `patient_vitals` (
+  `id` int(11) NOT NULL,
+  `patient_id` int(11) NOT NULL,
+  `concerns` text DEFAULT NULL COMMENT 'JSON array of selected concern chips',
+  `duration` varchar(100) DEFAULT NULL,
+  `severity` varchar(100) DEFAULT NULL,
+  `gender_pref` varchar(50) DEFAULT NULL,
+  `language_pref` varchar(50) DEFAULT NULL,
+  `format_pref` varchar(50) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `prescriptions`
 --
 
@@ -347,28 +520,65 @@ CREATE TABLE `prescriptions` (
   `therapist_id` int(11) NOT NULL,
   `session_notes` text DEFAULT NULL,
   `medications` text DEFAULT NULL,
+  `presession_summary` text DEFAULT NULL,
+  `additional_briefing` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `care_plan_accepted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `prescriptions`
 --
 
-INSERT INTO `prescriptions` (`id`, `session_id`, `patient_id`, `therapist_id`, `session_notes`, `medications`, `created_at`, `updated_at`) VALUES
-(1, 5, 14, 2, 'Good progress this session. Anxiety symptoms have noticeably decreased since starting the breathing exercises. Continuing current plan.', 'Sertraline 50mg - once daily, morning', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(2, 7, 15, 2, 'Discussed work-related stress triggers. Patient reports difficulty keeping up with the exercise routine on busy days - agreed to shorter daily sessions.', 'None currently prescribed', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(3, 9, 16, 2, 'Patient has missed several check-ins. Following up to see if the current plan still fits their schedule.', 'Escitalopram 10mg - once daily', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(4, 15, 1, 4, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(5, 18, 14, 5, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(6, 21, 15, 6, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(7, 24, 16, 7, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(8, 27, 1, 8, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(9, 30, 14, 9, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(10, 33, 15, 10, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(11, 36, 16, 11, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(12, 39, 1, 12, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(13, 42, 14, 13, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', '2026-08-15 00:40:43', '2026-08-15 00:40:43');
+INSERT INTO `prescriptions` (`id`, `session_id`, `patient_id`, `therapist_id`, `session_notes`, `medications`, `presession_summary`, `additional_briefing`, `created_at`, `updated_at`, `care_plan_accepted`) VALUES
+(1, 5, 14, 2, 'Good progress this session. Anxiety symptoms have noticeably decreased since starting the breathing exercises. Continuing current plan.', 'Sertraline 50mg - once daily, morning', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(2, 7, 15, 2, 'Discussed work-related stress triggers. Patient reports difficulty keeping up with the exercise routine on busy days - agreed to shorter daily sessions.', 'None currently prescribed', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(3, 9, 16, 2, 'Patient has missed several check-ins. Following up to see if the current plan still fits their schedule.', 'Escitalopram 10mg - once daily', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(4, 15, 1, 4, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(5, 18, 14, 5, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(6, 21, 15, 6, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(7, 24, 16, 7, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(8, 27, 1, 8, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(9, 30, 14, 9, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(10, 33, 15, 10, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(11, 36, 16, 11, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(12, 39, 1, 12, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(13, 42, 14, 13, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `prescription_medicines`
+--
+
+CREATE TABLE `prescription_medicines` (
+  `id` int(11) NOT NULL,
+  `prescription_id` int(11) NOT NULL,
+  `medicine_id` int(11) DEFAULT NULL,
+  `medicine_name` varchar(150) NOT NULL COMMENT 'snapshot, kept even if the catalog entry changes later',
+  `dosage` varchar(50) DEFAULT NULL COMMENT 'e.g. 50mg, 1 tablet',
+  `frequency_code` varchar(20) DEFAULT NULL COMMENT 'Rx-pad style, e.g. 1-0-1',
+  `frequency_label` varchar(100) DEFAULT NULL COMMENT 'e.g. Morning & Night',
+  `duration_days` int(11) DEFAULT NULL,
+  `instructions` varchar(150) DEFAULT NULL COMMENT 'e.g. After meal',
+  `sort_order` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `prescription_tests`
+--
+
+CREATE TABLE `prescription_tests` (
+  `id` int(11) NOT NULL,
+  `prescription_id` int(11) NOT NULL,
+  `test_id` int(11) DEFAULT NULL,
+  `test_name` varchar(150) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -421,56 +631,57 @@ CREATE TABLE `sessions` (
   `scheduled_time` time DEFAULT NULL,
   `session_type` enum('online','in-person') NOT NULL DEFAULT 'online',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `time_slot` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sessions`
 --
 
-INSERT INTO `sessions` (`id`, `patient_id`, `therapist_id`, `status`, `fee`, `scheduled_date`, `scheduled_time`, `session_type`, `created_at`, `updated_at`) VALUES
-(1, 14, 2, 'confirmed', 1500.00, '2026-08-15', '10:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(2, 15, 2, 'in_progress', 1500.00, '2026-08-15', '13:30:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(3, 16, 2, 'confirmed', 1500.00, '2026-08-22', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(4, 15, 2, 'cancelled', 1500.00, NULL, NULL, 'online', '2026-07-26 00:40:43', '2026-08-15 00:40:43'),
-(5, 14, 2, 'completed', 1500.00, '2026-08-01', NULL, 'online', '2026-08-01 00:40:43', '2026-08-15 00:40:43'),
-(6, 14, 2, 'completed', 1500.00, '2026-06-16', NULL, 'online', '2026-06-15 00:40:43', '2026-08-15 00:40:43'),
-(7, 15, 2, 'completed', 1500.00, '2026-08-05', NULL, 'in-person', '2026-08-05 00:40:43', '2026-08-15 00:40:43'),
-(8, 15, 2, 'completed', 1500.00, '2026-05-17', NULL, 'online', '2026-05-15 00:40:43', '2026-08-15 00:40:43'),
-(9, 16, 2, 'completed', 1500.00, '2026-08-09', NULL, 'online', '2026-08-09 00:40:43', '2026-08-15 00:40:43'),
-(10, 16, 2, 'completed', 1800.00, '2026-04-17', NULL, 'in-person', '2026-04-15 00:40:43', '2026-08-15 00:40:43'),
-(11, 1, 2, 'completed', 1500.00, '2026-07-16', NULL, 'online', '2026-07-15 00:40:43', '2026-08-15 00:40:43'),
-(12, 1, 2, 'completed', 1500.00, '2026-03-18', NULL, 'online', '2026-03-15 00:40:43', '2026-08-15 00:40:43'),
-(13, 15, 4, 'pending', 1200.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(14, 14, 4, 'confirmed', 1200.00, '2026-08-20', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(15, 1, 4, 'completed', 1200.00, '2026-08-03', NULL, 'online', '2026-08-03 00:40:43', '2026-08-15 00:40:43'),
-(16, 16, 5, 'confirmed', 1300.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(17, 15, 5, 'confirmed', 1300.00, '2026-08-21', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(18, 14, 5, 'completed', 1300.00, '2026-07-28', NULL, 'online', '2026-07-28 00:40:43', '2026-08-15 00:40:43'),
-(19, 1, 6, 'pending', 1400.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(20, 16, 6, 'confirmed', 1400.00, '2026-08-22', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(21, 15, 6, 'completed', 1400.00, '2026-07-22', NULL, 'online', '2026-07-22 00:40:43', '2026-08-15 00:40:43'),
-(22, 14, 7, 'confirmed', 1500.00, '2026-08-15', '16:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(23, 1, 7, 'confirmed', 1500.00, '2026-08-23', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(24, 16, 7, 'completed', 1500.00, '2026-07-16', NULL, 'online', '2026-07-16 00:40:43', '2026-08-15 00:40:43'),
-(25, 15, 8, 'pending', 1600.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(26, 14, 8, 'confirmed', 1600.00, '2026-08-24', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(27, 1, 8, 'completed', 1600.00, '2026-07-10', NULL, 'online', '2026-07-10 00:40:43', '2026-08-15 00:40:43'),
-(28, 16, 9, 'confirmed', 1700.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(29, 15, 9, 'confirmed', 1700.00, '2026-08-25', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(30, 14, 9, 'completed', 1700.00, '2026-07-04', NULL, 'online', '2026-07-04 00:40:43', '2026-08-15 00:40:43'),
-(31, 1, 10, 'pending', 1800.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(32, 16, 10, 'confirmed', 1800.00, '2026-08-26', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(33, 15, 10, 'completed', 1800.00, '2026-06-28', NULL, 'online', '2026-06-28 00:40:43', '2026-08-15 00:40:43'),
-(34, 14, 11, 'confirmed', 1900.00, '2026-08-15', '16:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(35, 1, 11, 'confirmed', 1900.00, '2026-08-27', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(36, 16, 11, 'completed', 1900.00, '2026-06-22', NULL, 'online', '2026-06-22 00:40:43', '2026-08-15 00:40:43'),
-(37, 15, 12, 'pending', 2000.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(38, 14, 12, 'confirmed', 2000.00, '2026-08-28', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(39, 1, 12, 'completed', 2000.00, '2026-06-16', NULL, 'online', '2026-06-16 00:40:43', '2026-08-15 00:40:43'),
-(40, 16, 13, 'confirmed', 2100.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(41, 15, 13, 'confirmed', 2100.00, '2026-08-29', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43'),
-(42, 14, 13, 'completed', 2100.00, '2026-06-10', NULL, 'online', '2026-06-10 00:40:43', '2026-08-15 00:40:43');
+INSERT INTO `sessions` (`id`, `patient_id`, `therapist_id`, `status`, `fee`, `scheduled_date`, `scheduled_time`, `session_type`, `created_at`, `updated_at`, `time_slot`) VALUES
+(1, 14, 2, 'confirmed', 1500.00, '2026-08-15', '10:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(2, 15, 2, 'in_progress', 1500.00, '2026-08-15', '13:30:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(3, 16, 2, 'confirmed', 1500.00, '2026-08-22', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(4, 15, 2, 'cancelled', 1500.00, NULL, NULL, 'online', '2026-07-26 00:40:43', '2026-08-15 00:40:43', NULL),
+(5, 14, 2, 'completed', 1500.00, '2026-08-01', NULL, 'online', '2026-08-01 00:40:43', '2026-08-15 00:40:43', NULL),
+(6, 14, 2, 'completed', 1500.00, '2026-06-16', NULL, 'online', '2026-06-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(7, 15, 2, 'completed', 1500.00, '2026-08-05', NULL, 'in-person', '2026-08-05 00:40:43', '2026-08-15 00:40:43', NULL),
+(8, 15, 2, 'completed', 1500.00, '2026-05-17', NULL, 'online', '2026-05-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(9, 16, 2, 'completed', 1500.00, '2026-08-09', NULL, 'online', '2026-08-09 00:40:43', '2026-08-15 00:40:43', NULL),
+(10, 16, 2, 'completed', 1800.00, '2026-04-17', NULL, 'in-person', '2026-04-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(11, 1, 2, 'completed', 1500.00, '2026-07-16', NULL, 'online', '2026-07-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(12, 1, 2, 'completed', 1500.00, '2026-03-18', NULL, 'online', '2026-03-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(13, 15, 4, 'pending', 1200.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(14, 14, 4, 'confirmed', 1200.00, '2026-08-20', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(15, 1, 4, 'completed', 1200.00, '2026-08-03', NULL, 'online', '2026-08-03 00:40:43', '2026-08-15 00:40:43', NULL),
+(16, 16, 5, 'confirmed', 1300.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(17, 15, 5, 'confirmed', 1300.00, '2026-08-21', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(18, 14, 5, 'completed', 1300.00, '2026-07-28', NULL, 'online', '2026-07-28 00:40:43', '2026-08-15 00:40:43', NULL),
+(19, 1, 6, 'pending', 1400.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(20, 16, 6, 'confirmed', 1400.00, '2026-08-22', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(21, 15, 6, 'completed', 1400.00, '2026-07-22', NULL, 'online', '2026-07-22 00:40:43', '2026-08-15 00:40:43', NULL),
+(22, 14, 7, 'confirmed', 1500.00, '2026-08-15', '16:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(23, 1, 7, 'confirmed', 1500.00, '2026-08-23', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(24, 16, 7, 'completed', 1500.00, '2026-07-16', NULL, 'online', '2026-07-16 00:40:43', '2026-08-15 00:40:43', NULL),
+(25, 15, 8, 'pending', 1600.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(26, 14, 8, 'confirmed', 1600.00, '2026-08-24', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(27, 1, 8, 'completed', 1600.00, '2026-07-10', NULL, 'online', '2026-07-10 00:40:43', '2026-08-15 00:40:43', NULL),
+(28, 16, 9, 'confirmed', 1700.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(29, 15, 9, 'confirmed', 1700.00, '2026-08-25', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(30, 14, 9, 'completed', 1700.00, '2026-07-04', NULL, 'online', '2026-07-04 00:40:43', '2026-08-15 00:40:43', NULL),
+(31, 1, 10, 'pending', 1800.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(32, 16, 10, 'confirmed', 1800.00, '2026-08-26', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(33, 15, 10, 'completed', 1800.00, '2026-06-28', NULL, 'online', '2026-06-28 00:40:43', '2026-08-15 00:40:43', NULL),
+(34, 14, 11, 'confirmed', 1900.00, '2026-08-15', '16:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(35, 1, 11, 'confirmed', 1900.00, '2026-08-27', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(36, 16, 11, 'completed', 1900.00, '2026-06-22', NULL, 'online', '2026-06-22 00:40:43', '2026-08-15 00:40:43', NULL),
+(37, 15, 12, 'pending', 2000.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(38, 14, 12, 'confirmed', 2000.00, '2026-08-28', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(39, 1, 12, 'completed', 2000.00, '2026-06-16', NULL, 'online', '2026-06-16 00:40:43', '2026-08-15 00:40:43', NULL),
+(40, 16, 13, 'confirmed', 2100.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(41, 15, 13, 'confirmed', 2100.00, '2026-08-29', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(42, 14, 13, 'completed', 2100.00, '2026-06-10', NULL, 'online', '2026-06-10 00:40:43', '2026-08-15 00:40:43', NULL);
 
 -- --------------------------------------------------------
 
@@ -488,7 +699,23 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
-('application_deadline', '2026-08-01 00:00:00');
+('application_deadline', '2026-08-01 00:00:00'),
+('application_deadline_active', '1'),
+('application_deadline_date', '2026-08-31'),
+('application_deadline_time', '23:59');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `task_completions`
+--
+
+CREATE TABLE `task_completions` (
+  `id` int(11) NOT NULL,
+  `patient_id` int(11) NOT NULL,
+  `completed_date` date NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -734,25 +961,27 @@ CREATE TABLE `therapist_profiles` (
   `specialties` varchar(255) DEFAULT '',
   `languages` varchar(255) DEFAULT '',
   `consultation_fee` decimal(10,2) DEFAULT 0.00,
-  `session_type` enum('online','in-person','both') DEFAULT 'both'
+  `session_type` enum('online','in-person','both') DEFAULT 'both',
+  `hospital_name` varchar(150) DEFAULT '',
+  `qualification` varchar(150) DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `therapist_profiles`
 --
 
-INSERT INTO `therapist_profiles` (`user_id`, `profile_photo_url`, `biography`, `specialties`, `languages`, `consultation_fee`, `session_type`) VALUES
-(2, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(4, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(5, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(6, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(7, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(8, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(9, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(10, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(11, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(12, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both'),
-(13, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both');
+INSERT INTO `therapist_profiles` (`user_id`, `profile_photo_url`, `biography`, `specialties`, `languages`, `consultation_fee`, `session_type`, `hospital_name`, `qualification`) VALUES
+(2, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(4, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(5, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(6, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(7, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(8, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(9, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(10, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(11, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(12, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', ''),
+(13, '', 'Experienced therapist ready to help.', 'CBT, Anxiety', 'English, Bengali', 1500.00, 'both', '', '');
 
 -- --------------------------------------------------------
 
@@ -763,25 +992,26 @@ INSERT INTO `therapist_profiles` (`user_id`, `profile_photo_url`, `biography`, `
 CREATE TABLE `therapist_schedule_settings` (
   `therapist_id` int(11) NOT NULL,
   `slot_duration_minutes` int(11) NOT NULL DEFAULT 30,
-  `buffer_minutes` int(11) NOT NULL DEFAULT 0
+  `buffer_minutes` int(11) NOT NULL DEFAULT 0,
+  `last_confirmed_at` timestamp NULL DEFAULT NULL COMMENT 'Stamped every time the therapist saves ScheduleManager — treated as "I confirm this is my schedule".'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `therapist_schedule_settings`
 --
 
-INSERT INTO `therapist_schedule_settings` (`therapist_id`, `slot_duration_minutes`, `buffer_minutes`) VALUES
-(2, 60, 10),
-(4, 60, 0),
-(5, 60, 10),
-(6, 60, 15),
-(7, 60, 5),
-(8, 60, 0),
-(9, 60, 10),
-(10, 60, 15),
-(11, 60, 5),
-(12, 60, 0),
-(13, 60, 10);
+INSERT INTO `therapist_schedule_settings` (`therapist_id`, `slot_duration_minutes`, `buffer_minutes`, `last_confirmed_at`) VALUES
+(2, 60, 10, NULL),
+(4, 60, 0, NULL),
+(5, 60, 10, NULL),
+(6, 60, 15, NULL),
+(7, 60, 5, NULL),
+(8, 60, 0, NULL),
+(9, 60, 10, NULL),
+(10, 60, 15, NULL),
+(11, 60, 5, NULL),
+(12, 60, 0, NULL),
+(13, 60, 10, NULL);
 
 -- --------------------------------------------------------
 
@@ -813,11 +1043,11 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, `status`, `last_login`, `suspended_at`, `deactivated_at`, `contact_number`, `location`, `profile_photo`, `created_at`) VALUES
 (1, 'Noor Jahan Oishee', 'Noor Jahan Oishee', 'patient@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
 (2, 'Yasar Mostafa', 'Yasar Mostafa', 'therapist@test.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
-(3, 'Sultan Mohammad Farid', 'Sultan Mohammad Farid', 'admin@test.com', 'admin123', 'admin', 'active', '2026-08-15 15:23:45', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
+(3, 'Sultan Mohammad Farid', 'Sultan Mohammad Farid', 'admin@test.com', 'admin123', 'admin', 'active', '2026-08-26 08:10:50', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
 (4, 'Dr. Ayesha Rahman', 'Dr. Ayesha Rahman', 'ayesha@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (5, 'Dr. Kamal Hossain', 'Dr. Kamal Hossain', 'kamal@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
-(6, 'Dr. Sarah Ahmed', 'Dr. Sarah Ahmed', 'sarah@therapy.com', 'password123', 'therapist', 'active', '2026-08-15 15:18:12', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
-(7, 'Dr. Tariqul Islam', 'Dr. Tariqul Islam', 'tariqul@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
+(6, 'Dr. Sarah Ahmed', 'Dr. Sarah Ahmed', 'sarah@therapy.com', 'password123', 'therapist', 'active', '2026-08-26 05:56:57', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
+(7, 'Dr. Tariqul Islam', 'Dr. Tariqul Islam', 'tariqul@therapy.com', 'password123', 'therapist', 'active', '2026-08-26 03:33:04', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (8, 'Dr. Farhana Akter', 'Dr. Farhana Akter', 'farhana@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (9, 'Dr. Rafiq Mahmud', 'Dr. Rafiq Mahmud', 'rafiq@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (10, 'Dr. Nusrat Jahan', 'Dr. Nusrat Jahan', 'nusrat@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
@@ -825,7 +1055,7 @@ INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, 
 (12, 'Dr. Salma Begum', 'Dr. Salma Begum', 'salma@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (13, 'Dr. Zaid Hasan', 'Dr. Zaid Hasan', 'zaid@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (14, 'Anika Rahman', 'Anika Rahman', 'anika@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47'),
-(15, 'Tanvir Hasan', 'Tanvir Hasan', 'tanvir@test.com', 'password123', 'patient', 'active', '2026-08-15 15:26:27', NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47'),
+(15, 'Tanvir Hasan', 'Tanvir Hasan', 'tanvir@test.com', 'password123', 'patient', 'active', '2026-08-26 06:56:45', NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47'),
 (16, 'Sadia Islam', 'Sadia Islam', 'sadia@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47'),
 (17, 'Rafiul Islam', 'Rafiul Islam', 'rafiul@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-18 00:40:43'),
 (18, 'Mim Akter', 'Mim Akter', 'mim@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-28 00:40:43'),
@@ -838,7 +1068,8 @@ INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, 
 (25, 'Sabbir Rahman', 'Sabbir Rahman', 'sabbir@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-06-06 00:40:43'),
 (26, 'Tania Ferdous', 'Tania Ferdous', 'tania@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-06-16 00:40:43'),
 (27, 'Mahin Chowdhury', 'Mahin Chowdhury', 'mahin@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-01 00:40:43'),
-(28, 'Jannatul Ferdous', 'Jannatul Ferdous', 'jannat@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-16 00:40:43');
+(28, 'Jannatul Ferdous', 'Jannatul Ferdous', 'jannat@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-16 00:40:43'),
+(29, '', 'Patient Teset', 'patient100@test.com', 'patient123', 'patient', 'active', '2026-08-26 07:59:41', NULL, NULL, NULL, NULL, NULL, '2026-08-26 06:57:51');
 
 --
 -- Indexes for dumped tables
@@ -877,6 +1108,22 @@ ALTER TABLE `group_session_enrollments`
   ADD KEY `fk_enroll_patient` (`patient_id`);
 
 --
+-- Indexes for table `medical_tests`
+--
+ALTER TABLE `medical_tests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_tests_name` (`name`),
+  ADD KEY `idx_tests_category` (`category`);
+
+--
+-- Indexes for table `medicines`
+--
+ALTER TABLE `medicines`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_medicines_name` (`name`),
+  ADD KEY `idx_medicines_category` (`category`);
+
+--
 -- Indexes for table `notifications`
 --
 ALTER TABLE `notifications`
@@ -890,6 +1137,13 @@ ALTER TABLE `patient_profiles`
   ADD PRIMARY KEY (`user_id`);
 
 --
+-- Indexes for table `patient_vitals`
+--
+ALTER TABLE `patient_vitals`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_patient_vitals_patient` (`patient_id`);
+
+--
 -- Indexes for table `prescriptions`
 --
 ALTER TABLE `prescriptions`
@@ -897,6 +1151,22 @@ ALTER TABLE `prescriptions`
   ADD UNIQUE KEY `uniq_session` (`session_id`),
   ADD KEY `fk_presc_patient` (`patient_id`),
   ADD KEY `fk_presc_therapist` (`therapist_id`);
+
+--
+-- Indexes for table `prescription_medicines`
+--
+ALTER TABLE `prescription_medicines`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_prescription_medicines_prescription` (`prescription_id`),
+  ADD KEY `fk_presmed_medicine` (`medicine_id`);
+
+--
+-- Indexes for table `prescription_tests`
+--
+ALTER TABLE `prescription_tests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_prescription_tests_prescription` (`prescription_id`),
+  ADD KEY `fk_prestest_test` (`test_id`);
 
 --
 -- Indexes for table `reviews`
@@ -920,6 +1190,13 @@ ALTER TABLE `sessions`
 --
 ALTER TABLE `system_settings`
   ADD PRIMARY KEY (`setting_key`);
+
+--
+-- Indexes for table `task_completions`
+--
+ALTER TABLE `task_completions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_patient_date` (`patient_id`,`completed_date`);
 
 --
 -- Indexes for table `therapist_applications`
@@ -990,16 +1267,46 @@ ALTER TABLE `group_session_enrollments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `medical_tests`
+--
+ALTER TABLE `medical_tests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+
+--
+-- AUTO_INCREMENT for table `medicines`
+--
+ALTER TABLE `medicines`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+
+--
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
+-- AUTO_INCREMENT for table `patient_vitals`
+--
+ALTER TABLE `patient_vitals`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `prescriptions`
 --
 ALTER TABLE `prescriptions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- AUTO_INCREMENT for table `prescription_medicines`
+--
+ALTER TABLE `prescription_medicines`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `prescription_tests`
+--
+ALTER TABLE `prescription_tests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -1012,6 +1319,12 @@ ALTER TABLE `reviews`
 --
 ALTER TABLE `sessions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+
+--
+-- AUTO_INCREMENT for table `task_completions`
+--
+ALTER TABLE `task_completions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `therapist_applications`
@@ -1035,7 +1348,7 @@ ALTER TABLE `therapist_availability_exceptions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- Constraints for dumped tables
@@ -1082,12 +1395,32 @@ ALTER TABLE `patient_profiles`
   ADD CONSTRAINT `patient_profiles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `patient_vitals`
+--
+ALTER TABLE `patient_vitals`
+  ADD CONSTRAINT `fk_vitals_patient` FOREIGN KEY (`patient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `prescriptions`
 --
 ALTER TABLE `prescriptions`
   ADD CONSTRAINT `fk_presc_patient` FOREIGN KEY (`patient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_presc_session` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_presc_therapist` FOREIGN KEY (`therapist_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `prescription_medicines`
+--
+ALTER TABLE `prescription_medicines`
+  ADD CONSTRAINT `fk_presmed_medicine` FOREIGN KEY (`medicine_id`) REFERENCES `medicines` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_presmed_prescription` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `prescription_tests`
+--
+ALTER TABLE `prescription_tests`
+  ADD CONSTRAINT `fk_prestest_prescription` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_prestest_test` FOREIGN KEY (`test_id`) REFERENCES `medical_tests` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `reviews`

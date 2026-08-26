@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ClipboardList, AlertTriangle, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ClipboardList, AlertTriangle, Users, FileText } from 'lucide-react';
 import { getMyCaseload } from '../../services/api';
 import './ActiveCaseload.css';
 
@@ -75,6 +76,7 @@ const ActiveCaseload = () => {
                                 <th>Last Session</th>
                                 <th>Care Plan Items</th>
                                 <th>This Week's Progress</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -104,6 +106,19 @@ const ActiveCaseload = () => {
                                                     </div>
                                                     <span className={`cl-percent text-${level}`}>{c.adherence_rate}%</span>
                                                 </div>
+                                            )}
+                                        </td>
+                                        <td>
+                                            {c.last_session_id ? (
+                                                <Link
+                                                    to={`/therapist-dashboard/prescriptions?session=${c.last_session_id}`}
+                                                    className="cl-rx-btn"
+                                                    title={`Create or edit ${c.patient_name}'s prescription`}
+                                                >
+                                                    <FileText size={14} /> Create Prescription
+                                                </Link>
+                                            ) : (
+                                                <span className="cl-no-plan">No session yet</span>
                                             )}
                                         </td>
                                     </tr>

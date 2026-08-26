@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
     BarChart2,
@@ -8,25 +9,31 @@ import {
     Settings,
     LogOut,
     HeartPulse,
-    UserCircle2
+    UserCircle2,
+    ChevronUp,
+    Clock,
+    RotateCcw,
 } from "lucide-react";
+import {
+    setSystemTimeOverride,
+    clearSystemTimeOverride,
+    getSystemTimeOverrideString,
+    hasSystemTimeOverride,
+} from "../../utils/systemTime";
 import "./AdminLayout.css";
 
 // Every admin page in the sidebar, in the order they should appear.
-// Pages without a `path` yet (Disciplinary Logs, System Settings) haven't
-// been built, so they show up disabled instead of linking to nothing.
 const NAV_ITEMS = [
-    { key: "analytics", label: "Platform Analytics", icon: BarChart2, path: "/admin/analytics" },
+    { key: "analytics",    label: "Platform Analytics",    icon: BarChart2,  path: "/admin/analytics" },
     { key: "verification", label: "Therapist Verification", icon: FileCheck2, path: "/admin/verification" },
-    { key: "users", label: "User Management", icon: Users, path: "/admin/users" },
-    { key: "approvals", label: "Group Approvals", icon: Gavel, path: "/admin/group-approvals" },
-    { key: "logs", label: "Disciplinary Logs", icon: ShieldAlert, path: null },
-    { key: "settings", label: "System Settings", icon: Settings, path: null }
+    { key: "users",        label: "User Management",        icon: Users,      path: "/admin/users" },
+    { key: "approvals",    label: "Group Approvals",        icon: Gavel,      path: "/admin/group-approvals" },
+    { key: "logs",         label: "Disciplinary Logs",      icon: ShieldAlert, path: null },
+    { key: "settings",     label: "System Settings",        icon: Settings,   path: "/admin/settings" },
 ];
 
 /**
- * Wraps every admin page with the same sidebar and top bar, so the nav
- * only has to be built once instead of copy-pasted into each page.
+ * Wraps every admin page with the same sidebar and top bar.
  *
  * Usage:
  *   <AdminLayout pageTitle="User Management" badgeText="Admin Control">
@@ -37,9 +44,35 @@ const AdminLayout = ({ pageTitle, badgeText, children }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Dev Tools panel state
+    const [devOpen, setDevOpen] = useState(false);
+    const [devDate, setDevDate] = useState(() => {
+        const s = getSystemTimeOverrideString();
+        return s ? s.slice(0, 10) : "";
+    });
+    const [devTime, setDevTime] = useState(() => {
+        const s = getSystemTimeOverrideString();
+        return s ? s.slice(11, 16) : "00:00";
+    });
+    const [overrideActive, setOverrideActive] = useState(hasSystemTimeOverride);
+
     const handleLogout = () => {
         localStorage.removeItem("token");
         navigate("/login");
+    };
+
+    const handleSetOverride = () => {
+        if (!devDate) return;
+        const iso = `${devDate}T${devTime || "00:00"}`;
+        setSystemTimeOverride(iso);
+        setOverrideActive(true);
+    };
+
+    const handleResetOverride = () => {
+        clearSystemTimeOverride();
+        setOverrideActive(false);
+        setDevDate("");
+        setDevTime("00:00");
     };
 
     return (
@@ -69,6 +102,71 @@ const AdminLayout = ({ pageTitle, badgeText, children }) => {
                     })}
                 </nav>
 
+                {/* ── Dev Tools Panel ── */}
+                <div className="dev-tools-section">
+                    <button
+                        className={`dev-tools-toggle ${devOpen ? "dev-open" : ""}`}
+                        onClick={() => setDevOpen(v => !v)}
+                        title="Developer tools — testing only"
+                    >
+                        <Clock size={14} />
+                        <span>Dev Tools</span>
+                        <ChevronUp
+                            size={14}
+                            className={`dev-chevron ${devOpen ? "dev-chevron-open" : ""}`}
+                        />
+                    </button>
+
+                    {devOpen && (
+                        <div className="dev-tools-panel">
+                            <p className="dev-tools-heading">Override System Date &amp; Time</p>
+                            <p className="dev-tools-hint">
+                                ⚠ Testing only. Affects this browser tab only.
+                            </p>
+
+                            <label className="dev-label">Date</label>
+                            <input
+                                type="date"
+                                className="dev-input"
+                                value={devDate}
+                                onChange={e => setDevDate(e.target.value)}
+                            />
+
+                            <label className="dev-label">Time</label>
+                            <input
+                                type="time"
+                                className="dev-input"
+                                value={devTime}
+                                onChange={e => setDevTime(e.target.value)}
+                            />
+
+                            <div className="dev-btn-row">
+                                <button
+                                    className="dev-btn-set"
+                                    onClick={handleSetOverride}
+                                    disabled={!devDate}
+                                >
+                                    Set Override
+                                </button>
+                                <button
+                                    className="dev-btn-reset"
+                                    onClick={handleResetOverride}
+                                    disabled={!overrideActive}
+                                    title="Reset to real system time"
+                                >
+                                    <RotateCcw size={13} />
+                                </button>
+                            </div>
+
+                            {overrideActive && (
+                                <p className="dev-active-label">
+                                    🕐 Override active: {getSystemTimeOverrideString()?.replace("T", " ")}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 <button type="button" className="admin-logout" onClick={handleLogout}>
                     <LogOut size={18} />
                     <span>Logout</span>
@@ -82,6 +180,11 @@ const AdminLayout = ({ pageTitle, badgeText, children }) => {
                         {badgeText && <span className="admin-badge-pill">{badgeText}</span>}
                     </div>
                     <div className="admin-topbar-right">
+                        {overrideActive && (
+                            <span className="admin-time-override-badge">
+                                🕐 Time Override Active
+                            </span>
+                        )}
                         <span className="admin-system-health">
                             <HeartPulse size={16} />
                             System Healthy

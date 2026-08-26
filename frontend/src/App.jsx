@@ -16,8 +16,10 @@ import AdminSignup from "./components/auth/AdminSignup";
 import AdminVerificationDashboard from "./components/admin/AdminVerificationDashboard";
 import AdminAnalyticsDashboard from "./components/admin/AdminAnalyticsDashboard";
 import AdminGroupApprovals from "./components/admin/AdminGroupApprovals";
+import AdminSettings from "./components/admin/AdminSettings";
 import TherapistGroupProposals from "./components/therapist/TherapistGroupProposals";
 import PatientGroupSessions from "./components/patient/PatientGroupSessions";
+import PatientPrescriptions from "./components/patient/PatientPrescriptions";
 import ScheduleManager from './components/therapist/ScheduleManager';
 import TherapistManageGroupSession from "./components/therapist/TherapistManageGroupSession";
 
@@ -51,7 +53,9 @@ function App() {
         <Route path="/admin/verification" element={<AdminVerificationDashboard />} />
         <Route path="/admin/analytics" element={<AdminAnalyticsDashboard />} />
         <Route path="/admin/group-approvals" element={<AdminGroupApprovals />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/patient/group-sessions" element={<PatientGroupSessions />} />
+        <Route path="/patient/prescriptions" element={<PatientPrescriptions />} />
       </Routes>
     </Router>
   );
