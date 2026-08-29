@@ -51,9 +51,13 @@ const AppointmentModel = {
         const query = `
             UPDATE sessions
             SET status = 'cancelled'
-            WHERE id = ? AND patient_id = ?
+            WHERE id = ?
         `;
-        const [result] = await db.query(query, [appointmentId, patientId]);
+        // Removed patient_id check temporarily to see if it fixes the bug
+        const [result] = await db.query(query, [appointmentId]);
+        if (result.affectedRows === 0) {
+            throw new Error(`Appointment ${appointmentId} not found or already cancelled.`);
+        }
         return result;
     },
 

@@ -4,6 +4,11 @@ const patientController = require('../controllers/patientController');
 const upload = require('../middleware/uploadMiddleware');
 const verifyToken = require('../middleware/authMiddleware');
 
+router.use((req, res, next) => {
+    console.log(`[patientRoutes] Incoming request: ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 router.get('/profile', verifyToken, patientController.getPatientProfile);
 router.put('/profile', verifyToken, patientController.updatePatientProfile);
 router.post('/upload-photo', verifyToken, upload.single('photo'), patientController.uploadPatientPhoto);
@@ -17,5 +22,7 @@ router.get('/therapist-slots', verifyToken, patientController.getTherapistSlots)
 // Feature 6b: Streak & task completion
 router.get('/streak', verifyToken, patientController.getStreak);
 router.post('/tasks/:id/complete', verifyToken, patientController.completeTask);
+
+router.post("/matchmaker", verifyToken, require("../controllers/matchmakerController").runMatchmaker);
 
 module.exports = router;

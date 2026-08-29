@@ -1,0 +1,223 @@
+.progress-card-container {
+  overflow: hidden;
+}
+
+.progress-content-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 2.5fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .progress-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-box {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.analytics-box:last-child {
+  margin-bottom: 0;
+}
+
+.analytics-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 12px 0;
+}
+
+.progress-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.progress-stat-row:last-child {
+  margin-bottom: 0;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #475569;
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.progress-bar-bg {
+  flex-grow: 1;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease-in-out;
+}
+
+.stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  width: 36px;
+  text-align: right;
+}
+
+/* Mood Graph */
+.mood-display {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.mood-score {
+  display: flex;
+  align-items: baseline;
+}
+
+.score-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.score-max {
+  font-size: 14px;
+  color: #64748b;
+  margin-left: 2px;
+}
+
+.mood-graph-mock {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 60px;
+  flex-grow: 1;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.mood-bar {
+  flex: 1;
+  background: #cbd5e1;
+  border-radius: 4px 4px 0 0;
+  min-width: 16px;
+  transition: height 0.5s ease-in-out;
+}
+
+.mood-bar.active {
+  background: #10b981;
+}
+
+.mood-insight {
+  font-size: 12px;
+  color: #166534;
+  background: #dcfce7;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0;
+}
+
+/* Roadmap */
+.progress-roadmap-side {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.roadmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.roadmap-node {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.roadmap-node:last-child {
+  padding-bottom: 0;
+}
+
+.node-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #94a3b8;
+  z-index: 2;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.roadmap-node.completed .node-icon-wrapper {
+  background: #dcfce7;
+  color: #10b981;
+}
+
+.roadmap-node.in-progress .node-icon-wrapper {
+  background: #dbeafe;
+  color: #3b82f6;
+  border: 2px solid #bfdbfe;
+}
+
+.node-connector {
+  position: absolute;
+  left: 15px; 
+  top: 32px;
+  bottom: 0;
+  width: 2px;
+  background: #e2e8f0;
+  z-index: 1;
+}
+
+.roadmap-node.completed .node-connector {
+  background: #10b981;
+}
+
+.node-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 6px;
+}
+
+.node-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.roadmap-node.locked .node-title {
+  color: #94a3b8;
+}
+
+.node-status-text {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.roadmap-node.in-progress .node-status-text {
+  color: #3b82f6;
+  font-weight: 500;
+}

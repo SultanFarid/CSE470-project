@@ -9,14 +9,14 @@ export default function ActiveAppointmentCard({
   getInitials,
   handleCancelAppointment,
   openDirectoryModal,
+  openBookingModal,
   cancelNotification,
   openReviewModal,
   pendingReview,
   reviewSubmitted,
   lastReviewedTherapist
 }) {
-  // Filter out any cancelled appointments so only active ones show
-  const activeAppointments = (appointments || []).filter((a) => a.status !== 'cancelled');
+  const activeAppointments = (appointments || []).filter((a) => a.status === 'pending' || a.status === 'confirmed' || a.status === 'in_progress');
   const currentApp = activeAppointments.length > 0 ? activeAppointments[0] : null;
 
   return (
@@ -104,56 +104,7 @@ export default function ActiveAppointmentCard({
         </div>
       )}
 
-      {/* Feature 7: Post-Session Review & Feedback Banner — only appears when
-          there's a real completed session waiting on a review. Brand-new
-          accounts with no session history correctly show nothing here. */}
-      {pendingReview ? (
-        <div className="feedback-alert-box">
-          <div className="feedback-text-content">
-            <h4 className="feedback-alert-title">
-              <ShieldAlert size={16} className="inline-icon warning" />
-              Pending Review: Past Session with {pendingReview.therapist_name}
-            </h4>
-            <p className="feedback-alert-subtitle">Please rate your experience to help our AI Matchmaker guide others.</p>
-          </div>
-          <div className="feedback-action-row">
-            <button
-              className="rate-stars-btn"
-              onClick={() => openReviewModal && openReviewModal({
-                id: pendingReview.appointment_id,
-                therapist_id: pendingReview.therapist_id,
-                therapist_name: pendingReview.therapist_name,
-                therapist_specialties: pendingReview.therapist_specialties
-              })}
-            >
-              ★ Rate 1-5 Stars
-            </button>
-            <span
-              className="feedback-tags-label"
-              onClick={() => openReviewModal && openReviewModal({
-                id: pendingReview.appointment_id,
-                therapist_id: pendingReview.therapist_id,
-                therapist_name: pendingReview.therapist_name,
-                therapist_specialties: pendingReview.therapist_specialties
-              })}
-              style={{ cursor: 'pointer' }}
-            >
-              + Add Tags (#Communication, #Approach)
-            </span>
-          </div>
-        </div>
-      ) : reviewSubmitted ? (
-        <div className="feedback-alert-box" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-          <div className="feedback-text-content">
-            <h4 className="feedback-alert-title" style={{ color: '#15803d', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={16} color="#16a34a" /> Review Submitted{lastReviewedTherapist?.name ? ` for ${lastReviewedTherapist.name}` : ''}
-            </h4>
-            <p className="feedback-alert-subtitle" style={{ color: '#166534', margin: 0, fontSize: '12px' }}>
-              Thank you! Your ratings and structured tags have updated our AI Matchmaker weighted signals.
-            </p>
-          </div>
-        </div>
-      ) : null}
+
     </section>
   );
 }
