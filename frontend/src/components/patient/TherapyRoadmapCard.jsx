@@ -25,8 +25,8 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       id: 1, 
       title: 'First Session', 
       descComplete: 'You completed your first session!', 
-      descProgress: 'Book and attend your first session.', 
-      descLocked: 'Book your first session.',
+      descProgress: 'Schedule your very first session.', 
+      descLocked: 'Pending session scheduling.',
       status: m1, 
       icon: <Calendar size={16}/> 
     },
@@ -35,7 +35,7 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       title: 'Action Plan Initiated', 
       descComplete: 'You started working on your goals.', 
       descProgress: 'Complete your first assigned task.', 
-      descLocked: 'Complete your first session to unlock.',
+      descLocked: 'Pending action plan setup.',
       status: m2, 
       icon: <Target size={16}/> 
     },
@@ -43,8 +43,8 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       id: 3, 
       title: 'Identify Core Triggers', 
       descComplete: 'You maintained a 3-day streak!', 
-      descProgress: 'Keep a 3-day consistency streak.', 
-      descLocked: 'Complete previous steps to unlock.',
+      descProgress: 'Goal: Keep a 3-day streak.', 
+      descLocked: 'Requires a 3-day consistency streak.',
       status: m3, 
       icon: <Activity size={16}/> 
     },
@@ -52,8 +52,8 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       id: 4, 
       title: 'Build Coping Skills', 
       descComplete: 'You maintained a 14-day streak!', 
-      descProgress: 'Keep a 14-day consistency streak.', 
-      descLocked: 'Complete previous steps to unlock.',
+      descProgress: 'Goal: Keep a 14-day streak.', 
+      descLocked: 'Requires a 14-day consistency streak.',
       status: m4, 
       icon: <TrendingUp size={16}/> 
     },
@@ -61,8 +61,8 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       id: 5, 
       title: '1-Month Consistency', 
       descComplete: 'Amazing! 30 days of consistency.', 
-      descProgress: 'Keep a 30-day consistency streak.', 
-      descLocked: 'Complete previous steps to unlock.',
+      descProgress: 'Goal: Keep a 30-day streak.', 
+      descLocked: 'Requires a 30-day consistency streak.',
       status: m5, 
       icon: <Star size={16}/> 
     },
