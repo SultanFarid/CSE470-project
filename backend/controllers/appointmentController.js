@@ -14,6 +14,8 @@ exports.getAppointments = async (req, res) => {
     }
 };
 
+const db = require('../config/db');
+
 exports.bookAppointment = async (req, res) => {
     const userId = req.user?.id || req.userId;
     if (!userId) {
@@ -23,15 +25,85 @@ exports.bookAppointment = async (req, res) => {
     if (!therapist_id || !appointment_date || !time_slot) {
         return res.status(400).json({ message: "Missing required fields for appointment booking." });
     }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(appointment_date)) {
+        return res.status(400).json({ message: "Invalid date format. Expected YYYY-MM-DD." });
+    }
+
+    // 1. Therapist existence check
+    const therapist = await AppointmentModel.getTherapistUser(therapist_id);
+    if (!therapist) {
+        return res.status(404).json({ message: "Therapist not found." });
+    }
+
+    // 2. Date validation: past dates
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+
+    if (appointment_date < todayStr) {
+        return res.status(400).json({ message: "You cannot book an appointment for a past date." });
+    }
+
+    // 3. Past slot validation for today
+    if (appointment_date === todayStr) {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const startPart = time_slot.split('-')[0].trim();
+        const match = startPart.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (match) {
+            let h = parseInt(match[1], 10);
+            const min = parseInt(match[2], 10);
+            const period = match[3].toUpperCase();
+            if (period === 'PM' && h < 12) h += 12;
+            if (period === 'AM' && h === 12) h = 0;
+            if ((h * 60 + min) <= currentMinutes) {
+                return res.status(400).json({ message: "This time slot has already passed for today. Please select a future time slot." });
+            }
+        }
+    }
+
+    // 4. Format validation: check therapist session_type support
+    if (therapist.session_type) {
+        const supported = therapist.session_type;
+        if (supported === 'online' && session_type === 'in-person') {
+            return res.status(400).json({ message: "This therapist is only available for Online Video sessions." });
+        }
+        if (supported === 'in-person' && session_type === 'online') {
+            return res.status(400).json({ message: "This therapist is only available for In-Person sessions." });
+        }
+    }
+
+    // 5. Check if therapist is blocked/on leave on this date
+    try {
+        const [exceptions] = await db.query(
+            `SELECT type, reason FROM therapist_availability_exceptions
+             WHERE therapist_id = ? AND exception_date = ?`,
+            [therapist_id, appointment_date]
+        );
+        if (exceptions.length > 0 && exceptions[0].type === 'blocked') {
+            return res.status(400).json({ 
+                message: `This therapist is unavailable on this date (${exceptions[0].reason || 'Day Off / Leave'}).` 
+            });
+        }
+    } catch (err) {
+        console.error('Error checking exceptions:', err);
+    }
+
+    // 6. Double-booking check & Atomic transaction insertion
     try {
         const result = await AppointmentModel.create(userId, therapist_id, appointment_date, time_slot, session_type || 'online');
         return res.status(201).json({ 
+            success: true,
             message: "Appointment booked successfully!", 
             appointmentId: result.insertId 
         });
     } catch (err) {
         console.error("Error booking appointment:", err);
-        return res.status(500).json({ message: "Failed to book appointment." });
+        const status = err.statusCode || 500;
+        return res.status(status).json({ message: err.message || "Failed to book appointment." });
     }
 };
 
