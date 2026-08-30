@@ -65,14 +65,14 @@ const AppointmentModel = {
                 throw err;
             }
 
-            // Fetch consultation fee
+            // Snapshot the therapist's current consultation fee
             const [profileRows] = await connection.query(
                 `SELECT consultation_fee FROM therapist_profiles WHERE user_id = ?`,
                 [therapistId]
             );
-            const fee = profileRows[0]?.consultation_fee || 0;
+            const fee = profileRows[0]?.consultation_fee ?? null;
 
-            // Insert appointment
+            // Insert appointment with 'confirmed' status
             const [result] = await connection.query(
                 `INSERT INTO sessions (patient_id, therapist_id, scheduled_date, time_slot, session_type, status, fee)
                  VALUES (?, ?, ?, ?, ?, 'confirmed', ?)`,
@@ -115,12 +115,20 @@ const AppointmentModel = {
     },
 
     cancel: async (appointmentId, patientId) => {
-        const query = `
+        // Only pending or confirmed appointments can be cancelled (completed sessions cannot be cancelled)
+        let query = `
             UPDATE sessions
             SET status = 'cancelled'
-            WHERE id = ? AND patient_id = ?
+            WHERE id = ? AND status IN ('pending', 'confirmed')
         `;
-        const [result] = await db.query(query, [appointmentId, patientId]);
+        const params = [appointmentId];
+
+        if (patientId) {
+            query += ` AND patient_id = ?`;
+            params.push(patientId);
+        }
+
+        const [result] = await db.query(query, params);
         return result;
     },
 

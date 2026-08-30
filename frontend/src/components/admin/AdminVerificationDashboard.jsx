@@ -149,6 +149,23 @@ const AdminVerificationDashboard = () => {
         return (parts[0]?.[0] || "").concat(parts[1]?.[0] || "").toUpperCase();
     };
 
+    // employment_history / professional_references are stored as JSON text;
+    // shape isn't fixed, so render generically rather than assuming exact keys.
+    const safeParseArray = (raw) => {
+        if (!raw) return [];
+        if (Array.isArray(raw)) return raw;
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const labelize = (key) => key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const money = (val) => (val || val === 0) ? `$${Number(val).toLocaleString()}` : "—";
+
     return (
         <AdminLayout pageTitle="Therapist Verification" badgeText="Admin Control">
             {actionMsg && <div className="avd-action-msg">{actionMsg}</div>}
@@ -200,6 +217,7 @@ const AdminVerificationDashboard = () => {
                                     <th>License</th>
                                     <th>Status</th>
                                     <th>Applied On</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -235,6 +253,16 @@ const AdminVerificationDashboard = () => {
                                                 </span>
                                             </td>
                                             <td>{formatDate(app.created_at)}</td>
+                                            <td>
+                                                <button
+                                                    type="button"
+                                                    className="avd-btn-view"
+                                                    onClick={(e) => { e.stopPropagation(); handleViewDetails(app.id); }}
+                                                >
+                                                    <FileText size={13} />
+                                                    View Application
+                                                </button>
+                                            </td>
                                         </tr>
                                     );
                                 })}
@@ -298,13 +326,7 @@ const AdminVerificationDashboard = () => {
                         </div>
 
                         <div className="avd-ledger">
-                            <div className="avd-ledger-title">
-                                Application Details
-                            </div>
-                            <div className="avd-ledger-row">
-                                <span>Primary License</span>
-                                <strong>{selectedApp.primary_license || "—"}</strong>
-                            </div>
+                            <div className="avd-ledger-title">Status</div>
                             <div className="avd-ledger-row">
                                 <span>Applied On</span>
                                 <strong>{formatDate(selectedApp.created_at)}</strong>
@@ -315,6 +337,12 @@ const AdminVerificationDashboard = () => {
                                     <strong>{formatDate(selectedApp.viva_scheduled_at)}</strong>
                                 </div>
                             )}
+                            {selectedApp.viva_notes && (
+                                <div className="avd-ledger-row">
+                                    <span>Viva Notes</span>
+                                    <strong>{selectedApp.viva_notes}</strong>
+                                </div>
+                            )}
                             <div className="avd-ledger-row">
                                 <span>Status</span>
                                 <span className={`avd-status ${(STATUS_META[selectedApp.status] || STATUS_META.pending).className}`}>
@@ -322,6 +350,86 @@ const AdminVerificationDashboard = () => {
                                     {(STATUS_META[selectedApp.status] || STATUS_META.pending).label}
                                 </span>
                             </div>
+                        </div>
+
+                        <div className="avd-ledger">
+                            <div className="avd-ledger-title">Personal &amp; Contact</div>
+                            <div className="avd-ledger-row-block"><span>Address</span><strong>{selectedApp.address || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Phone</span><strong>{selectedApp.phone || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>National ID</span><strong>{selectedApp.national_id || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Emergency Contact</span><strong>{selectedApp.emergency_contact || "—"}</strong></div>
+                        </div>
+
+                        <div className="avd-ledger">
+                            <div className="avd-ledger-title">Position Details</div>
+                            <div className="avd-ledger-row"><span>Position Applied</span><strong>{selectedApp.position_applied || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Employment Type</span><strong>{selectedApp.employment_type || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Shift Availability</span><strong>{selectedApp.shift_availability || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Preferred Start Date</span><strong>{formatDate(selectedApp.start_date)}</strong></div>
+                            <div className="avd-ledger-row"><span>Desired Salary</span><strong>{money(selectedApp.desired_salary)}</strong></div>
+                        </div>
+
+                        <div className="avd-ledger">
+                            <div className="avd-ledger-title">Licensing &amp; Certifications</div>
+                            <div className="avd-ledger-row"><span>Primary License</span><strong>{selectedApp.primary_license || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>NPI Number</span><strong>{selectedApp.npi || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Basic Certifications</span><strong>{selectedApp.basic_certs || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Specialty Certifications</span><strong>{selectedApp.specialty_certs || "—"}</strong></div>
+                        </div>
+
+                        <div className="avd-ledger">
+                            <div className="avd-ledger-title">Experience &amp; Skills</div>
+                            <div className="avd-ledger-row-block"><span>Education History</span><strong>{selectedApp.education_history || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>EMR Experience</span><strong>{selectedApp.emr_experience || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Languages</span><strong>{selectedApp.languages || "—"}</strong></div>
+                            <div className="avd-ledger-row"><span>Therapeutic Modalities</span><strong>{selectedApp.therapeutic_modalities || "—"}</strong></div>
+                        </div>
+
+                        {safeParseArray(selectedApp.employment_history).length > 0 && (
+                            <div className="avd-ledger">
+                                <div className="avd-ledger-title">Employment History</div>
+                                {safeParseArray(selectedApp.employment_history).map((entry, i) => (
+                                    <div key={i} className="avd-entry-card">
+                                        {Object.entries(entry)
+                                            .filter(([, v]) => v !== "" && v != null)
+                                            .map(([k, v]) => (
+                                                <div key={k} className="avd-ledger-row">
+                                                    <span>{labelize(k)}</span>
+                                                    <strong>{String(v)}</strong>
+                                                </div>
+                                            ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {safeParseArray(selectedApp.professional_references).length > 0 && (
+                            <div className="avd-ledger">
+                                <div className="avd-ledger-title">Professional References</div>
+                                {safeParseArray(selectedApp.professional_references).map((entry, i) => (
+                                    <div key={i} className="avd-entry-card">
+                                        {Object.entries(entry)
+                                            .filter(([, v]) => v !== "" && v != null)
+                                            .map(([k, v]) => (
+                                                <div key={k} className="avd-ledger-row">
+                                                    <span>{labelize(k)}</span>
+                                                    <strong>{String(v)}</strong>
+                                                </div>
+                                            ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="avd-ledger">
+                            <div className="avd-ledger-title">Compliance &amp; Background</div>
+                            <div className="avd-ledger-row-block"><span>Malpractice History</span><strong>{selectedApp.malpractice_history || "None disclosed"}</strong></div>
+                            <div className="avd-ledger-row"><span>License Suspension/Revocation</span><span className={`avd-yn ${selectedApp.license_suspension ? "avd-yn-warn" : "avd-yn-ok"}`}>{selectedApp.license_suspension ? "Yes" : "No"}</span></div>
+                            <div className="avd-ledger-row"><span>Criminal Record</span><span className={`avd-yn ${selectedApp.criminal_record ? "avd-yn-warn" : "avd-yn-ok"}`}>{selectedApp.criminal_record ? "Yes" : "No"}</span></div>
+                            <div className="avd-ledger-row"><span>OIG/Exclusion List</span><span className={`avd-yn ${selectedApp.oig_exclusion ? "avd-yn-warn" : "avd-yn-ok"}`}>{selectedApp.oig_exclusion ? "Yes" : "No"}</span></div>
+                            <div className="avd-ledger-row"><span>Immunization Proof Provided</span><span className={`avd-yn ${selectedApp.immunization_proof ? "avd-yn-ok" : "avd-yn-warn"}`}>{selectedApp.immunization_proof ? "Yes" : "No"}</span></div>
+                            <div className="avd-ledger-row"><span>Physical Capability Confirmed</span><span className={`avd-yn ${selectedApp.physical_capability ? "avd-yn-ok" : "avd-yn-warn"}`}>{selectedApp.physical_capability ? "Yes" : "No"}</span></div>
+                            <div className="avd-ledger-row"><span>Truthfulness Attestation Signed</span><span className={`avd-yn ${selectedApp.truthfulness_attestation ? "avd-yn-ok" : "avd-yn-warn"}`}>{selectedApp.truthfulness_attestation ? "Yes" : "No"}</span></div>
                         </div>
 
                         {selectedApp.document_url && (

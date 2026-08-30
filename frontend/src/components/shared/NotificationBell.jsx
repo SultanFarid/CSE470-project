@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bell, CheckCheck, CalendarClock, Dumbbell, Info } from "lucide-react";
+import { Bell, CheckCheck, CalendarClock, Dumbbell, Info, Landmark, CalendarX, FileText, CheckCircle, Users } from "lucide-react";
 import {
     getMyNotifications,
     getUnreadNotificationCount,
@@ -10,8 +10,16 @@ import "./NotificationBell.css";
 
 const TYPE_ICON = {
     booking_alert: CalendarClock,
+    appointment_booked: CalendarClock,
+    appointment_cancelled: CalendarX,
     session_reminder: CalendarClock,
+    session_update: CalendarClock,
     exercise_reminder: Dumbbell,
+    prescription_ready: FileText,
+    follow_up_accepted: CheckCircle,
+    wallet_withdrawal: Landmark,
+    group_session_join: Users,
+    group_session_update: Users,
     admin_action: Info,
     general: Info
 };
