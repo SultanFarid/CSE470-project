@@ -24,6 +24,10 @@ const { startScheduleConfirmationReminderJob } = require('./jobs/scheduleConfirm
 
 const app = express();
 
+app.use((req, res, next) => {
+    console.log(`[Global] Request: ${req.method} ${req.url}`);
+    next();
+});
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

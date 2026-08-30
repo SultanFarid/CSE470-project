@@ -73,15 +73,20 @@ const AppointmentModel = {
     },
 
     cancel: async (appointmentId, patientId) => {
-        // Guarded server-side too (not just hidden in the UI) — a session
-        // that's in_progress or already completed/cancelled must not be
-        // flipped back to 'cancelled'. affectedRows will be 0 if blocked.
-        const query = `
+        // Only pending or confirmed appointments can be cancelled (completed sessions cannot be cancelled)
+        let query = `
             UPDATE sessions
             SET status = 'cancelled'
-            WHERE id = ? AND patient_id = ? AND status IN ('pending', 'confirmed')
+            WHERE id = ? AND status IN ('pending', 'confirmed')
         `;
-        const [result] = await db.query(query, [appointmentId, patientId]);
+        const params = [appointmentId];
+
+        if (patientId) {
+            query += ` AND patient_id = ?`;
+            params.push(patientId);
+        }
+
+        const [result] = await db.query(query, params);
         return result;
     },
 

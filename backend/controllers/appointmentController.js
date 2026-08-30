@@ -22,8 +22,9 @@ exports.bookAppointment = async (req, res) => {
         return res.status(401).json({ message: "Unauthorized access. Please log in again." });
     }
     const { therapist_id, appointment_date, time_slot, session_type } = req.body;
+    console.log("Booking Request Body:", req.body);
     if (!therapist_id || !appointment_date || !time_slot) {
-        return res.status(400).json({ message: "Missing required fields for appointment booking." });
+        return res.status(400).json({ message: `Missing required fields for appointment booking. Received: ${JSON.stringify(req.body)}` });
     }
     try {
         const result = await AppointmentModel.create(userId, therapist_id, appointment_date, time_slot, session_type || 'online');

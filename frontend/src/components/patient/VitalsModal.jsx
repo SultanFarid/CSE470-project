@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ChevronLeft, ChevronRight, Sliders, Search, ArrowRight, Star } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Sliders, Search, ArrowRight, Star, Sparkles } from 'lucide-react';
 
 export default function VitalsModal({
   showVitalsModal,
@@ -236,8 +236,11 @@ export default function VitalsModal({
         {/* STEP 7: AI match results */}
         {vitalsStep === 7 && (
           <div className="vitals-step">
-            <h2 className="edit-modal-title">Your Top 3 Matches</h2>
-            <p className="vitals-step-subtitle">Based on your answers — this is a demo scoring model, not a clinical recommendation.</p>
+            <h2 className="edit-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={24} style={{ color: '#8b5cf6' }} />
+              Your Top 3 Matches
+            </h2>
+            <p className="vitals-step-subtitle">Powered by Google Gemini — based on your answers. This is a demo scoring model, not a clinical recommendation.</p>
 
             <div className="vitals-results-list">
               {aiMatches.map((t) => (

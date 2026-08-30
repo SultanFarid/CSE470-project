@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Aug 26, 2026 at 10:38 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: localhost
+-- Generation Time: Aug 30, 2026 at 05:48 AM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -450,7 +450,11 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `type`, `is_read`, `cre
 (25, 13, 'Your group session \"Self-Esteem Support Group\" status was updated to pending.', 'group_session_update', 0, '2026-08-04 00:40:43'),
 (26, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-15 15:26:27'),
 (27, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-26 03:32:20'),
-(28, 29, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-26 07:59:41');
+(28, 29, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-26 07:59:41'),
+(29, 1, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-27 12:17:39'),
+(30, 1, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-28 10:49:33'),
+(31, 1, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-29 11:55:38'),
+(32, 1, 'It\'s been a week since your last session. Ready to book your next one?', 'book_session_reminder', 0, '2026-08-29 11:55:38');
 
 -- --------------------------------------------------------
 
@@ -471,7 +475,7 @@ CREATE TABLE `patient_profiles` (
 --
 
 INSERT INTO `patient_profiles` (`user_id`, `profile_photo_url`, `contact_number`, `location`, `preferred_language`) VALUES
-(1, '', '01712345678', 'Dhaka', 'English'),
+(1, NULL, '01712345678', 'Dhaka', 'English'),
 (14, '', '01812345601', 'Dhanmondi, Dhaka', 'Bengali'),
 (15, '', '01812345602', 'Gulshan, Dhaka', 'English'),
 (16, '', '01812345603', 'Mirpur, Dhaka', 'Bengali'),
@@ -507,6 +511,23 @@ CREATE TABLE `patient_vitals` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `patient_vitals`
+--
+
+INSERT INTO `patient_vitals` (`id`, `patient_id`, `concerns`, `duration`, `severity`, `gender_pref`, `language_pref`, `format_pref`, `notes`, `created_at`) VALUES
+(1, 1, '[\"Anxiety\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'No preference', 'Either', 'no\n', '2026-08-28 14:59:52'),
+(2, 1, '[\"Depression\"]', '2-4 weeks', 'Mild — manageable most days', 'Male', 'No preference', 'Either', 'no', '2026-08-28 15:07:27'),
+(3, 1, '[\"Anxiety\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'No preference', 'Either', 'n', '2026-08-28 15:10:07'),
+(4, 1, '[\"Substance Use\"]', '1-6 months', 'Moderate — affecting my daily life', 'Male', 'No preference', 'Either', 'n', '2026-08-29 01:16:21'),
+(5, 1, '[\"Depression\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Female', 'No preference', 'Either', '', '2026-08-29 07:53:22'),
+(6, 1, '[\"Depression\"]', 'Less than 2 weeks', 'Mild — manageable most days', 'No preference', 'No preference', 'Either', '', '2026-08-29 09:08:55'),
+(7, 1, '[\"Sleep Problems\"]', 'More than 6 months', 'Severe — significantly impacting me', 'No preference', 'No preference', 'Either', '', '2026-08-29 09:40:52'),
+(8, 1, '[\"Anxiety\"]', '2-4 weeks', 'Mild — manageable most days', 'No preference', 'No preference', 'Either', '', '2026-08-29 11:56:32'),
+(9, 1, '[\"Sleep Problems\"]', '1-6 months', 'Severe — significantly impacting me', 'No preference', 'No preference', 'In-Person', '', '2026-08-29 12:04:54'),
+(10, 1, '[\"Depression\"]', 'Less than 2 weeks', 'Moderate — affecting my daily life', 'No preference', 'No preference', 'In-Person', '', '2026-08-29 15:01:35'),
+(11, 1, '[\"Substance Use\"]', '1-6 months', 'Severe — significantly impacting me', 'No preference', 'No preference', 'Either', '', '2026-08-29 15:33:52');
+
 -- --------------------------------------------------------
 
 --
@@ -540,11 +561,11 @@ INSERT INTO `prescriptions` (`id`, `session_id`, `patient_id`, `therapist_id`, `
 (1, 5, 14, 2, 'Good progress this session. Anxiety symptoms have noticeably decreased since starting the breathing exercises. Continuing current plan.', 'Sertraline 50mg - once daily, morning', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
 (2, 7, 15, 2, 'Discussed work-related stress triggers. Patient reports difficulty keeping up with the exercise routine on busy days - agreed to shorter daily sessions.', 'None currently prescribed', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
 (3, 9, 16, 2, 'Patient has missed several check-ins. Following up to see if the current plan still fits their schedule.', 'Escitalopram 10mg - once daily', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
-(4, 15, 1, 4, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(4, 15, 1, 4, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-27 12:18:59', 1),
 (5, 18, 14, 5, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
 (6, 21, 15, 6, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
 (7, 24, 16, 7, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
-(8, 27, 1, 8, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
+(8, 27, 1, 8, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-28 03:28:23', 1),
 (9, 30, 14, 9, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
 (10, 33, 15, 10, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
 (11, 36, 16, 11, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0),
@@ -618,7 +639,8 @@ INSERT INTO `reviews` (`id`, `session_id`, `patient_id`, `therapist_id`, `rating
 (10, 33, 15, 10, 4, 'Professional,Helpful', '2026-06-28 00:40:43'),
 (11, 36, 16, 11, 3, 'Great listener,Patient', '2026-06-22 00:40:43'),
 (12, 39, 1, 12, 5, 'Knowledgeable,Calm', '2026-06-16 00:40:43'),
-(13, 42, 14, 13, 4, 'Encouraging,Empathetic', '2026-06-10 00:40:43');
+(13, 42, 14, 13, 4, 'Encouraging,Empathetic', '2026-06-10 00:40:43'),
+(14, 12, 1, 2, 5, '[\"Warm and supportive\",\"Listens carefully\",\"Good at treatment\",\"Comfortable pace\"]', '2026-08-27 12:18:08');
 
 -- --------------------------------------------------------
 
@@ -655,38 +677,43 @@ INSERT INTO `sessions` (`id`, `patient_id`, `therapist_id`, `status`, `fee`, `sc
 (8, 15, 2, 'completed', 1500.00, '2026-05-17', NULL, 'online', '2026-05-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (9, 16, 2, 'completed', 1500.00, '2026-08-09', NULL, 'online', '2026-08-09 00:40:43', '2026-08-15 00:40:43', NULL),
 (10, 16, 2, 'completed', 1800.00, '2026-04-17', NULL, 'in-person', '2026-04-15 00:40:43', '2026-08-15 00:40:43', NULL),
-(11, 1, 2, 'completed', 1500.00, '2026-07-16', NULL, 'online', '2026-07-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(11, 1, 2, 'cancelled', 1500.00, '2026-07-16', NULL, 'online', '2026-07-15 00:40:43', '2026-08-28 03:35:34', NULL),
 (12, 1, 2, 'completed', 1500.00, '2026-03-18', NULL, 'online', '2026-03-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (13, 15, 4, 'pending', 1200.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (14, 14, 4, 'confirmed', 1200.00, '2026-08-20', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
-(15, 1, 4, 'completed', 1200.00, '2026-08-03', NULL, 'online', '2026-08-03 00:40:43', '2026-08-15 00:40:43', NULL),
+(15, 1, 4, 'cancelled', 1200.00, '2026-08-03', NULL, 'online', '2026-08-03 00:40:43', '2026-08-28 03:35:23', NULL),
 (16, 16, 5, 'confirmed', 1300.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (17, 15, 5, 'confirmed', 1300.00, '2026-08-21', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (18, 14, 5, 'completed', 1300.00, '2026-07-28', NULL, 'online', '2026-07-28 00:40:43', '2026-08-15 00:40:43', NULL),
-(19, 1, 6, 'pending', 1400.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(19, 1, 6, 'cancelled', 1400.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-28 03:26:37', NULL),
 (20, 16, 6, 'confirmed', 1400.00, '2026-08-22', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (21, 15, 6, 'completed', 1400.00, '2026-07-22', NULL, 'online', '2026-07-22 00:40:43', '2026-08-15 00:40:43', NULL),
 (22, 14, 7, 'confirmed', 1500.00, '2026-08-15', '16:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
-(23, 1, 7, 'confirmed', 1500.00, '2026-08-23', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(23, 1, 7, 'cancelled', 1500.00, '2026-08-23', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-27 12:36:07', NULL),
 (24, 16, 7, 'completed', 1500.00, '2026-07-16', NULL, 'online', '2026-07-16 00:40:43', '2026-08-15 00:40:43', NULL),
 (25, 15, 8, 'pending', 1600.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (26, 14, 8, 'confirmed', 1600.00, '2026-08-24', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
-(27, 1, 8, 'completed', 1600.00, '2026-07-10', NULL, 'online', '2026-07-10 00:40:43', '2026-08-15 00:40:43', NULL),
+(27, 1, 8, 'cancelled', 1600.00, '2026-07-10', NULL, 'online', '2026-07-10 00:40:43', '2026-08-28 03:38:08', NULL),
 (28, 16, 9, 'confirmed', 1700.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (29, 15, 9, 'confirmed', 1700.00, '2026-08-25', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (30, 14, 9, 'completed', 1700.00, '2026-07-04', NULL, 'online', '2026-07-04 00:40:43', '2026-08-15 00:40:43', NULL),
-(31, 1, 10, 'pending', 1800.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(31, 1, 10, 'cancelled', 1800.00, '2026-08-15', '14:00:00', 'online', '2026-08-15 00:40:43', '2026-08-28 03:35:16', NULL),
 (32, 16, 10, 'confirmed', 1800.00, '2026-08-26', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (33, 15, 10, 'completed', 1800.00, '2026-06-28', NULL, 'online', '2026-06-28 00:40:43', '2026-08-15 00:40:43', NULL),
 (34, 14, 11, 'confirmed', 1900.00, '2026-08-15', '16:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
-(35, 1, 11, 'confirmed', 1900.00, '2026-08-27', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
+(35, 1, 11, 'cancelled', 1900.00, '2026-08-27', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-27 12:19:13', NULL),
 (36, 16, 11, 'completed', 1900.00, '2026-06-22', NULL, 'online', '2026-06-22 00:40:43', '2026-08-15 00:40:43', NULL),
 (37, 15, 12, 'pending', 2000.00, '2026-08-15', '09:30:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (38, 14, 12, 'confirmed', 2000.00, '2026-08-28', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
-(39, 1, 12, 'completed', 2000.00, '2026-06-16', NULL, 'online', '2026-06-16 00:40:43', '2026-08-15 00:40:43', NULL),
+(39, 1, 12, 'cancelled', 2000.00, '2026-06-16', NULL, 'online', '2026-06-16 00:40:43', '2026-08-28 04:58:48', NULL),
 (40, 16, 13, 'confirmed', 2100.00, '2026-08-15', '11:00:00', 'online', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
 (41, 15, 13, 'confirmed', 2100.00, '2026-08-29', '11:00:00', 'in-person', '2026-08-15 00:40:43', '2026-08-15 00:40:43', NULL),
-(42, 14, 13, 'completed', 2100.00, '2026-06-10', NULL, 'online', '2026-06-10 00:40:43', '2026-08-15 00:40:43', NULL);
+(42, 14, 13, 'completed', 2100.00, '2026-06-10', NULL, 'online', '2026-06-10 00:40:43', '2026-08-15 00:40:43', NULL),
+(43, 1, 2, 'cancelled', NULL, '2026-08-29', NULL, 'online', '2026-08-28 05:01:01', '2026-08-28 05:01:06', '12:00 PM - 01:00 PM'),
+(44, 1, 4, 'cancelled', NULL, '2026-08-31', NULL, 'online', '2026-08-28 05:03:55', '2026-08-28 05:05:06', '02:00 PM - 03:00 PM'),
+(45, 1, 4, 'cancelled', NULL, '2026-08-31', NULL, 'online', '2026-08-28 06:32:17', '2026-08-28 11:24:42', '02:00 PM - 03:00 PM'),
+(46, 1, 4, 'cancelled', NULL, '2026-10-05', NULL, 'online', '2026-08-28 10:00:38', '2026-08-28 11:18:09', '02:00 PM - 03:00 PM'),
+(47, 1, 4, 'pending', NULL, '2026-08-31', NULL, 'online', '2026-08-29 11:56:12', '2026-08-29 11:56:12', '02:00 PM - 03:00 PM');
 
 -- --------------------------------------------------------
 
@@ -1046,11 +1073,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, `status`, `last_login`, `suspended_at`, `deactivated_at`, `contact_number`, `location`, `profile_photo`, `created_at`) VALUES
-(1, 'Noor Jahan Oishee', 'Noor Jahan Oishee', 'patient@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
+(1, 'Noor Jahan Oishee', 'Noor Jahan Oishee', 'patient@test.com', 'password123', 'patient', 'active', '2026-08-29 15:01:20', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
 (2, 'Yasar Mostafa', 'Yasar Mostafa', 'therapist@test.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
 (3, 'Sultan Mohammad Farid', 'Sultan Mohammad Farid', 'admin@test.com', 'admin123', 'admin', 'active', '2026-08-26 08:10:50', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25'),
 (4, 'Dr. Ayesha Rahman', 'Dr. Ayesha Rahman', 'ayesha@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
-(5, 'Dr. Kamal Hossain', 'Dr. Kamal Hossain', 'kamal@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
+(5, 'Dr. Kamal Hossain', 'Dr. Kamal Hossain', 'kamal@therapy.com', 'password123', 'therapist', 'active', '2026-08-28 10:48:45', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (6, 'Dr. Sarah Ahmed', 'Dr. Sarah Ahmed', 'sarah@therapy.com', 'password123', 'therapist', 'active', '2026-08-26 05:56:57', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (7, 'Dr. Tariqul Islam', 'Dr. Tariqul Islam', 'tariqul@therapy.com', 'password123', 'therapist', 'active', '2026-08-26 03:33:04', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
 (8, 'Dr. Farhana Akter', 'Dr. Farhana Akter', 'farhana@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53'),
@@ -1328,13 +1355,13 @@ ALTER TABLE `medicines`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `patient_vitals`
 --
 ALTER TABLE `patient_vitals`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `prescriptions`
@@ -1358,13 +1385,13 @@ ALTER TABLE `prescription_tests`
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `task_completions`
