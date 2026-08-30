@@ -18,4 +18,6 @@ router.get('/therapist-slots', verifyToken, patientController.getTherapistSlots)
 router.get('/streak', verifyToken, patientController.getStreak);
 router.post('/tasks/:id/complete', verifyToken, patientController.completeTask);
 
+router.post("/matchmaker", verifyToken, require("../controllers/matchmakerController").runMatchmaker);
+
 module.exports = router;

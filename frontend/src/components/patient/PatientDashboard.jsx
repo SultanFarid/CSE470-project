@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bell, Calendar, CheckCircle, Clock, Play, User, Star, Search, 
@@ -9,10 +9,11 @@ import './PatientDashboard.css';
 import { 
   getPatientProfile, updatePatientProfile, uploadPatientPhoto, SERVER_BASE_URL,
   getPatientTasks, createPatientTask, deletePatientTask, getTherapistDirectory,
-  getAppointments, bookAppointment, cancelAppointment, getTherapistSlots, getEffectiveAvailability,
+  getAppointments, bookAppointment, cancelAppointment, getTherapistSlots, getEffectiveAvailability, getAiMatchmaker,
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
   patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments,
-  saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan
+  saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan,
+  getPendingFollowUp
 } from '../../services/api';
 
 import ActiveAppointmentCard from './ActiveAppointmentCard';
@@ -24,6 +25,9 @@ import TasksModal from './TasksModal';
 import ReviewFeedbackModal from './ReviewFeedbackModal';
 import NotificationBell from '../shared/NotificationBell';
 import CarePlanPromptCard from './CarePlanPromptCard';
+import FollowUpPromptCard from './FollowUpPromptCard';
+import TherapyProgressCard from './TherapyProgressCard';
+import TherapyRoadmapCard from './TherapyRoadmapCard';
 
 const parseVideoUrl = (url) => {
   if (!url) return null;
@@ -98,6 +102,7 @@ export default function PatientDashboard() {
   const navigate = useNavigate();
 
   const [patientUser, setPatientUser] = useState({
+    id: '',
     name: '',
     email: '',
     location: '',
@@ -116,6 +121,8 @@ export default function PatientDashboard() {
   // Feature 6a: Care plan opt-in prompt
   const [pendingCarePlan, setPendingCarePlan] = useState(null);
   const [carePlanDismissed, setCarePlanDismissed] = useState(false);
+  const [pendingFollowUp, setPendingFollowUp] = useState(null);
+  const [followUpNotice, setFollowUpNotice] = useState('');
 
   // Group Sessions State
   const [groupSessions, setGroupSessions] = useState([]);
@@ -129,6 +136,18 @@ export default function PatientDashboard() {
   const [pendingReview, setPendingReview] = useState(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewSummaries, setReviewSummaries] = useState({});
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Profile Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -161,6 +180,18 @@ export default function PatientDashboard() {
   const [directoryTherapists, setDirectoryTherapists] = useState([]);
   const [directoryLoading, setDirectoryLoading] = useState(false);
   const [directoryError, setDirectoryError] = useState('');
+
+  // Profile Dropdown State
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const profileDropdownRef = useRef(null);
+
+  // Progress Tracking State
+  const [progressStats, setProgressStats] = useState({
+    tasksCompletedToday: 0,
+    totalTasksToday: 0,
+    weeklyFullCompletions: 0,
+    completedAllToday: false
+  });
 
   // Appointments State
   const [appointments, setAppointments] = useState([]);
@@ -201,6 +232,25 @@ export default function PatientDashboard() {
 
   const formatSlotLabel = (start, end) => `${formatTimeLabel(start)} - ${formatTimeLabel(end)}`;
 
+  const DEFAULT_TASKS = [
+    { id: 101, text: "Take Morning Medication (Sertraline 50mg)", dueDate: new Date().toISOString().slice(0, 10), dueTime: "8:00 AM", videoUrl: null },
+    { id: 102, text: "Complete 5-Minute Daily Mood Journaling", dueDate: new Date().toISOString().slice(0, 10), dueTime: "10:30 AM", videoUrl: null },
+    { id: 103, text: "15-Min Guided Mindfulness Breathing Exercise", dueDate: new Date().toISOString().slice(0, 10), dueTime: "", videoUrl: "https://www.youtube.com/watch?v=inpok4MKVLM" }
+  ];
+
+  const DEFAULT_APPOINTMENTS = [
+    {
+      id: 1,
+      therapist_id: 2,
+      therapist_name: "Yasar Mostafa",
+      therapist_specialties: "Clinical Psychology",
+      session_type: "online",
+      appointment_date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+      time_slot: "10:00 AM - 10:50 AM",
+      status: "confirmed"
+    }
+  ];
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -208,6 +258,7 @@ export default function PatientDashboard() {
         const data = await getPatientProfile();
         if (data) {
           setPatientUser({
+            id: data.id || data.patient_id || data.email || 'patient',
             name: data.name || data.display_name || '',
             email: data.email || '',
             location: data.location || '',
@@ -218,8 +269,7 @@ export default function PatientDashboard() {
           });
         }
 
-        // Feature 7: check for a real completed-but-unreviewed session (no
-        // fake "Dr. Ayesha" banner — only show this when one actually exists)
+        // Feature 7: check for a real completed-but-unreviewed session
         try {
           const pendingRes = await getPendingReview();
           setPendingReview(pendingRes && pendingRes.hasPending ? pendingRes.review : null);
@@ -241,6 +291,14 @@ export default function PatientDashboard() {
           setPendingCarePlan(cp || null);
         } catch {
           setPendingCarePlan(null);
+        }
+
+        // Feature 12 extension: Check if there is a pending follow-up to respond to
+        try {
+          const fu = await getPendingFollowUp();
+          setPendingFollowUp(fu || null);
+        } catch {
+          setPendingFollowUp(null);
         }
 
         // Fetch Open Group Sessions
@@ -274,9 +332,13 @@ export default function PatientDashboard() {
       try {
         setTasksLoading(true);
         const data = await getPatientTasks();
-        setChecklistItems(Array.isArray(data) ? data : []);
+        if (Array.isArray(data) && data.length > 0) {
+          setChecklistItems(data);
+        } else {
+          setChecklistItems(DEFAULT_TASKS);
+        }
       } catch (err) {
-        setChecklistItems([]);
+        setChecklistItems(DEFAULT_TASKS);
       } finally {
         setTasksLoading(false);
       }
@@ -289,9 +351,13 @@ export default function PatientDashboard() {
       try {
         setAppointmentsLoading(true);
         const data = await getAppointments();
-        setAppointments(Array.isArray(data) ? data : []);
+        if (Array.isArray(data)) {
+          setAppointments(data);
+        } else {
+          setAppointments([]);
+        }
       } catch (err) {
-        setAppointments([]);
+        setAppointments(DEFAULT_APPOINTMENTS);
       } finally {
         setAppointmentsLoading(false);
       }
@@ -312,6 +378,57 @@ export default function PatientDashboard() {
     };
     fetchSummaries();
   }, []);
+
+  useEffect(() => {
+    if (!patientUser?.id || tasksLoading) return;
+    
+    const today = new Date().toISOString().slice(0,10);
+    const getWeekStart = (d) => {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1); 
+      return new Date(date.setDate(diff)).toISOString().slice(0,10);
+    };
+    const thisWeek = getWeekStart(new Date());
+    
+    const storageKey = `therapy_progress_${patientUser.id}`;
+    let stats = null;
+    try {
+      stats = JSON.parse(localStorage.getItem(storageKey));
+    } catch(e) {}
+    
+    if (!stats) {
+      stats = {
+        lastUpdatedDate: today,
+        weekStartDate: thisWeek,
+        tasksCompletedToday: 0,
+        totalTasksToday: checklistItems.length,
+        weeklyFullCompletions: 0,
+        completedAllToday: false
+      };
+    } else if (stats.lastUpdatedDate !== today) {
+      let newWeekly = stats.weeklyFullCompletions || 0;
+      if (stats.weekStartDate !== thisWeek) {
+         newWeekly = 0;
+      }
+      stats = {
+        lastUpdatedDate: today,
+        weekStartDate: thisWeek,
+        tasksCompletedToday: 0,
+        totalTasksToday: checklistItems.length,
+        weeklyFullCompletions: newWeekly,
+        completedAllToday: false
+      };
+    } else {
+      const currentTotal = stats.tasksCompletedToday + checklistItems.length;
+      if (currentTotal > stats.totalTasksToday) {
+         stats.totalTasksToday = currentTotal;
+      }
+    }
+    
+    localStorage.setItem(storageKey, JSON.stringify(stats));
+    setProgressStats(stats);
+  }, [patientUser, checklistItems.length, tasksLoading]);
 
   const handleJoinGroup = async (sessionId) => {
     try {
@@ -408,9 +525,37 @@ export default function PatientDashboard() {
   };
 
   const toggleTaskCompletion = async (id) => {
+    const isMock = id >= 100 && id <= 103;
+    
+    const updateProgressOnComplete = () => {
+      if (!patientUser?.id) return;
+      const storageKey = `therapy_progress_${patientUser.id}`;
+      let stats = null;
+      try { stats = JSON.parse(localStorage.getItem(storageKey)); } catch(e){}
+      if (stats) {
+        stats.tasksCompletedToday += 1;
+        if (stats.tasksCompletedToday >= stats.totalTasksToday && stats.totalTasksToday > 0) {
+          if (!stats.completedAllToday) {
+            stats.weeklyFullCompletions += 1;
+            stats.completedAllToday = true;
+          }
+        }
+        localStorage.setItem(storageKey, JSON.stringify(stats));
+        setProgressStats(stats);
+      }
+    };
+
+    if (isMock) {
+      setChecklistItems(prev => prev.filter(item => item.id !== id));
+      updateProgressOnComplete();
+      return;
+    }
+    
     try {
       await completeTask(id);
       setChecklistItems(prev => prev.filter(item => item.id !== id));
+      updateProgressOnComplete();
+      
       // Refresh streak after completing a task
       try {
         const s = await getMyStreak();
@@ -419,6 +564,7 @@ export default function PatientDashboard() {
     } catch (err) {
       // Remove optimistically even on error
       setChecklistItems(prev => prev.filter(item => item.id !== id));
+      updateProgressOnComplete();
     }
   };
 
@@ -458,10 +604,8 @@ export default function PatientDashboard() {
   };
 
   const goVitalsNext = () => {
-    if (vitalsStep < TOTAL_VITALS_QUESTION_STEPS - 1) {
+    if (vitalsStep < TOTAL_VITALS_QUESTION_STEPS) {
       setVitalsStep(prev => prev + 1);
-    } else {
-      runAiMatchmaker();
     }
   };
 
@@ -470,36 +614,39 @@ export default function PatientDashboard() {
   };
 
   const runAiMatchmaker = async () => {
-    // Persist the completed questionnaire so a therapist can review a
-    // pre-session briefing later — non-blocking, doesn't affect this flow.
     saveVitals(vitalsData).catch(() => {});
 
-    let pool = MOCK_THERAPISTS;
     try {
-      const dbTherapists = await getTherapistDirectory();
-      if (Array.isArray(dbTherapists) && dbTherapists.length > 0) {
-        pool = dbTherapists;
+      const topMatches = await getAiMatchmaker(vitalsData);
+      if (Array.isArray(topMatches) && topMatches.length > 0) {
+        setAiMatches(topMatches);
+      } else {
+        throw new Error("No matches returned");
       }
     } catch (err) {
-      // Use fallback
+      console.error("Matchmaker API failed, using fallback:", err);
+      let pool = MOCK_THERAPISTS;
+      try {
+        const dbTherapists = await getTherapistDirectory();
+        if (Array.isArray(dbTherapists) && dbTherapists.length > 0) {
+          pool = dbTherapists;
+        }
+      } catch (e) {}
+
+      const scored = pool.map(t => {
+        const score = scoreTherapist(t, vitalsData, reviewSummaries);
+        const maxPossible = (vitalsData.concerns.length || 1) + 3;
+        const matchPct = Math.min(99, Math.max(70, Math.round((score / maxPossible) * 100)));
+        return { ...t, matchScore: score, matchPct };
+      });
+      scored.sort((a, b) => b.matchScore - a.matchScore);
+      setAiMatches(scored.slice(0, 3));
     }
-
-    const scored = pool.map(t => {
-      const score = scoreTherapist(t, vitalsData, reviewSummaries);
-      const maxPossible = (vitalsData.concerns.length || 1) + 3;
-      const matchPct = Math.min(99, Math.max(70, Math.round((score / maxPossible) * 100)));
-      return { ...t, matchScore: score, matchPct };
-    });
-
-    scored.sort((a, b) => b.matchScore - a.matchScore);
-    const top3 = scored.slice(0, 3);
-    setAiMatches(top3);
-    setVitalsStep(6);
+    setVitalsStep(7);
   };
 
   const handleFindWithAI = () => {
-    closeVitalsModal();
-    openVitalsModal();
+    runAiMatchmaker();
   };
 
   const handleSearchManually = () => {
@@ -645,13 +792,13 @@ export default function PatientDashboard() {
     }
     setBookingLoading(true);
     setBookingError('');
+    const bookingData = {
+      therapist_id: selectedTherapistForBooking.id,
+      appointment_date: bookingForm.date,
+      time_slot: bookingForm.timeSlot,
+      session_type: bookingForm.sessionType
+    };
     try {
-      const bookingData = {
-        therapist_id: selectedTherapistForBooking.id,
-        appointment_date: bookingForm.date,
-        time_slot: bookingForm.timeSlot,
-        session_type: bookingForm.sessionType
-      };
       const result = await bookAppointment(bookingData);
       setBookingSuccess('Appointment confirmed successfully!');
 
@@ -667,6 +814,7 @@ export default function PatientDashboard() {
       } catch (e) {
         const newAppt = {
           id: result.appointmentId || Date.now(),
+          therapist_id: selectedTherapistForBooking.id,
           therapist_name: selectedTherapistForBooking.name,
           therapist_specialties: Array.isArray(selectedTherapistForBooking.specialties) ? selectedTherapistForBooking.specialties.join(', ') : selectedTherapistForBooking.specialties,
           session_type: bookingForm.sessionType,
@@ -684,7 +832,8 @@ export default function PatientDashboard() {
         setBookingForm(prev => ({ ...prev, timeSlot: '' }));
       }, 1500);
     } catch (err) {
-      setBookingError(err.response?.data?.message || 'Failed to confirm booking.');
+      const keys = Object.keys(selectedTherapistForBooking || {}).join(',');
+      setBookingError(`Failed: ${err.response?.data?.message || 'Error'} (Payload: ${JSON.stringify(bookingData)}) (Therapist keys: ${keys})`);
     } finally {
       setBookingLoading(false);
     }
@@ -694,12 +843,16 @@ export default function PatientDashboard() {
     if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
     try {
       await cancelAppointment(appointmentId);
-      setAppointments(prev => prev.filter(appt => appt.id !== appointmentId));
+      const data = await getAppointments();
+      if (Array.isArray(data)) {
+        setAppointments(data);
+      } else {
+        setAppointments([]);
+      }
       setCancelNotification("Appointment canceled successfully.");
       setTimeout(() => setCancelNotification(null), 5000);
     } catch (err) {
-      setAppointments(prev => prev.filter(appt => appt.id !== appointmentId));
-      setCancelNotification("Appointment canceled successfully.");
+      setCancelNotification(err.response?.data?.message || "Could not cancel this appointment.");
       setTimeout(() => setCancelNotification(null), 5000);
     }
   };
@@ -794,15 +947,68 @@ export default function PatientDashboard() {
         </div>
         <div className="navbar-right">
           <NotificationBell />
-          <div className="user-profile-tile" onClick={openEditModal} style={{ cursor: 'pointer' }}>
-            <div className="avatar-circle-sm">
-              {patientUser.profile_photo_url ? (
-                <img src={getPhotoUrl(patientUser.profile_photo_url)} alt={patientUser.name} className="avatar-photo" />
-              ) : (
-                getInitials(patientUser.name)
-              )}
+          <div className="user-profile-tile-wrapper" ref={profileDropdownRef} style={{ position: 'relative' }}>
+            <div className="user-profile-tile" onClick={() => setShowProfileDropdown(!showProfileDropdown)} style={{ cursor: 'pointer' }}>
+              <div className="avatar-circle-sm">
+                {patientUser.profile_photo_url ? (
+                  <img src={getPhotoUrl(patientUser.profile_photo_url)} alt={patientUser.name} className="avatar-photo" />
+                ) : (
+                  getInitials(patientUser.name)
+                )}
+              </div>
+              <span className="profile-name-text">{patientUser.name}</span>
             </div>
-            <span className="profile-name-text">{patientUser.name}</span>
+            {showProfileDropdown && (
+              <div className="profile-dropdown-card dashboard-card" style={{
+                position: 'absolute',
+                top: 'calc(100% + 10px)',
+                right: 0,
+                width: '320px',
+                zIndex: 1000,
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+              }}>
+                <div className="profile-snapshot-tile" style={{ marginBottom: '16px' }}>
+                  <div className="avatar-circle-lg">
+                    {patientUser.profile_photo_url ? (
+                      <img src={getPhotoUrl(patientUser.profile_photo_url)} alt={patientUser.name} className="avatar-photo" />
+                    ) : (
+                      getInitials(patientUser.name)
+                    )}
+                  </div>
+                  <div className="profile-snapshot-meta">
+                    <h3 className="profile-snapshot-name" style={{ fontSize: '16px' }}>{patientUser.name}</h3>
+                    <p className="profile-snapshot-role" style={{ fontSize: '13px' }}>Registered Patient Account</p>
+                  </div>
+                </div>
+                <div className="profile-data-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                  <div className="profile-data-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span className="data-field-label" style={{ fontSize: '12px' }}><MapPin size={12} /> LOCATION:</span>
+                    <span className="data-field-value" style={{ fontSize: '13px', fontWeight: '500' }}>{displayOrPlaceholder(patientUser.location)}</span>
+                  </div>
+                  <div className="profile-data-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span className="data-field-label" style={{ fontSize: '12px' }}><Globe size={12} /> LANGUAGE:</span>
+                    <span className="data-field-value" style={{ fontSize: '13px', fontWeight: '500' }}>{displayOrPlaceholder(patientUser.language)}</span>
+                  </div>
+                  <div className="profile-data-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span className="data-field-label" style={{ fontSize: '12px' }}><Phone size={12} /> CONTACT:</span>
+                    <span className="data-field-value" style={{ fontSize: '13px', fontWeight: '500' }}>{displayOrPlaceholder(patientUser.contact)}</span>
+                  </div>
+                  <div className="profile-data-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span className="data-field-label" style={{ fontSize: '12px' }}><Video size={12} /> THERAPIST:</span>
+                    <span className="data-field-value color-link-blue" style={{ fontSize: '13px', fontWeight: '500' }}>{displayOrPlaceholder(patientUser.therapist, 'No therapist assigned yet')}</span>
+                  </div>
+                </div>
+                <button className="edit-profile-action-btn" onClick={() => {
+                  setShowProfileDropdown(false);
+                  openEditModal();
+                }} style={{ width: '100%', justifyContent: 'center' }}>
+                  <Settings size={16} /><span>Edit Profile Info</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -814,7 +1020,7 @@ export default function PatientDashboard() {
             <div className="menu-item active" onClick={() => navigate('/patient-dashboard')} style={{ cursor: 'pointer' }}>
               <Heart size={18} /><span>Recovery Hub</span>
             </div>
-            <div className="menu-item" onClick={() => openBookingModal({ id: 2, name: 'Dr. Sultan M. Farid', consultation_fee: 1500, session_type: 'both' })} style={{ cursor: 'pointer' }}>
+            <div className="menu-item" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
               <Calendar size={18} /><span>My Appointments</span>
             </div>
             <div className="menu-item" onClick={() => setShowAllTasksModal(true)} style={{ cursor: 'pointer' }}>
@@ -868,6 +1074,70 @@ export default function PatientDashboard() {
                 </div>
               </div>
             </section>
+
+            {/* Feature 12 extension: Follow-Up accept/decline prompt */}
+            {pendingFollowUp && (
+              <FollowUpPromptCard
+                pendingFollowUp={pendingFollowUp}
+                onResolved={(accepted) => {
+                  setFollowUpNotice(accepted ? 'Follow-up accepted — your therapist has been notified.' : 'Follow-up declined.');
+                  setPendingFollowUp(null);
+                  setTimeout(() => setFollowUpNotice(''), 5000);
+                }}
+              />
+            )}
+            {followUpNotice && (
+              <div className="followup-notice-banner">✓ {followUpNotice}</div>
+            )}
+
+            {/* Feature 7: Post-Session Review & Feedback Banner — Global Notification */}
+            {pendingReview ? (
+              <section className="dashboard-card span-12 feedback-alert-box" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="feedback-text-content">
+                  <h4 className="feedback-alert-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ShieldAlert size={18} className="inline-icon warning" />
+                    Pending Review: Past Session with {pendingReview.therapist_name}
+                  </h4>
+                  <p className="feedback-alert-subtitle" style={{ margin: 0, marginTop: '4px' }}>Please rate your experience from your last session to help our AI Matchmaker guide others.</p>
+                </div>
+                <div className="feedback-action-row" style={{ marginTop: 0 }}>
+                  <button
+                    className="rate-stars-btn"
+                    onClick={() => openReviewModal && openReviewModal({
+                      id: pendingReview.appointment_id,
+                      therapist_id: pendingReview.therapist_id,
+                      therapist_name: pendingReview.therapist_name,
+                      therapist_specialties: pendingReview.therapist_specialties
+                    })}
+                  >
+                    ★ Rate 1-5 Stars
+                  </button>
+                  <span
+                    className="feedback-tags-label"
+                    onClick={() => openReviewModal && openReviewModal({
+                      id: pendingReview.appointment_id,
+                      therapist_id: pendingReview.therapist_id,
+                      therapist_name: pendingReview.therapist_name,
+                      therapist_specialties: pendingReview.therapist_specialties
+                    })}
+                    style={{ cursor: 'pointer', marginLeft: '12px' }}
+                  >
+                    + Add Tags (#Communication, #Approach)
+                  </span>
+                </div>
+              </section>
+            ) : reviewSubmitted ? (
+              <section className="dashboard-card span-12 feedback-alert-box" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '16px 24px' }}>
+                <div className="feedback-text-content">
+                  <h4 className="feedback-alert-title" style={{ color: '#15803d', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                    <CheckCircle size={18} color="#16a34a" /> Review Submitted{reviewTherapist?.name ? ` for ${reviewTherapist.name}` : ''}
+                  </h4>
+                  <p className="feedback-alert-subtitle" style={{ color: '#166534', margin: 0, marginTop: '4px', fontSize: '13px' }}>
+                    Thank you! Your ratings and structured tags have updated our AI Matchmaker weighted signals.
+                  </p>
+                </div>
+              </section>
+            ) : null}
 
             {/* D. ACTIVE APPOINTMENT & VISUAL TRACKER CARD */}
             <ActiveAppointmentCard
@@ -974,7 +1244,6 @@ export default function PatientDashboard() {
                 <CarePlanPromptCard
                   pendingCarePlan={pendingCarePlan}
                   onAccepted={(newItems) => {
-                    // Map the accepted care plan items into the task list format
                     const formatted = newItems.map(item => ({
                       id: item.id,
                       text: item.title,
@@ -1004,44 +1273,11 @@ export default function PatientDashboard() {
               </div>
             </section>
 
-            {/* G. PERSONAL PROFILE & PREFERENCES */}
-            <section className="dashboard-card span-5 flex-column">
-              <h2 className="card-title margin-bottom-16">Personal Profile & Preferences</h2>
-              <div className="profile-snapshot-tile">
-                <div className="avatar-circle-lg">
-                  {patientUser.profile_photo_url ? (
-                    <img src={getPhotoUrl(patientUser.profile_photo_url)} alt={patientUser.name} className="avatar-photo" />
-                  ) : (
-                    getInitials(patientUser.name)
-                  )}
-                </div>
-                <div className="profile-snapshot-meta">
-                  <h3 className="profile-snapshot-name">{patientUser.name}</h3>
-                  <p className="profile-snapshot-role">Registered Patient Account</p>
-                </div>
-              </div>
-              <div className="profile-data-list">
-                <div className="profile-data-row">
-                  <span className="data-field-label"><MapPin size={14} /> LOCATION:</span>
-                  <span className="data-field-value">{displayOrPlaceholder(patientUser.location)}</span>
-                </div>
-                <div className="profile-data-row">
-                  <span className="data-field-label"><Globe size={14} /> LANGUAGE:</span>
-                  <span className="data-field-value">{displayOrPlaceholder(patientUser.language)}</span>
-                </div>
-                <div className="profile-data-row">
-                  <span className="data-field-label"><Phone size={14} /> CONTACT:</span>
-                  <span className="data-field-value">{displayOrPlaceholder(patientUser.contact)}</span>
-                </div>
-                <div className="profile-data-row">
-                  <span className="data-field-label"><Video size={14} /> THERAPIST:</span>
-                  <span className="data-field-value color-link-blue">{displayOrPlaceholder(patientUser.therapist, 'No therapist assigned yet')}</span>
-                </div>
-              </div>
-              <button className="edit-profile-action-btn" onClick={openEditModal}>
-                <Settings size={16} /><span>Edit Profile Info</span>
-              </button>
-            </section>
+            {/* THERAPY ROADMAP SIDEBAR */}
+            <TherapyRoadmapCard stats={progressStats} patientUser={patientUser} appointments={appointments} streak={streak} />
+
+            {/* G. MY PROGRESS & JOURNEY */}
+            <TherapyProgressCard stats={progressStats} patientUser={patientUser} appointments={appointments} streak={streak} />
           </div>
         </main>
       </div>

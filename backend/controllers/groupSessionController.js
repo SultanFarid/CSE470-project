@@ -208,6 +208,18 @@ const joinSession = async (req, res) => {
             'group_session_join'
         );
 
+        // Feature 19 (patient-side): confirm the join back to the patient too,
+        // not just alert the therapist — mirrors how a regular 1:1 booking
+        // notifies the therapist.
+        const formattedStart = session.scheduled_at
+            ? new Date(session.scheduled_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+            : null;
+        await NotificationModel.createNotification(
+            patientId,
+            `You're enrolled in the group session "${session.topic}"${formattedStart ? ` on ${formattedStart}` : ''}.`,
+            'group_session_join'
+        );
+
         res.status(201).json({ message: 'Join request sent successfully.' });
     } catch (err) {
         if (err.code === 'ER_DUP_ENTRY') {

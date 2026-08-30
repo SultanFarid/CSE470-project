@@ -2,6 +2,7 @@ const PrescriptionModel = require('../models/prescriptionModel');
 const SessionModel = require('../models/sessionModel');
 const NotificationModel = require('../models/notificationModel');
 const VitalsModel = require('../models/vitalsModel');
+const WalletModel = require('../models/walletModel');
 const { buildSummary } = require('../utils/briefingSummarizer');
 
 const VALID_ITEM_TYPES = ['medication', 'exercise'];
@@ -16,7 +17,7 @@ const VALID_ITEM_TYPES = ['medication', 'exercise'];
 const savePrescription = async (req, res) => {
     try {
         const therapistId = req.user?.id;
-        const { sessionId, sessionNotes, medications, additionalBriefing, carePlanItems, medicines, tests } = req.body;
+        const { sessionId, sessionNotes, medications, additionalBriefing, carePlanItems, medicines, tests, followUp } = req.body;
 
         if (!sessionId) {
             return res.status(400).json({ message: 'sessionId is required.' });
@@ -46,9 +47,13 @@ const savePrescription = async (req, res) => {
         const vitals = await VitalsModel.getLatestByPatient(session.patient_id);
         const presessionSummary = await buildSummary(vitals);
 
+        if (followUp?.recommended && !followUp?.date) {
+            return res.status(400).json({ message: 'Pick a follow-up date, or uncheck "Recommend a follow-up".' });
+        }
+
         const prescriptionId = await PrescriptionModel.upsertPrescription(
             sessionId, session.patient_id, therapistId,
-            { sessionNotes, medications, presessionSummary, additionalBriefing }
+            { sessionNotes, medications, presessionSummary, additionalBriefing, followUp }
         );
         await Promise.all([
             PrescriptionModel.replaceCarePlanItems(prescriptionId, session.patient_id, therapistId, items),
@@ -58,6 +63,15 @@ const savePrescription = async (req, res) => {
 
         // Writing a prescription is how a session finishes (Feature 12).
         await SessionModel.updateStatus(sessionId, therapistId, 'completed');
+
+        // Credit the therapist's wallet now that the session is actually
+        // done — this is deliberately separate from "estimated earnings"
+        // (which counts confirmed-but-not-yet-completed sessions instead).
+        // creditForCompletedSession is idempotent per session, so re-saving
+        // an already-completed session's prescription won't double-credit.
+        await WalletModel.creditForCompletedSession(
+            therapistId, sessionId, session.fee, `Session completed on ${new Date().toLocaleDateString()}`
+        );
 
         await NotificationModel.createNotification(
             session.patient_id,
@@ -157,6 +171,50 @@ const acceptCarePlan = async (req, res) => {
     }
 };
 
+// GET /api/prescriptions/patient/pending-follow-up
+const getPendingFollowUp = async (req, res) => {
+    try {
+        const patientId = req.user?.id;
+        const pending = await PrescriptionModel.getPendingFollowUp(patientId);
+        res.status(200).json(pending || null);
+    } catch (err) {
+        console.error('Get pending follow-up error:', err);
+        res.status(500).json({ message: 'Server error fetching pending follow-up.' });
+    }
+};
+
+// PUT /api/prescriptions/patient/:id/respond-follow-up
+// Body: { accept: boolean }
+const respondToFollowUp = async (req, res) => {
+    try {
+        const patientId = req.user?.id;
+        const prescriptionId = parseInt(req.params.id, 10);
+        const accept = !!req.body.accept;
+
+        const updated = await PrescriptionModel.respondToFollowUp(prescriptionId, patientId, accept);
+        if (!updated) {
+            return res.status(404).json({ message: 'No pending follow-up found to respond to.' });
+        }
+
+        // Feature request: acceptance must be acknowledged to the therapist.
+        if (accept) {
+            const dateStr = updated.follow_up_date
+                ? new Date(updated.follow_up_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                : 'the proposed date';
+            await NotificationModel.createNotification(
+                updated.therapist_id,
+                `Your patient accepted the follow-up session you proposed for ${dateStr}.`,
+                'follow_up_accepted'
+            );
+        }
+
+        res.status(200).json({ message: accept ? 'Follow-up accepted.' : 'Follow-up declined.' });
+    } catch (err) {
+        console.error('Respond to follow-up error:', err);
+        res.status(500).json({ message: 'Server error responding to follow-up.' });
+    }
+};
+
 module.exports = {
     savePrescription,
     getPrescriptionForSession,
@@ -165,4 +223,6 @@ module.exports = {
     getMyPrescriptionsList,
     getPendingCarePlan,
     acceptCarePlan,
+    getPendingFollowUp,
+    respondToFollowUp,
 };

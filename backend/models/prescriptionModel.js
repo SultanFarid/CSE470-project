@@ -2,20 +2,38 @@ const db = require('../config/db');
 
 // Insert or update the one prescription a session can have.
 const upsertPrescription = async (sessionId, patientId, therapistId, fields) => {
-    const { sessionNotes, medications, presessionSummary, additionalBriefing } = fields;
+    const { sessionNotes, medications, presessionSummary, additionalBriefing, followUp } = fields;
+
+    // followUp is optional: { recommended, date, notes }. If the therapist
+    // isn't recommending one, status stays 'none' and date/notes are cleared
+    // rather than left dangling from a previous save.
+    const followUpRecommended = followUp?.recommended ? 1 : 0;
+    const followUpDate = followUpRecommended ? (followUp.date || null) : null;
+    const followUpNotes = followUpRecommended ? (followUp.notes || '') : '';
+    const followUpStatus = followUpRecommended ? 'proposed' : 'none';
+
     await db.query(
         `INSERT INTO prescriptions
-            (session_id, patient_id, therapist_id, session_notes, medications, presession_summary, additional_briefing)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
+            (session_id, patient_id, therapist_id, session_notes, medications, presession_summary, additional_briefing,
+             follow_up_recommended, follow_up_date, follow_up_notes, follow_up_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
             session_notes = VALUES(session_notes),
             medications = VALUES(medications),
             presession_summary = VALUES(presession_summary),
-            additional_briefing = VALUES(additional_briefing)`,
+            additional_briefing = VALUES(additional_briefing),
+            follow_up_recommended = VALUES(follow_up_recommended),
+            follow_up_date = VALUES(follow_up_date),
+            follow_up_notes = VALUES(follow_up_notes),
+            -- Re-saving the form re-proposes it (and clears any prior
+            -- accept/decline) only if the therapist still has it checked on;
+            -- if they unchecked it, it goes back to 'none' via VALUES() above.
+            follow_up_status = VALUES(follow_up_status)`,
         [
             sessionId, patientId, therapistId,
             sessionNotes || '', medications || '',
-            presessionSummary || '', additionalBriefing || ''
+            presessionSummary || '', additionalBriefing || '',
+            followUpRecommended, followUpDate, followUpNotes, followUpStatus
         ]
     );
     // insertId is 0 on the UPDATE branch, so look the row back up either way.
@@ -208,7 +226,8 @@ const getPrescriptionsListForPatient = async (patientId) => {
         `SELECT
             s.id AS session_id, s.scheduled_date, s.status,
             doctor.display_name AS doctor_name,
-            p.id AS prescription_id, p.created_at AS prescription_created_at
+            p.id AS prescription_id, p.created_at AS prescription_created_at,
+            p.follow_up_recommended, p.follow_up_date, p.follow_up_status
          FROM sessions s
          JOIN users doctor ON doctor.id = s.therapist_id
          LEFT JOIN prescriptions p ON p.session_id = s.id
@@ -260,6 +279,41 @@ const acceptCarePlan = async (prescriptionId, patientId) => {
     );
 };
 
+// Newest prescription for this patient that has a follow-up proposed and
+// not yet responded to — used to show the accept/decline prompt card.
+const getPendingFollowUp = async (patientId) => {
+    const [rows] = await db.query(
+        `SELECT p.id AS prescription_id, p.follow_up_date, p.follow_up_notes,
+                s.id AS session_id, doctor.display_name AS doctor_name
+         FROM prescriptions p
+         JOIN sessions s ON s.id = p.session_id
+         JOIN users doctor ON doctor.id = p.therapist_id
+         WHERE p.patient_id = ? AND p.follow_up_status = 'proposed'
+         ORDER BY p.created_at DESC
+         LIMIT 1`,
+        [patientId]
+    );
+    return rows[0] || null;
+};
+
+// Patient accepts or declines the proposed follow-up. Returns the row
+// (including therapist_id) so the controller can notify the therapist.
+const respondToFollowUp = async (prescriptionId, patientId, accept) => {
+    const [result] = await db.query(
+        `UPDATE prescriptions
+         SET follow_up_status = ?, follow_up_responded_at = NOW()
+         WHERE id = ? AND patient_id = ? AND follow_up_status = 'proposed'`,
+        [accept ? 'accepted' : 'declined', prescriptionId, patientId]
+    );
+    if (result.affectedRows === 0) return null;
+
+    const [rows] = await db.query(
+        `SELECT therapist_id, follow_up_date FROM prescriptions WHERE id = ?`,
+        [prescriptionId]
+    );
+    return rows[0] || null;
+};
+
 module.exports = {
     upsertPrescription,
     replaceCarePlanItems,
@@ -271,4 +325,6 @@ module.exports = {
     getPrescriptionsListForPatient,
     getPendingCarePlan,
     acceptCarePlan,
+    getPendingFollowUp,
+    respondToFollowUp,
 };

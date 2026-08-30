@@ -28,6 +28,11 @@
 .pp-doctor-name { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0 0 2px; }
 .pp-session-date { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #64748b; margin: 0; }
 
+.pp-followup-tag { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; margin: 4px 0 0; padding: 3px 8px; border-radius: 999px; width: fit-content; }
+.pp-followup-proposed { background: #fef9c3; color: #854d0e; }
+.pp-followup-accepted { background: #ecfdf5; color: #047857; }
+.pp-followup-declined { background: #fee2e2; color: #991b1b; }
+
 .pp-btn-download {
     display: flex; align-items: center; gap: 6px; background: #0284c7; color: white; border: none;
     border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; flex-shrink: 0;

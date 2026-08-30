@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const authRoutes = require('./routes/authRoutes');
 const therapistRoutes = require('./routes/therapistRoutes');
@@ -49,6 +49,7 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/caseload', caseloadRoutes);
 app.use('/api/archive', archiveRoutes);
 app.use('/api/earnings', earningsRoutes);
+app.use('/api/wallet', require('./routes/walletRoutes'));
 app.use('/api/patient', therapistDirectoryRoutes);
 
 // Feature 11 (Pre-Session Briefings) + Prescription Builder upgrade (Feature 12)

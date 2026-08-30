@@ -16,4 +16,8 @@ router.get('/patient/session/:sessionId/pdf-data', verifyToken, isPatient, contr
 router.get('/patient/pending-care-plan', verifyToken, isPatient, controller.getPendingCarePlan);
 router.put('/patient/:id/accept-care-plan', verifyToken, isPatient, controller.acceptCarePlan);
 
+// --- Patient: Follow-up accept/decline prompt (Feature 12 extension) ---
+router.get('/patient/pending-follow-up', verifyToken, isPatient, controller.getPendingFollowUp);
+router.put('/patient/:id/respond-follow-up', verifyToken, isPatient, controller.respondToFollowUp);
+
 module.exports = router;
