@@ -85,7 +85,7 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
                     {m.status === 'completed' ? m.descComplete : m.status === 'in-progress' ? m.descProgress : m.descLocked}
                   </p>
                </div>
-               {idx < milestones.length - 1 && <div className="node-connector"></div>}
+               {idx < milestones.length - 1 && <div className="node-connector" style={{ background: milestones[idx + 1]?.status === "completed" ? "#10b981" : "#e2e8f0" }}></div>}
             </div>
          ))}
       </div>
