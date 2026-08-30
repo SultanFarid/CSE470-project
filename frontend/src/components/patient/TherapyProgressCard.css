@@ -221,3 +221,8 @@
   color: #3b82f6;
   font-weight: 500;
 }
+
+.roadmap-node.locked .node-status-text {
+  color: #94a3b8;
+}
+

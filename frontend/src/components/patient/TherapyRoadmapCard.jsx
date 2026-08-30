@@ -1,41 +1,71 @@
 import React from 'react';
 import { Activity, Target, Calendar, CheckCircle, TrendingUp, Star } from 'lucide-react';
-import './TherapyProgressCard.css'; // Reusing the same CSS for now
+import './TherapyProgressCard.css'; 
 
 export default function TherapyRoadmapCard({ stats, patientUser, appointments = [], streak = 0 }) {
-  // 1. Consistency & Mood
-  let actionPlanPct = 0;
-  if (stats && stats.totalTasksToday > 0) {
-    actionPlanPct = Math.round((stats.tasksCompletedToday / stats.totalTasksToday) * 100);
-  } else if (stats && stats.totalTasksToday === 0 && stats.tasksCompletedToday > 0) {
-    actionPlanPct = 100;
-  }
-
-  const consistencyStats = {
-    weeklyDays: stats?.weeklyFullCompletions || 0,
-    actionPlanPct: actionPlanPct,
-    tasksCompleted: stats?.tasksCompletedToday || 0,
-    totalTasks: stats?.totalTasksToday || 0,
-  };
-
-  // 2. Journey Milestones (Dynamic)
   const hasCompletedSession = appointments && appointments.some(app => new Date(app.date) < new Date());
-  const hasInitiatedPlan = (stats && stats.tasksCompletedToday > 0) || streak > 0 || consistencyStats.weeklyDays > 0;
+  const hasInitiatedPlan = (stats && stats.tasksCompletedToday > 0) || streak > 0 || (stats && stats.weeklyFullCompletions > 0);
   const has1MonthStreak = streak >= 30;
 
-  // Evaluate status sequentially to create a "roadmap" feel
-  let m1 = hasCompletedSession ? 'completed' : (patientUser?.therapist ? 'in-progress' : 'locked');
-  let m2 = hasInitiatedPlan ? 'completed' : (m1 === 'completed' ? 'in-progress' : 'locked');
-  let m3 = (m2 === 'completed' && streak >= 3) ? 'completed' : (m2 === 'completed' ? 'in-progress' : 'locked'); 
-  let m4 = (m3 === 'completed' && streak >= 14) ? 'completed' : (m3 === 'completed' ? 'in-progress' : 'locked'); 
-  let m5 = has1MonthStreak ? 'completed' : (m4 === 'completed' ? 'in-progress' : 'locked');
+  // Strict chronological progression
+  let m1Done = hasCompletedSession || hasInitiatedPlan; 
+  let m2Done = m1Done && hasInitiatedPlan;
+  let m3Done = m2Done && (streak >= 3);
+  let m4Done = m3Done && (streak >= 14);
+  let m5Done = m4Done && has1MonthStreak;
+
+  let m1 = m1Done ? 'completed' : 'in-progress';
+  let m2 = m2Done ? 'completed' : (m1Done ? 'in-progress' : 'locked');
+  let m3 = m3Done ? 'completed' : (m2Done ? 'in-progress' : 'locked');
+  let m4 = m4Done ? 'completed' : (m3Done ? 'in-progress' : 'locked');
+  let m5 = m5Done ? 'completed' : (m4Done ? 'in-progress' : 'locked');
 
   const milestones = [
-    { id: 1, title: 'First Session Completed', status: m1, icon: <Calendar size={16}/> },
-    { id: 2, title: 'Action Plan Initiated', status: m2, icon: <Target size={16}/> },
-    { id: 3, title: 'Identify Core Triggers', status: m3, icon: <Activity size={16}/> },
-    { id: 4, title: 'Build Coping Skills', status: m4, icon: <TrendingUp size={16}/> },
-    { id: 5, title: '1-Month Consistency Streak', status: m5, icon: <Star size={16}/> },
+    { 
+      id: 1, 
+      title: 'First Session', 
+      descComplete: 'You completed your first session!', 
+      descProgress: 'Book and attend your first session.', 
+      descLocked: 'Book your first session.',
+      status: m1, 
+      icon: <Calendar size={16}/> 
+    },
+    { 
+      id: 2, 
+      title: 'Action Plan Initiated', 
+      descComplete: 'You started working on your goals.', 
+      descProgress: 'Complete your first assigned task.', 
+      descLocked: 'Unlock by completing your first session.',
+      status: m2, 
+      icon: <Target size={16}/> 
+    },
+    { 
+      id: 3, 
+      title: 'Identify Core Triggers', 
+      descComplete: 'You maintained a 3-day streak!', 
+      descProgress: 'Keep a 3-day consistency streak to unlock.', 
+      descLocked: 'Unlock by initiating your action plan.',
+      status: m3, 
+      icon: <Activity size={16}/> 
+    },
+    { 
+      id: 4, 
+      title: 'Build Coping Skills', 
+      descComplete: 'You maintained a 14-day streak!', 
+      descProgress: 'Keep a 14-day consistency streak to unlock.', 
+      descLocked: 'Unlock by reaching a 3-day streak.',
+      status: m4, 
+      icon: <TrendingUp size={16}/> 
+    },
+    { 
+      id: 5, 
+      title: '1-Month Consistency', 
+      descComplete: 'Amazing! 30 days of consistency.', 
+      descProgress: 'Keep a 30-day streak to achieve this.', 
+      descLocked: 'Unlock by reaching a 14-day streak.',
+      status: m5, 
+      icon: <Star size={16}/> 
+    },
   ];
 
   return (
@@ -52,7 +82,7 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
                <div className="node-content">
                   <h4 className="node-title">{m.title}</h4>
                   <p className="node-status-text">
-                    {m.status === 'completed' ? 'Completed' : m.status === 'in-progress' ? 'Current Focus' : 'Upcoming'}
+                    {m.status === 'completed' ? m.descComplete : m.status === 'in-progress' ? m.descProgress : m.descLocked}
                   </p>
                </div>
                {idx < milestones.length - 1 && <div className="node-connector"></div>}
