@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bell, Calendar, CheckCircle, Clock, Play, User, Star, Search, 
@@ -68,11 +68,11 @@ const LANGUAGE_PREF_OPTIONS = ["No preference", "English", "Bengali"];
 const FORMAT_PREF_OPTIONS = ["Either", "Online Video", "In-Person"];
 
 const MOCK_THERAPISTS = [
-  { id: 1, name: "Dr. Ayesha Rahman", specialties: ["Anxiety", "Depression", "Sleep Problems"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "10+ years helping clients manage anxiety and mood disorders." },
-  { id: 2, name: "Dr. Sultan M. Farid", specialties: ["Stress & Burnout", "Relationship Issues", "Self-Esteem"], languages: ["English"], gender: "Male", formats: ["Online Video"], rating: 4.9, bio: "CBT-focused practice for stress and relationship dynamics." },
-  { id: 3, name: "Dr. Farzana Islam", specialties: ["Trauma / PTSD", "Grief & Loss"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.7, bio: "Trauma-informed, patient-centered care." },
-  { id: 4, name: "Dr. Tanvir Ahmed", specialties: ["Substance Use", "Anxiety", "Depression"], languages: ["English"], gender: "Male", formats: ["In-Person"], rating: 4.6, bio: "Recovery-oriented and dual-diagnosis treatment." },
-  { id: 5, name: "Dr. Nusrat Jahan", specialties: ["Self-Esteem", "Relationship Issues", "Stress & Burnout"], languages: ["Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "Warm, collaborative, humanistic therapy style." }
+  { id: 1, name: "Dr. Ayesha Rahman", specialties: ["Anxiety", "Depression", "Sleep Problems"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], session_type: "both", consultation_fee: 1500, rating: 4.8, bio: "10+ years helping clients manage anxiety and mood disorders." },
+  { id: 2, name: "Dr. Sultan M. Farid", specialties: ["Stress & Burnout", "Relationship Issues", "Self-Esteem"], languages: ["English"], gender: "Male", formats: ["Online Video"], session_type: "online", consultation_fee: 1500, rating: 4.9, bio: "CBT-focused practice for stress and relationship dynamics." },
+  { id: 3, name: "Dr. Farzana Islam", specialties: ["Trauma / PTSD", "Grief & Loss"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], session_type: "both", consultation_fee: 1500, rating: 4.7, bio: "Trauma-informed, patient-centered care." },
+  { id: 4, name: "Dr. Tanvir Ahmed", specialties: ["Substance Use", "Anxiety", "Depression"], languages: ["English"], gender: "Male", formats: ["In-Person"], session_type: "in-person", consultation_fee: 1500, rating: 4.6, bio: "Recovery-oriented and dual-diagnosis treatment." },
+  { id: 5, name: "Dr. Nusrat Jahan", specialties: ["Self-Esteem", "Relationship Issues", "Stress & Burnout"], languages: ["Bengali", "English"], gender: "Female", formats: ["Online Video", "In-Person"], session_type: "both", consultation_fee: 1500, rating: 4.8, bio: "Warm, collaborative, humanistic therapy style." }
 ];
 
 const scoreTherapist = (therapist, vitals, summaries = {}) => {
@@ -167,8 +167,17 @@ export default function PatientDashboard() {
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState(null);
+  const getLocalDateString = (daysOffset = 0) => {
+    const d = new Date();
+    if (daysOffset) d.setDate(d.getDate() + daysOffset);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
   const [bookingForm, setBookingForm] = useState({
-    date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+    date: getLocalDateString(1),
     timeSlot: '',
     sessionType: 'online'
   });
@@ -177,6 +186,7 @@ export default function PatientDashboard() {
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedDayAvailability, setSelectedDayAvailability] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [cancelNotification, setCancelNotification] = useState(null);
 
@@ -507,45 +517,87 @@ export default function PatientDashboard() {
     setDirectoryError('');
     try {
       const data = await getTherapistDirectory();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setDirectoryTherapists(data);
       } else {
-        setDirectoryTherapists(MOCK_THERAPISTS);
+        setDirectoryTherapists([]);
       }
     } catch (err) {
-      setDirectoryTherapists(MOCK_THERAPISTS);
+      console.error('Failed to load therapist directory:', err);
+      setDirectoryError(err.response?.data?.message || 'Unable to load therapists. Please check your connection.');
+      setDirectoryTherapists([]);
     } finally {
       setDirectoryLoading(false);
     }
   };
 
+  const handleClearDirectoryFilters = () => {
+    setDirectorySearch('');
+    setDirectorySpecialtyFilter('All');
+    setDirectoryFormatFilter('All');
+  };
+
+  const handleRetryDirectory = () => {
+    openDirectoryModal();
+  };
+
   const closeDirectoryModal = () => setShowDirectoryModal(false);
 
-  const directorySpecialtyOptions = ['All', ...CONCERN_OPTIONS];
-  const directoryLanguageOptions = ['All', 'English', 'Bengali'];
-  const directoryFormatOptions = ['All', 'Online Video', 'In-Person'];
+  const directorySpecialtyOptions = useMemo(() => {
+    const specs = new Set();
+    (directoryTherapists || []).forEach(t => {
+      (t.specialties || []).forEach(s => {
+        if (s && s.trim()) specs.add(s.trim());
+      });
+    });
+    return ['All', ...Array.from(specs).sort((a, b) => a.localeCompare(b))];
+  }, [directoryTherapists]);
+
+  const directoryFormatOptions = ['All', 'Online Video', 'In-Person', 'Online & In-Person'];
 
   const filteredDirectoryTherapists = directoryTherapists.filter(t => {
-    const nameMatch = !directorySearch || t.name.toLowerCase().includes(directorySearch.toLowerCase()) || (t.bio && t.bio.toLowerCase().includes(directorySearch.toLowerCase()));
-    const specMatch = directorySpecialtyFilter === 'All' || (t.specialties && t.specialties.includes(directorySpecialtyFilter));
-    const langMatch = directoryLanguageFilter === 'All' || (t.languages && t.languages.includes(directoryLanguageFilter));
-    const formatMatch = directoryFormatFilter === 'All' || (t.formats && t.formats.includes(directoryFormatFilter));
+    const q = directorySearch ? directorySearch.trim().toLowerCase() : '';
+    const nameMatch = !q ||
+      (t.name && t.name.toLowerCase().includes(q)) ||
+      (t.bio && t.bio.toLowerCase().includes(q)) ||
+      (t.biography && t.biography.toLowerCase().includes(q)) ||
+      (Array.isArray(t.specialties) && t.specialties.some(s => s.toLowerCase().includes(q))) ||
+      (Array.isArray(t.languages) && t.languages.some(l => l.toLowerCase().includes(q)));
+
+    const specFilter = directorySpecialtyFilter ? directorySpecialtyFilter.trim().toLowerCase() : 'all';
+    const specMatch = specFilter === 'all' || (
+      Array.isArray(t.specialties) && t.specialties.some(s => s.trim().toLowerCase() === specFilter || s.trim().toLowerCase().includes(specFilter))
+    );
+
+    // Internal language requirement: only display therapists who speak English
+    const langMatch = Array.isArray(t.languages) && t.languages.some(l => l.trim().toLowerCase() === 'english');
+
+    let formatMatch = true;
+    if (directoryFormatFilter === 'Online Video') {
+      formatMatch = t.session_type === 'online' || t.session_type === 'both' || (t.formats && t.formats.includes('Online Video'));
+    } else if (directoryFormatFilter === 'In-Person') {
+      formatMatch = t.session_type === 'in-person' || t.session_type === 'both' || (t.formats && t.formats.includes('In-Person'));
+    } else if (directoryFormatFilter === 'Online & In-Person') {
+      formatMatch = t.session_type === 'both' || (t.formats && t.formats.includes('Online Video') && t.formats.includes('In-Person'));
+    }
+
     return nameMatch && specMatch && langMatch && formatMatch;
   });
 
   const openBookingModal = async (therapist) => {
     setSelectedTherapistForBooking(therapist);
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const initialDate = getLocalDateString(1);
+    const initialFormat = therapist.session_type === 'in-person' ? 'in-person' : 'online';
     setBookingForm({
-      date: tomorrow,
+      date: initialDate,
       timeSlot: '',
-      sessionType: 'online'
+      sessionType: initialFormat
     });
     setBookingError('');
     setBookingSuccess('');
     setShowBookingModal(true);
-    fetchBookedSlots(therapist.id, tomorrow);
-    fetchAvailableSlots(therapist.id, tomorrow);
+    fetchBookedSlots(therapist.id, initialDate);
+    fetchAvailableSlots(therapist.id, initialDate);
   };
 
   const fetchBookedSlots = async (therapistId, date) => {
@@ -559,17 +611,17 @@ export default function PatientDashboard() {
 
   // Pulls the therapist's weekly availability matrix (+ any date exception)
   // for the chosen day and turns it into the list of bookable time slots.
-  // This is what makes the Schedule Manager actually gate patient booking:
-  // if the therapist unchecked a box (or blocked the date), it won't appear here.
   const fetchAvailableSlots = async (therapistId, date) => {
     setSlotsLoading(true);
     try {
       const data = await getEffectiveAvailability(therapistId, date);
       const dayData = (data.days || []).find(d => d.date === date);
-      const slots = (dayData?.slots || []).map(s => formatSlotLabel(s.start_time, s.end_time));
+      setSelectedDayAvailability(dayData || null);
+      const slots = (dayData?.slots || []).map(s => s.label || formatSlotLabel(s.start_time, s.end_time));
       setAvailableSlots(slots);
     } catch (err) {
       console.error('Failed to load therapist availability', err);
+      setSelectedDayAvailability(null);
       setAvailableSlots([]);
     } finally {
       setSlotsLoading(false);
@@ -603,22 +655,33 @@ export default function PatientDashboard() {
       const result = await bookAppointment(bookingData);
       setBookingSuccess('Appointment confirmed successfully!');
 
-      const newAppt = {
-        id: result.appointmentId || Date.now(),
-        therapist_name: selectedTherapistForBooking.name,
-        therapist_specialties: Array.isArray(selectedTherapistForBooking.specialties) ? selectedTherapistForBooking.specialties.join(', ') : selectedTherapistForBooking.specialties,
-        session_type: bookingForm.sessionType,
-        appointment_date: bookingForm.date,
-        time_slot: bookingForm.timeSlot,
-        status: 'confirmed',
-        profile_photo_url: selectedTherapistForBooking.profile_photo_url || ''
-      };
+      // Immediately mark slot as booked in modal
+      setBookedSlots(prev => [...prev, bookingForm.timeSlot]);
 
-      setAppointments(prev => [newAppt, ...prev]);
+      // Re-fetch appointments from backend
+      try {
+        const updatedAppointments = await getAppointments();
+        if (Array.isArray(updatedAppointments)) {
+          setAppointments(updatedAppointments);
+        }
+      } catch (e) {
+        const newAppt = {
+          id: result.appointmentId || Date.now(),
+          therapist_name: selectedTherapistForBooking.name,
+          therapist_specialties: Array.isArray(selectedTherapistForBooking.specialties) ? selectedTherapistForBooking.specialties.join(', ') : selectedTherapistForBooking.specialties,
+          session_type: bookingForm.sessionType,
+          appointment_date: bookingForm.date,
+          time_slot: bookingForm.timeSlot,
+          status: 'confirmed',
+          profile_photo_url: selectedTherapistForBooking.profile_photo_url || ''
+        };
+        setAppointments(prev => [newAppt, ...prev]);
+      }
 
       setTimeout(() => {
         setShowBookingModal(false);
         setBookingSuccess('');
+        setBookingForm(prev => ({ ...prev, timeSlot: '' }));
       }, 1500);
     } catch (err) {
       setBookingError(err.response?.data?.message || 'Failed to confirm booking.');
@@ -1031,15 +1094,15 @@ export default function PatientDashboard() {
         directorySpecialtyFilter={directorySpecialtyFilter}
         setDirectorySpecialtyFilter={setDirectorySpecialtyFilter}
         directorySpecialtyOptions={directorySpecialtyOptions}
-        directoryLanguageFilter={directoryLanguageFilter}
-        setDirectoryLanguageFilter={setDirectoryLanguageFilter}
-        directoryLanguageOptions={directoryLanguageOptions}
         directoryFormatFilter={directoryFormatFilter}
         setDirectoryFormatFilter={setDirectoryFormatFilter}
         directoryFormatOptions={directoryFormatOptions}
         directoryLoading={directoryLoading}
         directoryError={directoryError}
+        handleClearFilters={handleClearDirectoryFilters}
+        handleRetryDirectory={handleRetryDirectory}
         filteredDirectoryTherapists={filteredDirectoryTherapists}
+        totalTherapistsCount={directoryTherapists.length}
         getPhotoUrl={getPhotoUrl}
         getInitials={getInitials}
         openBookingModal={openBookingModal}
@@ -1058,6 +1121,7 @@ export default function PatientDashboard() {
         bookingSuccess={bookingSuccess}
         bookedSlots={bookedSlots}
         TIME_SLOT_OPTIONS={availableSlots}
+        selectedDayAvailability={selectedDayAvailability}
         slotsLoading={slotsLoading}
         getPhotoUrl={getPhotoUrl}
         getInitials={getInitials}
