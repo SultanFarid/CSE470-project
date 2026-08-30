@@ -53,6 +53,7 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/caseload', caseloadRoutes);
 app.use('/api/archive', archiveRoutes);
 app.use('/api/earnings', earningsRoutes);
+app.use('/api/wallet', require('./routes/walletRoutes'));
 app.use('/api/patient', therapistDirectoryRoutes);
 
 // Feature 11 (Pre-Session Briefings) + Prescription Builder upgrade (Feature 12)

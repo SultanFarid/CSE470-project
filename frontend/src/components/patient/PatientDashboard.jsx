@@ -12,7 +12,8 @@ import {
   getAppointments, bookAppointment, cancelAppointment, getTherapistSlots, getEffectiveAvailability, getAiMatchmaker,
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
   patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments,
-  saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan
+  saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan,
+  getPendingFollowUp
 } from '../../services/api';
 
 import ActiveAppointmentCard from './ActiveAppointmentCard';
@@ -24,6 +25,7 @@ import TasksModal from './TasksModal';
 import ReviewFeedbackModal from './ReviewFeedbackModal';
 import NotificationBell from '../shared/NotificationBell';
 import CarePlanPromptCard from './CarePlanPromptCard';
+import FollowUpPromptCard from './FollowUpPromptCard';
 import TherapyProgressCard from './TherapyProgressCard';
 import TherapyRoadmapCard from './TherapyRoadmapCard';
 
@@ -119,6 +121,8 @@ export default function PatientDashboard() {
   // Feature 6a: Care plan opt-in prompt
   const [pendingCarePlan, setPendingCarePlan] = useState(null);
   const [carePlanDismissed, setCarePlanDismissed] = useState(false);
+  const [pendingFollowUp, setPendingFollowUp] = useState(null);
+  const [followUpNotice, setFollowUpNotice] = useState('');
 
   // Group Sessions State
   const [groupSessions, setGroupSessions] = useState([]);
@@ -255,8 +259,7 @@ export default function PatientDashboard() {
           });
         }
 
-        // Feature 7: check for a real completed-but-unreviewed session (no
-        // fake "Dr. Ayesha" banner — only show this when one actually exists)
+        // Feature 7: check for a real completed-but-unreviewed session
         try {
           const pendingRes = await getPendingReview();
           setPendingReview(pendingRes && pendingRes.hasPending ? pendingRes.review : null);
@@ -278,6 +281,14 @@ export default function PatientDashboard() {
           setPendingCarePlan(cp || null);
         } catch {
           setPendingCarePlan(null);
+        }
+
+        // Feature 12 extension: Check if there is a pending follow-up to respond to
+        try {
+          const fu = await getPendingFollowUp();
+          setPendingFollowUp(fu || null);
+        } catch {
+          setPendingFollowUp(null);
         }
 
         // Fetch Open Group Sessions
@@ -593,8 +604,6 @@ export default function PatientDashboard() {
   };
 
   const runAiMatchmaker = async () => {
-    // Persist the completed questionnaire so a therapist can review a
-    // pre-session briefing later — non-blocking, doesn't affect this flow.
     saveVitals(vitalsData).catch(() => {});
 
     try {
@@ -605,11 +614,7 @@ export default function PatientDashboard() {
         throw new Error("No matches returned");
       }
     } catch (err) {
-      const failedUrl = err.config ? err.config.url : "unknown URL";
-      const fullUrl = err.config ? err.config.baseURL + err.config.url : "unknown";
-      alert("Matchmaker API failed: " + err.message + "\nURL attempted: " + fullUrl);
       console.error("Matchmaker API failed, using fallback:", err);
-      // Fallback
       let pool = MOCK_THERAPISTS;
       try {
         const dbTherapists = await getTherapistDirectory();
@@ -699,10 +704,6 @@ export default function PatientDashboard() {
     }
   };
 
-  // Pulls the therapist's weekly availability matrix (+ any date exception)
-  // for the chosen day and turns it into the list of bookable time slots.
-  // This is what makes the Schedule Manager actually gate patient booking:
-  // if the therapist unchecked a box (or blocked the date), it won't appear here.
   const fetchAvailableSlots = async (therapistId, date) => {
     setSlotsLoading(true);
     try {
@@ -784,8 +785,8 @@ export default function PatientDashboard() {
       setCancelNotification("Appointment canceled successfully.");
       setTimeout(() => setCancelNotification(null), 5000);
     } catch (err) {
-      console.error('Cancellation failed:', err);
-      alert('Failed to cancel appointment. Please try again.');
+      setCancelNotification(err.response?.data?.message || "Could not cancel this appointment.");
+      setTimeout(() => setCancelNotification(null), 5000);
     }
   };
 
@@ -1007,6 +1008,21 @@ export default function PatientDashboard() {
               </div>
             </section>
 
+            {/* Feature 12 extension: Follow-Up accept/decline prompt */}
+            {pendingFollowUp && (
+              <FollowUpPromptCard
+                pendingFollowUp={pendingFollowUp}
+                onResolved={(accepted) => {
+                  setFollowUpNotice(accepted ? 'Follow-up accepted — your therapist has been notified.' : 'Follow-up declined.');
+                  setPendingFollowUp(null);
+                  setTimeout(() => setFollowUpNotice(''), 5000);
+                }}
+              />
+            )}
+            {followUpNotice && (
+              <div className="followup-notice-banner">✓ {followUpNotice}</div>
+            )}
+
             {/* Feature 7: Post-Session Review & Feedback Banner — Global Notification */}
             {pendingReview ? (
               <section className="dashboard-card span-12 feedback-alert-box" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1161,7 +1177,6 @@ export default function PatientDashboard() {
                 <CarePlanPromptCard
                   pendingCarePlan={pendingCarePlan}
                   onAccepted={(newItems) => {
-                    // Map the accepted care plan items into the task list format
                     const formatted = newItems.map(item => ({
                       id: item.id,
                       text: item.title,

@@ -14,11 +14,36 @@ const db = require('../config/db');
 
 const AppointmentModel = {
     create: async (patientId, therapistId, appointmentDate, timeSlot, sessionType) => {
+        // Prevent double-booking: check if another active session already occupies this slot
+        const [existing] = await db.query(
+            `SELECT id FROM sessions 
+             WHERE therapist_id = ? AND scheduled_date = ? AND time_slot = ? AND status != 'cancelled'`,
+            [therapistId, appointmentDate, timeSlot]
+        );
+        if (existing.length > 0) {
+            const err = new Error('This time slot is already booked. Please choose another time slot.');
+            err.statusCode = 409;
+            throw err;
+        }
+
+        // Snapshot the therapist's current listed fee onto the session at
+        // booking time. Without this `sessions.fee` stays NULL forever (it's
+        // never set anywhere else), which silently zeroes out Earnings /
+        // the wallet for every real, patient-booked session. Snapshotting
+        // (rather than joining therapist_profiles live everywhere) also
+        // means a later fee change by the therapist doesn't retroactively
+        // change what a past session was billed at.
+        const [[profile]] = await db.query(
+            `SELECT consultation_fee FROM therapist_profiles WHERE user_id = ?`,
+            [therapistId]
+        );
+        const fee = profile?.consultation_fee ?? null;
+
         const query = `
-            INSERT INTO sessions (patient_id, therapist_id, scheduled_date, time_slot, session_type, status)
-            VALUES (?, ?, ?, ?, ?, 'pending')
+            INSERT INTO sessions (patient_id, therapist_id, scheduled_date, time_slot, session_type, status, fee)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?)
         `;
-        const [result] = await db.query(query, [patientId, therapistId, appointmentDate, timeSlot, sessionType || 'online']);
+        const [result] = await db.query(query, [patientId, therapistId, appointmentDate, timeSlot, sessionType || 'online', fee]);
         return result;
     },
 
@@ -48,16 +73,20 @@ const AppointmentModel = {
     },
 
     cancel: async (appointmentId, patientId) => {
-        const query = `
+        // Only pending or confirmed appointments can be cancelled (completed sessions cannot be cancelled)
+        let query = `
             UPDATE sessions
             SET status = 'cancelled'
-            WHERE id = ?
+            WHERE id = ? AND status IN ('pending', 'confirmed')
         `;
-        // Removed patient_id check temporarily to see if it fixes the bug
-        const [result] = await db.query(query, [appointmentId]);
-        if (result.affectedRows === 0) {
-            throw new Error(`Appointment ${appointmentId} not found or already cancelled.`);
+        const params = [appointmentId];
+
+        if (patientId) {
+            query += ` AND patient_id = ?`;
+            params.push(patientId);
         }
+
+        const [result] = await db.query(query, params);
         return result;
     },
 

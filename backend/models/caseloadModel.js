@@ -28,7 +28,7 @@ const getMyCaseload = async (therapistId) => {
                 LIMIT 1) AS last_session_id
         FROM sessions s
         JOIN users u ON u.id = s.patient_id
-        WHERE s.therapist_id = ?
+        WHERE s.therapist_id = ? AND s.status != 'cancelled'
         GROUP BY u.id, u.display_name, u.email
         ORDER BY last_session_date DESC`,
         [therapistId, therapistId, therapistId, therapistId, therapistId]
