@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
     FileText, Trash2, Pill, Dumbbell, FlaskConical,
-    CheckCircle2, AlertCircle, Film, Search, Download, Sparkles
+    CheckCircle2, AlertCircle, Film, Search, Download, Sparkles, CalendarClock
 } from 'lucide-react';
 import {
     getMyTherapistSessions, getPrescriptionForSession, savePrescription,
@@ -56,6 +56,10 @@ const PrescriptionStudio = () => {
     const [items, setItems] = useState([]);
     const [medicines, setMedicines] = useState([]);
     const [tests, setTests] = useState([]);
+    const [followUpRecommended, setFollowUpRecommended] = useState(false);
+    const [followUpDate, setFollowUpDate] = useState('');
+    const [followUpNotes, setFollowUpNotes] = useState('');
+    const [followUpStatus, setFollowUpStatus] = useState('none'); // read-only reflection of the patient's response
 
     const [briefing, setBriefing] = useState(null);
     const [loadingBriefing, setLoadingBriefing] = useState(false);
@@ -119,6 +123,10 @@ const PrescriptionStudio = () => {
         setItems([]);
         setMedicines([]);
         setTests([]);
+        setFollowUpRecommended(false);
+        setFollowUpDate('');
+        setFollowUpNotes('');
+        setFollowUpStatus('none');
         setJustSaved(false);
     };
 
@@ -164,6 +172,12 @@ const PrescriptionStudio = () => {
                         notes: t.notes || ''
                     }))
                 );
+                setFollowUpRecommended(!!existing.follow_up_recommended);
+                // MySQL DATE columns come back as an ISO datetime string —
+                // <input type="date"> needs just the yyyy-mm-dd portion.
+                setFollowUpDate(existing.follow_up_date ? String(existing.follow_up_date).slice(0, 10) : '');
+                setFollowUpNotes(existing.follow_up_notes || '');
+                setFollowUpStatus(existing.follow_up_status || 'none');
             }
         } catch (err) {
             console.error('Failed to load existing prescription', err);
@@ -272,6 +286,11 @@ const PrescriptionStudio = () => {
             .filter((t) => t.test_name && t.test_name.trim())
             .map((t) => ({ test_id: t.test_id, test_name: t.test_name.trim(), notes: (t.notes || '').trim() }));
 
+        if (followUpRecommended && !followUpDate) {
+            setMessage({ text: 'Pick a follow-up date, or uncheck "Recommend a follow-up".', type: 'error' });
+            return;
+        }
+
         setSaving(true);
         setMessage({ text: '', type: '' });
         try {
@@ -282,7 +301,8 @@ const PrescriptionStudio = () => {
                 additionalBriefing,
                 carePlanItems: cleanItems.map(({ item_type, title, youtube_url }) => ({ item_type, title, youtube_url })),
                 medicines: cleanMedicines,
-                tests: cleanTests
+                tests: cleanTests,
+                followUp: { recommended: followUpRecommended, date: followUpDate || null, notes: followUpNotes.trim() }
             });
             setMessage({ text: 'Saved — session marked complete and the patient has been notified.', type: 'success' });
             setJustSaved(true);
@@ -592,6 +612,56 @@ const PrescriptionStudio = () => {
                                         </div>
                                     ))}
                                 </div>
+                            )}
+                        </div>
+
+                        <div className="ps-items-section">
+                            <div className="ps-items-header">
+                                <label>
+                                    <CalendarClock size={13} style={{ verticalAlign: '-2px', marginRight: '4px' }} />
+                                    Follow-Up Session
+                                </label>
+                                <label className="ps-followup-toggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={followUpRecommended}
+                                        onChange={(e) => setFollowUpRecommended(e.target.checked)}
+                                    />
+                                    Recommend a follow-up
+                                </label>
+                            </div>
+
+                            {followUpRecommended ? (
+                                <div className="ps-followup-fields">
+                                    <div className="ps-followup-row">
+                                        <label htmlFor="ps-followup-date">Suggested date</label>
+                                        <input
+                                            id="ps-followup-date"
+                                            type="date"
+                                            value={followUpDate}
+                                            min={new Date().toISOString().slice(0, 10)}
+                                            onChange={(e) => setFollowUpDate(e.target.value)}
+                                        />
+                                    </div>
+                                    <textarea
+                                        className="ps-followup-notes"
+                                        placeholder="Why you're recommending a follow-up (shown to the patient)..."
+                                        rows={2}
+                                        value={followUpNotes}
+                                        onChange={(e) => setFollowUpNotes(e.target.value)}
+                                    />
+                                    {followUpStatus !== 'none' && (
+                                        <p className={`ps-followup-status ps-followup-status-${followUpStatus}`}>
+                                            {followUpStatus === 'proposed' && 'Waiting on the patient to respond.'}
+                                            {followUpStatus === 'accepted' && <><CheckCircle2 size={13} /> Patient accepted this follow-up.</>}
+                                            {followUpStatus === 'declined' && 'Patient declined this follow-up.'}
+                                        </p>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="ps-state-msg ps-items-empty">
+                                    Not recommending a follow-up for this session.
+                                </p>
                             )}
                         </div>
 

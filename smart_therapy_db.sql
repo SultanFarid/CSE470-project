@@ -524,7 +524,12 @@ CREATE TABLE `prescriptions` (
   `additional_briefing` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `care_plan_accepted` tinyint(1) NOT NULL DEFAULT 0
+  `care_plan_accepted` tinyint(1) NOT NULL DEFAULT 0,
+  `follow_up_recommended` tinyint(1) NOT NULL DEFAULT 0,
+  `follow_up_date` date DEFAULT NULL,
+  `follow_up_notes` text DEFAULT NULL,
+  `follow_up_status` enum('none','proposed','accepted','declined') NOT NULL DEFAULT 'none',
+  `follow_up_responded_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1070,6 +1075,47 @@ INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, 
 (27, 'Mahin Chowdhury', 'Mahin Chowdhury', 'mahin@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-01 00:40:43'),
 (28, 'Jannatul Ferdous', 'Jannatul Ferdous', 'jannat@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-16 00:40:43'),
 (29, '', 'Patient Teset', 'patient100@test.com', 'patient123', 'patient', 'active', '2026-08-26 07:59:41', NULL, NULL, NULL, NULL, NULL, '2026-08-26 06:57:51');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `wallet_transactions`
+--
+
+CREATE TABLE IF NOT EXISTS `wallet_transactions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `therapist_id` int(11) NOT NULL,
+  `type` enum('credit','debit') NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `related_session_id` int(11) DEFAULT NULL,
+  `related_withdrawal_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_wallet_tx_therapist` (`therapist_id`),
+  KEY `idx_wallet_tx_session` (`related_session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `wallet_withdrawals`
+--
+
+CREATE TABLE IF NOT EXISTS `wallet_withdrawals` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `therapist_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `account_holder_name` varchar(150) NOT NULL,
+  `bank_name` varchar(150) NOT NULL,
+  `account_number` varchar(50) NOT NULL,
+  `branch_name` varchar(150) DEFAULT NULL,
+  `status` enum('pending','completed','rejected') NOT NULL DEFAULT 'completed',
+  `requested_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `processed_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_withdrawals_therapist` (`therapist_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables

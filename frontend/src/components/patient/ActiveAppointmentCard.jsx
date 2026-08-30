@@ -61,12 +61,16 @@ export default function ActiveAppointmentCard({
             {currentApp.status === 'confirmed' && <span className="status-badge-confirmed">● Confirmed</span>}
             {currentApp.status === 'completed' && <span className="status-badge-completed">● Completed</span>}
             <span className="countdown-badge">Room Opens Soon</span>
-            <button
-              onClick={() => handleCancelAppointment(currentApp.id)}
-              className="cancel-action-link"
-            >
-              Cancel Appointment
-            </button>
+            {/* Only pending/confirmed appointments can be cancelled — once a
+                session is in progress or completed, cancelling makes no sense. */}
+            {(currentApp.status === 'pending' || currentApp.status === 'confirmed') && (
+              <button
+                onClick={() => handleCancelAppointment(currentApp.id)}
+                className="cancel-action-link"
+              >
+                Cancel Appointment
+              </button>
+            )}
           </div>
         </div>
       ) : (

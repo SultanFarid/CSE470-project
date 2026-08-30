@@ -346,6 +346,67 @@
     font-weight: 600;
 }
 
+/* Long free-text fields (address, education history, malpractice notes)
+   don't fit the side-by-side space-between layout — stack them instead. */
+.avd-ledger-row-block {
+    display: block;
+    padding: 6px 0;
+    font-size: 13px;
+}
+.avd-ledger-row-block span:first-child {
+    display: block;
+    color: #6b6e89;
+    margin-bottom: 3px;
+}
+.avd-ledger-row-block strong {
+    display: block;
+    color: #1a1c2e;
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* Sub-cards for repeatable groups (employment history, references) */
+.avd-entry-card {
+    background: #fff;
+    border: 1px solid #eceef7;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+}
+.avd-entry-card:last-child { margin-bottom: 0; }
+.avd-entry-card .avd-ledger-row { padding: 4px 0; }
+
+/* Yes/No compliance badges */
+.avd-yn {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+}
+.avd-yn-ok { background: #e7f9ee; color: #1a9d54; }
+.avd-yn-warn { background: #fdeaea; color: #d64545; }
+
+/* Explicit "View Application" button in the table */
+.avd-btn-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    border: 1px solid #dcdcf2;
+    color: #5a4fcf;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.avd-btn-view:hover {
+    background: #f1f0fd;
+    border-color: #5a4fcf;
+}
+
 /* ===== Document link ===== */
 .avd-doc-link {
     display: flex;

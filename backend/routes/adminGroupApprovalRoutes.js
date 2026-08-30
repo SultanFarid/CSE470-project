@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db'); // আপনার ডাটাবেজ কানেকশনের সঠিক পাথ
+const NotificationModel = require('../models/notificationModel');
 
 // GET: /api/admin/groups/proposals
 router.get('/groups/proposals', async (req, res) => {
@@ -58,6 +59,20 @@ router.patch('/groups/proposals/:id/approve', async (req, res) => {
       return res.status(404).json({ success: false, message: "Group session not found" });
     }
 
+    // This route (not the one in groupSessionController.js) is the one
+    // actually wired to the admin UI, so the therapist-notification logic
+    // has to live here too, or it never fires at all.
+    const [[session]] = await db.query(
+      `SELECT topic, therapist_id FROM group_sessions WHERE id = ?`, [id]
+    );
+    if (session) {
+      await NotificationModel.createNotification(
+        session.therapist_id,
+        `Your group session "${session.topic}" has been approved and is now visible to patients.`,
+        'group_session_update'
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: "Group session proposal approved successfully!"
@@ -80,6 +95,17 @@ router.patch('/groups/proposals/:id/reject', async (req, res) => {
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Group session not found" });
+    }
+
+    const [[session]] = await db.query(
+      `SELECT topic, therapist_id FROM group_sessions WHERE id = ?`, [id]
+    );
+    if (session) {
+      await NotificationModel.createNotification(
+        session.therapist_id,
+        `Your group session proposal "${session.topic}" was not approved.`,
+        'group_session_update'
+      );
     }
 
     res.status(200).json({

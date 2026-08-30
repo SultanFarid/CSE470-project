@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Calendar, User, Download, AlertCircle } from 'lucide-react';
+import { FileText, Calendar, User, Download, AlertCircle, CalendarClock } from 'lucide-react';
 import { getMyPrescriptionsList, getPrescriptionPdfDataForPatient } from '../../services/api';
 import { generatePrescriptionPdf } from '../../utils/generatePrescriptionPdf';
 import './PatientPrescriptions.css';
@@ -89,6 +89,14 @@ const PatientPrescriptions = () => {
                                 <div>
                                     <p className="pp-doctor-name">Dr. {row.doctor_name}</p>
                                     <p className="pp-session-date"><Calendar size={12} /> {formatDate(row.scheduled_date)}</p>
+                                    {row.follow_up_recommended ? (
+                                        <p className={`pp-followup-tag pp-followup-${row.follow_up_status}`}>
+                                            <CalendarClock size={12} />
+                                            {row.follow_up_status === 'proposed' && `Follow-up suggested for ${formatDate(row.follow_up_date)} — respond above`}
+                                            {row.follow_up_status === 'accepted' && `Follow-up accepted for ${formatDate(row.follow_up_date)}`}
+                                            {row.follow_up_status === 'declined' && 'Follow-up declined'}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
                             {row.prescription_id ? (

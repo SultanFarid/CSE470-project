@@ -1,0 +1,125 @@
+/* ─── Follow-Up Prompt Card (Feature 12 extension) ───────────────────────── */
+
+.fupc-wrapper {
+    margin-bottom: 16px;
+}
+
+.fupc-card {
+    background: #eff6ff;
+    border: 2px solid #3b82f6;
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+}
+
+.fupc-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.fupc-icon-wrap {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #3b82f6;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fupc-header-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.fupc-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1d4ed8;
+    line-height: 1.3;
+}
+
+.fupc-sublabel {
+    font-size: 12px;
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+.fupc-notes {
+    font-size: 13px;
+    color: #1e40af;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin: 0 0 12px 0;
+    font-style: italic;
+}
+
+.fupc-error {
+    font-size: 12px;
+    color: #dc2626;
+    margin: 0 0 10px 0;
+}
+
+.fupc-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fupc-btn-accept {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.12s;
+}
+
+.fupc-btn-accept:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.fupc-btn-accept:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.fupc-btn-decline {
+    background: none;
+    border: 1.5px solid #93c5fd;
+    border-radius: 10px;
+    color: #2563eb;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fupc-btn-decline:hover:not(:disabled) {
+    background: #dbeafe;
+}
+
+.fupc-btn-decline:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

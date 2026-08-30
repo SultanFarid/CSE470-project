@@ -12,7 +12,8 @@ import {
   getAppointments, bookAppointment, cancelAppointment, getTherapistSlots, getEffectiveAvailability,
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
   patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments,
-  saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan
+  saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan,
+  getPendingFollowUp
 } from '../../services/api';
 
 import ActiveAppointmentCard from './ActiveAppointmentCard';
@@ -24,6 +25,7 @@ import TasksModal from './TasksModal';
 import ReviewFeedbackModal from './ReviewFeedbackModal';
 import NotificationBell from '../shared/NotificationBell';
 import CarePlanPromptCard from './CarePlanPromptCard';
+import FollowUpPromptCard from './FollowUpPromptCard';
 
 const parseVideoUrl = (url) => {
   if (!url) return null;
@@ -116,6 +118,8 @@ export default function PatientDashboard() {
   // Feature 6a: Care plan opt-in prompt
   const [pendingCarePlan, setPendingCarePlan] = useState(null);
   const [carePlanDismissed, setCarePlanDismissed] = useState(false);
+  const [pendingFollowUp, setPendingFollowUp] = useState(null);
+  const [followUpNotice, setFollowUpNotice] = useState('');
 
   // Group Sessions State
   const [groupSessions, setGroupSessions] = useState([]);
@@ -231,6 +235,14 @@ export default function PatientDashboard() {
           setPendingCarePlan(cp || null);
         } catch {
           setPendingCarePlan(null);
+        }
+
+        // Feature 12 extension: Check if there is a pending follow-up to respond to
+        try {
+          const fu = await getPendingFollowUp();
+          setPendingFollowUp(fu || null);
+        } catch {
+          setPendingFollowUp(null);
         }
 
         // Fetch Open Group Sessions
@@ -635,8 +647,11 @@ export default function PatientDashboard() {
       setCancelNotification("Appointment canceled successfully.");
       setTimeout(() => setCancelNotification(null), 5000);
     } catch (err) {
-      setAppointments(prev => prev.filter(appt => appt.id !== appointmentId));
-      setCancelNotification("Appointment canceled successfully.");
+      // Previously this branch also claimed success and removed the
+      // appointment from the list even when the backend rejected the
+      // cancellation (e.g. session already completed) — now it reports
+      // the real error and leaves the appointment as-is.
+      setCancelNotification(err.response?.data?.message || "Could not cancel this appointment.");
       setTimeout(() => setCancelNotification(null), 5000);
     }
   };
@@ -805,6 +820,21 @@ export default function PatientDashboard() {
                 </div>
               </div>
             </section>
+
+            {/* Feature 12 extension: Follow-Up accept/decline prompt */}
+            {pendingFollowUp && (
+              <FollowUpPromptCard
+                pendingFollowUp={pendingFollowUp}
+                onResolved={(accepted) => {
+                  setFollowUpNotice(accepted ? 'Follow-up accepted — your therapist has been notified.' : 'Follow-up declined.');
+                  setPendingFollowUp(null);
+                  setTimeout(() => setFollowUpNotice(''), 5000);
+                }}
+              />
+            )}
+            {followUpNotice && (
+              <div className="followup-notice-banner">✓ {followUpNotice}</div>
+            )}
 
             {/* D. ACTIVE APPOINTMENT & VISUAL TRACKER CARD */}
             <ActiveAppointmentCard

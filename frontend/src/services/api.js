@@ -208,6 +208,13 @@ export const searchTests = (q) =>
 export const saveVitals = (vitalsData) =>
     apiInstance.post('/vitals/save', vitalsData).then(res => res.data);
 
+// --- Patient: Follow-up accept/decline prompt (Feature 12 extension) ---
+export const getPendingFollowUp = () =>
+    apiInstance.get('/prescriptions/patient/pending-follow-up').then(res => res.data);
+
+export const respondToFollowUp = (prescriptionId, accept) =>
+    apiInstance.put(`/prescriptions/patient/${prescriptionId}/respond-follow-up`, { accept }).then(res => res.data);
+
 // --- Patient: My Prescriptions ---
 export const getMyPrescriptionsList = () =>
     apiInstance.get('/prescriptions/patient/my').then(res => res.data);
@@ -229,6 +236,13 @@ export const getPatientHistory = (patientId) =>
 // --- Therapist: Earnings & Jobs (Feature 15) ---
 export const getMyEarnings = () =>
     apiInstance.get('/earnings/my').then(res => res.data.data);
+
+// --- Therapist: Wallet (balance, transaction history, redeem) ---
+export const getMyWallet = () =>
+    apiInstance.get('/wallet/my').then(res => res.data.data);
+
+export const redeemWallet = (payload) =>
+    apiInstance.post('/wallet/redeem', payload).then(res => res.data);
 
 // --- Therapist: Reviews summary (Command Center reputation card) ---
 export const getMyReviewSummary = () =>
