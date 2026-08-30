@@ -35,7 +35,7 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       title: 'Action Plan Initiated', 
       descComplete: 'You started working on your goals.', 
       descProgress: 'Complete your first assigned task.', 
-      descLocked: 'Unlock by completing your first session.',
+      descLocked: 'Complete your first session to unlock.',
       status: m2, 
       icon: <Target size={16}/> 
     },
@@ -43,8 +43,8 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       id: 3, 
       title: 'Identify Core Triggers', 
       descComplete: 'You maintained a 3-day streak!', 
-      descProgress: 'Keep a 3-day consistency streak to unlock.', 
-      descLocked: 'Unlock by initiating your action plan.',
+      descProgress: 'Keep a 3-day consistency streak.', 
+      descLocked: 'Complete previous steps to unlock.',
       status: m3, 
       icon: <Activity size={16}/> 
     },
@@ -52,8 +52,8 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       id: 4, 
       title: 'Build Coping Skills', 
       descComplete: 'You maintained a 14-day streak!', 
-      descProgress: 'Keep a 14-day consistency streak to unlock.', 
-      descLocked: 'Unlock by reaching a 3-day streak.',
+      descProgress: 'Keep a 14-day consistency streak.', 
+      descLocked: 'Complete previous steps to unlock.',
       status: m4, 
       icon: <TrendingUp size={16}/> 
     },
@@ -61,8 +61,8 @@ export default function TherapyRoadmapCard({ stats, patientUser, appointments = 
       id: 5, 
       title: '1-Month Consistency', 
       descComplete: 'Amazing! 30 days of consistency.', 
-      descProgress: 'Keep a 30-day streak to achieve this.', 
-      descLocked: 'Unlock by reaching a 14-day streak.',
+      descProgress: 'Keep a 30-day consistency streak.', 
+      descLocked: 'Complete previous steps to unlock.',
       status: m5, 
       icon: <Star size={16}/> 
     },
