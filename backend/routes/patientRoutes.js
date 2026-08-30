@@ -4,11 +4,6 @@ const patientController = require('../controllers/patientController');
 const upload = require('../middleware/uploadMiddleware');
 const verifyToken = require('../middleware/authMiddleware');
 
-router.use((req, res, next) => {
-    console.log(`[patientRoutes] Incoming request: ${req.method} ${req.originalUrl}`);
-    next();
-});
-
 router.get('/profile', verifyToken, patientController.getPatientProfile);
 router.put('/profile', verifyToken, patientController.updatePatientProfile);
 router.post('/upload-photo', verifyToken, upload.single('photo'), patientController.uploadPatientPhoto);
