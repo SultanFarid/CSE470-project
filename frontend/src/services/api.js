@@ -388,15 +388,7 @@ export const saveDeadline = ({ date, time, isActive }) =>
 // --- Public: Check if applications are open (used by job form, no auth) ---
 export const getApplicationSettings = () =>
     apiInstance.get('/therapist/settings').then(res => res.data);
-export const getAiMatchmaker = async (vitalsData) => {
-    const res = await fetch('http://localhost:5001/api/patient/matchmaker', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        },
-        body: JSON.stringify(vitalsData)
-    });
-    if (!res.ok) throw new Error(`fetch failed with status code ${res.status}`);
-    return await res.json();
-};
+
+export const getAiMatchmaker = (vitalsData) =>
+    apiInstance.post('/patient/matchmaker', vitalsData).then(res => res.data);
+

@@ -43,7 +43,7 @@ const runAiMatchmaker = async (vitalsData, therapists, reviewSummaries) => {
 
         try {
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
             const prompt = `You are an AI Matchmaker for a mental health platform.
 Given the patient's vitals (concerns, preferences) and a list of therapists, you must score each therapist from 70 to 99 based on how well they match the patient.
