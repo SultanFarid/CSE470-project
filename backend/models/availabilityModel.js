@@ -41,13 +41,17 @@ const replaceWeeklyTemplate = async (therapistId, slots) => {
 // ===== Per-therapist schedule settings (slot size, buffer) =====
 
 const getScheduleSettings = async (therapistId) => {
-    const [rows] = await db.query(
-        `SELECT slot_duration_minutes, buffer_minutes, last_confirmed_at
-         FROM therapist_schedule_settings
-         WHERE therapist_id = ?`,
-        [therapistId]
-    );
-    return rows[0] || { slot_duration_minutes: 30, buffer_minutes: 0, last_confirmed_at: null };
+    try {
+        const [rows] = await db.query(
+            `SELECT slot_duration_minutes, buffer_minutes, last_confirmed_at
+             FROM therapist_schedule_settings
+             WHERE therapist_id = ?`,
+            [therapistId]
+        );
+        return rows[0] || { slot_duration_minutes: 30, buffer_minutes: 0, last_confirmed_at: null };
+    } catch (err) {
+        return { slot_duration_minutes: 30, buffer_minutes: 0, last_confirmed_at: null };
+    }
 };
 
 // Called every time ScheduleManager saves — this doubles as the therapist's

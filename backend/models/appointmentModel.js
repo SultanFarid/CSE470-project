@@ -13,38 +13,80 @@ const db = require('../config/db');
 // are kept identical to before so no frontend changes are needed.
 
 const AppointmentModel = {
-    create: async (patientId, therapistId, appointmentDate, timeSlot, sessionType) => {
-        // Prevent double-booking: check if another active session already occupies this slot
-        const [existing] = await db.query(
-            `SELECT id FROM sessions 
-             WHERE therapist_id = ? AND scheduled_date = ? AND time_slot = ? AND status != 'cancelled'`,
-            [therapistId, appointmentDate, timeSlot]
-        );
-        if (existing.length > 0) {
-            const err = new Error('This time slot is already booked. Please choose another time slot.');
-            err.statusCode = 409;
-            throw err;
-        }
-
-        // Snapshot the therapist's current listed fee onto the session at
-        // booking time. Without this `sessions.fee` stays NULL forever (it's
-        // never set anywhere else), which silently zeroes out Earnings /
-        // the wallet for every real, patient-booked session. Snapshotting
-        // (rather than joining therapist_profiles live everywhere) also
-        // means a later fee change by the therapist doesn't retroactively
-        // change what a past session was billed at.
-        const [[profile]] = await db.query(
-            `SELECT consultation_fee FROM therapist_profiles WHERE user_id = ?`,
+    getTherapistUser: async (therapistId) => {
+        const [rows] = await db.query(
+            `SELECT u.id, u.name, u.email, u.role, tp.session_type, tp.consultation_fee
+             FROM users u
+             LEFT JOIN therapist_profiles tp ON u.id = tp.user_id
+             WHERE u.id = ? AND u.role = 'therapist'`,
             [therapistId]
         );
-        const fee = profile?.consultation_fee ?? null;
+        return rows[0] || null;
+    },
 
+    isSlotBooked: async (therapistId, appointmentDate, timeSlot) => {
         const query = `
-            INSERT INTO sessions (patient_id, therapist_id, scheduled_date, time_slot, session_type, status, fee)
-            VALUES (?, ?, ?, ?, ?, 'pending', ?)
+            SELECT id FROM sessions
+            WHERE therapist_id = ? AND scheduled_date = ? AND time_slot = ? AND status != 'cancelled'
+            LIMIT 1
         `;
-        const [result] = await db.query(query, [patientId, therapistId, appointmentDate, timeSlot, sessionType || 'online', fee]);
-        return result;
+        const [rows] = await db.query(query, [therapistId, appointmentDate, timeSlot]);
+        return rows.length > 0;
+    },
+
+    getTherapistProfile: async (therapistId) => {
+        const query = `
+            SELECT tp.session_type, tp.consultation_fee, u.name, u.display_name
+            FROM users u
+            LEFT JOIN therapist_profiles tp ON u.id = tp.user_id
+            WHERE u.id = ?
+        `;
+        const [rows] = await db.query(query, [therapistId]);
+        return rows[0] || null;
+    },
+
+    create: async (patientId, therapistId, appointmentDate, timeSlot, sessionType) => {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Atomic lock and double-booking check
+            const [existing] = await connection.query(
+                `SELECT id FROM sessions
+                 WHERE therapist_id = ? AND scheduled_date = ? AND time_slot = ? AND status != 'cancelled'
+                 FOR UPDATE`,
+                [therapistId, appointmentDate, timeSlot]
+            );
+
+            if (existing && existing.length > 0) {
+                await connection.rollback();
+                const err = new Error('This time slot has already been booked. Please choose another slot.');
+                err.statusCode = 409;
+                throw err;
+            }
+
+            // Snapshot the therapist's current consultation fee
+            const [profileRows] = await connection.query(
+                `SELECT consultation_fee FROM therapist_profiles WHERE user_id = ?`,
+                [therapistId]
+            );
+            const fee = profileRows[0]?.consultation_fee ?? null;
+
+            // Insert appointment with 'confirmed' status
+            const [result] = await connection.query(
+                `INSERT INTO sessions (patient_id, therapist_id, scheduled_date, time_slot, session_type, status, fee)
+                 VALUES (?, ?, ?, ?, ?, 'confirmed', ?)`,
+                [patientId, therapistId, appointmentDate, timeSlot, sessionType || 'online', fee]
+            );
+
+            await connection.commit();
+            return result;
+        } catch (err) {
+            await connection.rollback();
+            throw err;
+        } finally {
+            connection.release();
+        }
     },
 
     getByPatientId: async (patientId) => {

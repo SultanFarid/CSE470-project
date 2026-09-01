@@ -108,7 +108,7 @@ const EarningsJobs = () => {
                         <div className="ej-stat-tile">
                             <span className="ej-stat-icon"><DollarSign size={16} /></span>
                             <span className="ej-stat-label">Total Earned</span>
-                            <span className="ej-stat-value">${data.totalRevenue.toLocaleString()}</span>
+                            <span className="ej-stat-value">৳{data.totalRevenue.toLocaleString()}</span>
                         </div>
                         <div className="ej-stat-tile">
                             <span className="ej-stat-icon"><CheckCircle2 size={16} /></span>
@@ -138,7 +138,7 @@ const EarningsJobs = () => {
                     <div className="ej-month-card">
                         <h3>This Month</h3>
                         <div className="ej-month-row">
-                            <span>${data.currentMonthRevenue.toLocaleString()} earned</span>
+                            <span>৳{data.currentMonthRevenue.toLocaleString()} earned</span>
                             <span>{data.currentMonthSessions} completed session{data.currentMonthSessions === 1 ? '' : 's'}</span>
                         </div>
                     </div>
@@ -252,7 +252,7 @@ const EarningsJobs = () => {
                             <div className="ej-bar-chart">
                                 {data.monthlyBreakdown.map((m) => (
                                     <div className="ej-bar-col" key={m.month}>
-                                        <div className="ej-bar-amount">${Number(m.revenue).toLocaleString()}</div>
+                                        <div className="ej-bar-amount">৳{Number(m.revenue).toLocaleString()}</div>
                                         <div className="ej-bar-track">
                                             <div
                                                 className="ej-bar-fill"

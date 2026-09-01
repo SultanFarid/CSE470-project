@@ -175,58 +175,149 @@ const sliceRangeIntoSlots = (startTimeStr, endTimeStr, slotDurationMinutes, buff
     return slots;
 };
 
+const toDateKey = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) {
+        return val.slice(0, 10);
+    }
+    const d = new Date(val);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
+
+const computeDaysAvailability = async (therapistId, from, to) => {
+    const [weeklyTemplate, exceptions, settings] = await Promise.all([
+        AvailabilityModel.getWeeklyTemplate(therapistId),
+        AvailabilityModel.getExceptionsInRange(therapistId, from, to),
+        AvailabilityModel.getScheduleSettings(therapistId)
+    ]);
+
+    const exceptionsByDate = {};
+    exceptions.forEach((ex) => {
+        const key = toDateKey(ex.exception_date);
+        if (key) exceptionsByDate[key] = ex;
+    });
+
+    const days = [];
+    const [fromY, fromM, fromD] = from.split('-').map(Number);
+    const [toY, toM, toD] = to.split('-').map(Number);
+    const cursor = new Date(fromY, fromM - 1, fromD, 12, 0, 0);
+    const end = new Date(toY, toM - 1, toD, 12, 0, 0);
+
+    while (cursor <= end) {
+        const y = cursor.getFullYear();
+        const m = String(cursor.getMonth() + 1).padStart(2, '0');
+        const d = String(cursor.getDate()).padStart(2, '0');
+        const dateKey = `${y}-${m}-${d}`;
+        const dayOfWeek = (cursor.getDay() + 6) % 7; // JS Sun=0..Sat=6 -> Mon=0..Sun=6
+        const exception = exceptionsByDate[dateKey];
+
+        let slots;
+        let isBlocked = false;
+        let blockedReason = null;
+        let isCustomHours = false;
+
+        if (exception && exception.type === 'blocked') {
+            slots = [];
+            isBlocked = true;
+            blockedReason = exception.reason || 'Therapist unavailable';
+        } else if (exception && exception.type === 'custom_hours') {
+            isCustomHours = true;
+            slots = sliceRangeIntoSlots(
+                exception.start_time,
+                exception.end_time,
+                settings.slot_duration_minutes,
+                settings.buffer_minutes
+            );
+        } else {
+            slots = weeklyTemplate
+                .filter((s) => s.day_of_week === dayOfWeek)
+                .map((s) => ({
+                    start_time: s.start_time,
+                    end_time: s.end_time,
+                    label: formatSlotLabel(s.start_time, s.end_time)
+                }));
+        }
+
+        days.push({
+            date: dateKey,
+            day_name: DAY_NAMES[dayOfWeek],
+            slots,
+            is_blocked: isBlocked,
+            blocked_reason: blockedReason,
+            is_custom_hours: isCustomHours
+        });
+        cursor.setDate(cursor.getDate() + 1);
+    }
+    return days;
+};
+
+const computeNextAvailableSlot = async (therapistId, now = new Date()) => {
+    try {
+        const todayStr = toDateKey(now);
+        const end = new Date(now);
+        end.setDate(end.getDate() + 13);
+        const toStr = toDateKey(end);
+
+        const days = await computeDaysAvailability(therapistId, todayStr, toStr);
+
+        const db = require('../config/db');
+        const [bookings] = await db.query(
+            `SELECT DATE_FORMAT(scheduled_date, '%Y-%m-%d') AS s_date, time_slot
+             FROM sessions
+             WHERE therapist_id = ? AND status != 'cancelled' AND scheduled_date BETWEEN ? AND ?`,
+            [therapistId, todayStr, toStr]
+        );
+
+        const bookedSet = new Set(bookings.map((b) => `${b.s_date}_${b.time_slot}`));
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = toDateKey(tomorrow);
+
+        for (const day of days) {
+            if (day.is_blocked || !day.slots || day.slots.length === 0) continue;
+
+            for (const slot of day.slots) {
+                const slotStartMin = timeStrToMinutes(slot.start_time);
+                if (day.date === todayStr && slotStartMin <= currentMinutes) {
+                    continue; // Passed today
+                }
+                if (bookedSet.has(`${day.date}_${slot.label}`)) {
+                    continue; // Already booked
+                }
+
+                const startTimeFormatted = minutesToLabelPart(slotStartMin);
+                if (day.date === todayStr) {
+                    return `Today, ${startTimeFormatted}`;
+                } else if (day.date === tomorrowStr) {
+                    return `Tomorrow, ${startTimeFormatted}`;
+                } else {
+                    return `${day.day_name}, ${startTimeFormatted}`;
+                }
+            }
+        }
+
+        return 'No upcoming availability';
+    } catch (err) {
+        console.error('Error computing next slot:', err);
+        return 'No upcoming availability';
+    }
+};
+
 const getEffectiveAvailability = async (req, res) => {
     try {
         const { therapistId } = req.params;
-        const from = req.query.from || new Date().toISOString().slice(0, 10);
-        const defaultTo = new Date();
-        defaultTo.setDate(defaultTo.getDate() + 13);
-        const to = req.query.to || defaultTo.toISOString().slice(0, 10);
+        const todayStr = toDateKey(new Date());
+        const from = req.query.from || todayStr;
+        const defaultToDate = new Date();
+        defaultToDate.setDate(defaultToDate.getDate() + 13);
+        const to = req.query.to || toDateKey(defaultToDate);
 
-        const [weeklyTemplate, exceptions, settings] = await Promise.all([
-            AvailabilityModel.getWeeklyTemplate(therapistId),
-            AvailabilityModel.getExceptionsInRange(therapistId, from, to),
-            AvailabilityModel.getScheduleSettings(therapistId)
-        ]);
-
-        const exceptionsByDate = {};
-        exceptions.forEach((ex) => {
-            const key = new Date(ex.exception_date).toISOString().slice(0, 10);
-            exceptionsByDate[key] = ex;
-        });
-
-        const days = [];
-        const cursor = new Date(from);
-        const end = new Date(to);
-
-        while (cursor <= end) {
-            const dateKey = cursor.toISOString().slice(0, 10);
-            const dayOfWeek = (cursor.getDay() + 6) % 7; // JS Sun=0..Sat=6 -> Mon=0..Sun=6
-            const exception = exceptionsByDate[dateKey];
-
-            let slots;
-            if (exception && exception.type === 'blocked') {
-                slots = [];
-            } else if (exception && exception.type === 'custom_hours') {
-                slots = sliceRangeIntoSlots(
-                    exception.start_time,
-                    exception.end_time,
-                    settings.slot_duration_minutes,
-                    settings.buffer_minutes
-                );
-            } else {
-                slots = weeklyTemplate
-                    .filter((s) => s.day_of_week === dayOfWeek)
-                    .map((s) => ({
-                        start_time: s.start_time,
-                        end_time: s.end_time,
-                        label: formatSlotLabel(s.start_time, s.end_time)
-                    }));
-            }
-
-            days.push({ date: dateKey, day_name: DAY_NAMES[dayOfWeek], slots });
-            cursor.setDate(cursor.getDate() + 1);
-        }
+        const days = await computeDaysAvailability(therapistId, from, to);
 
         res.status(200).json({ success: true, therapistId: Number(therapistId), from, to, days });
     } catch (err) {
@@ -241,5 +332,7 @@ module.exports = {
     getMyExceptions,
     addMyException,
     deleteMyException,
-    getEffectiveAvailability
+    getEffectiveAvailability,
+    computeDaysAvailability,
+    computeNextAvailableSlot
 };

@@ -52,30 +52,42 @@ const PatientModel = {
     // Feature 6b: Count consecutive days (ending today) where the patient
     // has at least one recorded completion. Returns 0 if they have none.
     getStreak: async (userId) => {
-        // Pull all completion dates descending, then walk backwards in JS
-        // to find the first gap — safe and index-friendly even for large sets.
         const [rows] = await db.query(
-            `SELECT completed_date FROM task_completions
+            `SELECT DATE_FORMAT(completed_date, '%Y-%m-%d') AS comp_date FROM task_completions
              WHERE patient_id = ?
-             ORDER BY completed_date DESC`,
+             ORDER BY comp_date DESC`,
             [userId]
         );
-        if (rows.length === 0) return 0;
+        if (!rows || rows.length === 0) return 0;
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let streak = 0;
-        let expected = new Date(today);
+        const toDateKey = (dt) => {
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const d = String(dt.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
 
-        for (const row of rows) {
-            const d = new Date(row.completed_date);
-            d.setHours(0, 0, 0, 0);
-            if (d.getTime() === expected.getTime()) {
-                streak++;
-                expected.setDate(expected.getDate() - 1);
+        const todayKey = toDateKey(new Date());
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayKey = toDateKey(yesterday);
+
+        const datesSet = new Set(rows.map(r => r.comp_date));
+
+        // Streak is preserved if tasks completed today or yesterday
+        let cursor = new Date();
+        if (!datesSet.has(todayKey)) {
+            if (datesSet.has(yesterdayKey)) {
+                cursor = yesterday;
             } else {
-                break;
+                return 0;
             }
+        }
+
+        let streak = 0;
+        while (datesSet.has(toDateKey(cursor))) {
+            streak++;
+            cursor.setDate(cursor.getDate() - 1);
         }
         return streak;
     }

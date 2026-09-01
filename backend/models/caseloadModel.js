@@ -8,7 +8,7 @@ const getMyCaseload = async (therapistId) => {
     const [rows] = await db.query(
         `SELECT
             u.id AS patient_id,
-            COALESCE(u.display_name, u.email) AS patient_name,
+            COALESCE(u.display_name, u.name, u.email) AS patient_name,
             u.email,
             COUNT(DISTINCT s.id) AS total_sessions,
             MAX(COALESCE(s.scheduled_date, DATE(s.created_at))) AS last_session_date,
@@ -36,7 +36,7 @@ const getMyCaseload = async (therapistId) => {
         FROM sessions s
         JOIN users u ON u.id = s.patient_id
         WHERE s.therapist_id = ? AND s.status != 'cancelled'
-        GROUP BY u.id, u.display_name, u.email
+        GROUP BY u.id, u.display_name, u.name, u.email
         ORDER BY last_session_date DESC`,
         [therapistId, therapistId, therapistId, therapistId, therapistId, therapistId]
     );

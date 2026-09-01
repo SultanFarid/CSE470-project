@@ -761,6 +761,9 @@ export default function PatientDashboard() {
       const result = await bookAppointment(bookingData);
       setBookingSuccess('Appointment confirmed successfully!');
 
+      // Immediately mark slot as booked in modal
+      setBookedSlots(prev => [...prev, bookingForm.timeSlot]);
+
       // Save pre-session intake briefing if user participated
       if (bookingForm.includeBriefing && bookingForm.intakeData) {
         try {
@@ -778,23 +781,31 @@ export default function PatientDashboard() {
         }
       }
 
-      const newAppt = {
-        id: result.appointmentId || Date.now(),
-        therapist_id: selectedTherapistForBooking.id,
-        therapist_name: selectedTherapistForBooking.name,
-        therapist_specialties: Array.isArray(selectedTherapistForBooking.specialties) ? selectedTherapistForBooking.specialties.join(', ') : selectedTherapistForBooking.specialties,
-        session_type: bookingForm.sessionType,
-        appointment_date: bookingForm.date,
-        time_slot: bookingForm.timeSlot,
-        status: 'confirmed',
-        profile_photo_url: selectedTherapistForBooking.profile_photo_url || ''
-      };
-
-      setAppointments(prev => [newAppt, ...prev]);
+      // Re-fetch appointments from backend
+      try {
+        const updatedAppointments = await getAppointments();
+        if (Array.isArray(updatedAppointments)) {
+          setAppointments(updatedAppointments);
+        }
+      } catch (e) {
+        const newAppt = {
+          id: result.appointmentId || Date.now(),
+          therapist_id: selectedTherapistForBooking.id,
+          therapist_name: selectedTherapistForBooking.name,
+          therapist_specialties: Array.isArray(selectedTherapistForBooking.specialties) ? selectedTherapistForBooking.specialties.join(', ') : selectedTherapistForBooking.specialties,
+          session_type: bookingForm.sessionType,
+          appointment_date: bookingForm.date,
+          time_slot: bookingForm.timeSlot,
+          status: 'confirmed',
+          profile_photo_url: selectedTherapistForBooking.profile_photo_url || ''
+        };
+        setAppointments(prev => [newAppt, ...prev]);
+      }
 
       setTimeout(() => {
         setShowBookingModal(false);
         setBookingSuccess('');
+        setBookingForm(prev => ({ ...prev, timeSlot: '' }));
       }, 1500);
     } catch (err) {
       const keys = Object.keys(selectedTherapistForBooking || {}).join(',');

@@ -5,7 +5,7 @@ const searchMyPatients = async (therapistId, search) => {
     let sql = `
         SELECT
             u.id AS patient_id,
-            COALESCE(u.display_name, u.email) AS patient_name,
+            COALESCE(u.display_name, u.name, u.email) AS patient_name,
             u.email,
             COUNT(DISTINCT s.id) AS total_sessions,
             MAX(COALESCE(s.scheduled_date, DATE(s.created_at))) AS last_session_date
@@ -16,11 +16,11 @@ const searchMyPatients = async (therapistId, search) => {
     const params = [therapistId];
 
     if (search && search.trim() !== '') {
-        sql += ` AND (u.display_name LIKE ? OR u.email LIKE ?)`;
-        params.push(`%${search}%`, `%${search}%`);
+        sql += ` AND (u.display_name LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
-    sql += ` GROUP BY u.id, u.display_name, u.email ORDER BY last_session_date DESC`;
+    sql += ` GROUP BY u.id, u.display_name, u.name, u.email ORDER BY last_session_date DESC`;
 
     const [rows] = await db.query(sql, params);
     return rows;
