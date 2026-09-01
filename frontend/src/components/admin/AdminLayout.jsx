@@ -5,7 +5,6 @@ import {
     FileCheck2,
     Users,
     Gavel,
-    ShieldAlert,
     Settings,
     LogOut,
     HeartPulse,
@@ -28,7 +27,6 @@ const NAV_ITEMS = [
     { key: "verification", label: "Therapist Verification", icon: FileCheck2, path: "/admin/verification" },
     { key: "users",        label: "User Management",        icon: Users,      path: "/admin/users" },
     { key: "approvals",    label: "Group Approvals",        icon: Gavel,      path: "/admin/group-approvals" },
-    { key: "logs",         label: "Disciplinary Logs",      icon: ShieldAlert, path: null },
     { key: "settings",     label: "System Settings",        icon: Settings,   path: "/admin/settings" },
 ];
 

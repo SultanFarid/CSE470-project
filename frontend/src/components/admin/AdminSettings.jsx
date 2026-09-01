@@ -139,19 +139,6 @@ const AdminSettings = () => {
                     )}
                 </div>
 
-                {/* ── Placeholder for future settings ── */}
-                <div className="as-card as-card-dim">
-                    <div className="as-card-header">
-                        <div className="as-card-icon as-card-icon-dim">
-                            <AlertCircle size={20} />
-                        </div>
-                        <div>
-                            <h2 className="as-card-title">More Settings</h2>
-                            <p className="as-card-desc">Additional platform controls will appear here in future updates.</p>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </AdminLayout>
     );

@@ -173,7 +173,7 @@ export default function TherapistDirectoryModal({
               const feeLabel =
                 t.consultation_fee && Number(t.consultation_fee) > 0
                   ? `৳${Number(t.consultation_fee).toLocaleString()} / session`
-                  : 'Fee not specified';
+                  : '৳1,500 / session';
 
               return (
                 <div key={t.id} className="directory-card-horizontal">

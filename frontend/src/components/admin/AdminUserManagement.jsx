@@ -364,7 +364,7 @@ const AdminUserManagement = () => {
                         <div className="aum-danger-zone">
                             <div className="aum-danger-title">
                                 <ShieldOff size={16} />
-                                Disciplinary Danger Zone
+                                Account Governance &amp; Actions
                             </div>
                             <p className="aum-danger-copy">
                                 Executing an action below restricts login immediately

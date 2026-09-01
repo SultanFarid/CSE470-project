@@ -6,10 +6,14 @@ const { computeNextAvailableSlot } = require('./availabilityController');
 const getTherapistDirectory = async (req, res) => {
     try {
         const [rows] = await db.execute(
-            `SELECT u.id, COALESCE(u.display_name, u.name) AS name, tp.profile_photo_url, tp.biography, tp.specialties,
-                    tp.languages, tp.consultation_fee, tp.session_type, tp.gender, tp.qualifications
+            `SELECT u.id, COALESCE(u.display_name, u.name) AS name, 
+                    COALESCE(tp.profile_photo_url, u.profile_photo) AS profile_photo_url, 
+                    tp.biography, tp.specialties, tp.languages, 
+                    COALESCE(tp.consultation_fee, 1500) AS consultation_fee, 
+                    COALESCE(tp.session_type, 'both') AS session_type, 
+                    u.gender, tp.qualification, tp.hospital_name
              FROM users u
-             JOIN therapist_profiles tp ON tp.user_id = u.id
+             LEFT JOIN therapist_profiles tp ON tp.user_id = u.id
              WHERE u.role = 'therapist'
              ORDER BY name ASC`
         );
@@ -28,17 +32,21 @@ const getTherapistDirectory = async (req, res) => {
         const now = new Date();
         const therapists = await Promise.all(rows.map(async (t) => {
             const nextSlot = await computeNextAvailableSlot(t.id, now);
+            const fee = t.consultation_fee ? Number(t.consultation_fee) : 1500;
             return {
                 id: t.id,
                 name: t.name,
                 profile_photo_url: t.profile_photo_url || '',
-                biography: t.biography || 'Not specified',
-                bio: t.biography || 'Not specified',
+                biography: t.biography || 'Professional therapist dedicated to supportive, evidence-based mental health care.',
+                bio: t.biography || 'Professional therapist dedicated to supportive, evidence-based mental health care.',
                 specialties: toList(t.specialties),
-                languages: toList(t.languages),
+                languages: toList(t.languages).length > 0 ? toList(t.languages) : ['English', 'Bengali'],
                 formats: sessionTypeToFormats(t.session_type),
-                consultation_fee: t.consultation_fee ? Number(t.consultation_fee) : 0,
+                consultation_fee: fee > 0 ? fee : 1500,
                 session_type: t.session_type || 'both',
+                gender: t.gender || '',
+                qualification: t.qualification || '',
+                hospital_name: t.hospital_name || '',
                 next_available_slot: nextSlot
             };
         }));
