@@ -197,12 +197,15 @@ export const getPrescriptionPdfDataForTherapist = (sessionId) =>
 export const getPreSessionBriefing = (sessionId) =>
     apiInstance.get(`/briefings/session/${sessionId}`).then(res => res.data);
 
-// --- Therapist: Medicine & Test catalog search (Prescription Builder) ---
+// --- Therapist: Medicine, Test & Exercise catalog search (Prescription Builder) ---
 export const searchMedicines = (q) =>
     apiInstance.get('/catalog/medicines/search', { params: { q } }).then(res => res.data);
 
 export const searchTests = (q) =>
     apiInstance.get('/catalog/tests/search', { params: { q } }).then(res => res.data);
+
+export const searchExerciseVideos = (q) =>
+    apiInstance.get('/catalog/exercises/search', { params: { q } }).then(res => res.data);
 
 // --- Patient: Vitals Check persistence (backs the pre-session briefing) ---
 export const saveVitals = (vitalsData) =>

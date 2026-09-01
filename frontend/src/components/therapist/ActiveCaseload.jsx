@@ -112,10 +112,10 @@ const ActiveCaseload = () => {
                                             {c.last_session_id ? (
                                                 <Link
                                                     to={`/therapist-dashboard/prescriptions?session=${c.last_session_id}`}
-                                                    className="cl-rx-btn"
-                                                    title={`Create or edit ${c.patient_name}'s prescription`}
+                                                    className={`cl-rx-btn ${c.has_prescription ? 'cl-rx-btn-update' : ''}`}
+                                                    title={`${c.has_prescription ? 'Update' : 'Create'} ${c.patient_name}'s prescription`}
                                                 >
-                                                    <FileText size={14} /> Create Prescription
+                                                    <FileText size={14} /> {c.has_prescription ? 'Update Prescription' : 'Create Prescription'}
                                                 </Link>
                                             ) : (
                                                 <span className="cl-no-plan">No session yet</span>
