@@ -25,13 +25,20 @@ const getMyCaseload = async (therapistId) => {
             (SELECT s3.id FROM sessions s3
                 WHERE s3.patient_id = u.id AND s3.therapist_id = ?
                 ORDER BY COALESCE(s3.scheduled_date, DATE(s3.created_at)) DESC, s3.created_at DESC
-                LIMIT 1) AS last_session_id
+                LIMIT 1) AS last_session_id,
+            (SELECT COUNT(*) FROM prescriptions p3
+                WHERE p3.session_id = (
+                    SELECT s4.id FROM sessions s4
+                    WHERE s4.patient_id = u.id AND s4.therapist_id = ?
+                    ORDER BY COALESCE(s4.scheduled_date, DATE(s4.created_at)) DESC, s4.created_at DESC
+                    LIMIT 1
+                )) AS has_prescription
         FROM sessions s
         JOIN users u ON u.id = s.patient_id
         WHERE s.therapist_id = ? AND s.status != 'cancelled'
         GROUP BY u.id, u.display_name, u.email
         ORDER BY last_session_date DESC`,
-        [therapistId, therapistId, therapistId, therapistId, therapistId]
+        [therapistId, therapistId, therapistId, therapistId, therapistId, therapistId]
     );
 
     // Adherence % = check-ins over the last 7 days vs. the maximum possible
