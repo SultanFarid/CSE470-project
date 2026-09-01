@@ -132,29 +132,78 @@ const replaceTests = async (prescriptionId, tests) => {
 };
 
 const getPrescriptionBySession = async (sessionId, therapistId) => {
+    // Look up the session first so we know patient_id even if no prescription has been written yet
+    const [[session]] = await db.query(
+        `SELECT id, patient_id, scheduled_date FROM sessions WHERE id = ? AND therapist_id = ?`,
+        [sessionId, therapistId]
+    );
+    if (!session) return null;
+
     const [rows] = await db.query(
         `SELECT * FROM prescriptions WHERE session_id = ? AND therapist_id = ?`,
         [sessionId, therapistId]
     );
-    if (!rows[0]) return null;
 
-    const [items, medicines, tests] = await Promise.all([
-        db.query(
-            `SELECT id, item_type, title, youtube_url, is_active FROM care_plan_items WHERE prescription_id = ? ORDER BY item_type, id`,
-            [rows[0].id]
-        ).then(([r]) => r),
-        db.query(
-            `SELECT id, medicine_id, medicine_name, dosage, frequency_code, frequency_label, duration_days, instructions
-             FROM prescription_medicines WHERE prescription_id = ? ORDER BY sort_order, id`,
-            [rows[0].id]
-        ).then(([r]) => r),
-        db.query(
-            `SELECT id, test_id, test_name, notes FROM prescription_tests WHERE prescription_id = ? ORDER BY sort_order, id`,
-            [rows[0].id]
-        ).then(([r]) => r),
-    ]);
+    let currentRx = null;
+    if (rows[0]) {
+        const [items, medicines, tests] = await Promise.all([
+            db.query(
+                `SELECT id, item_type, title, youtube_url, is_active FROM care_plan_items WHERE prescription_id = ? ORDER BY item_type, id`,
+                [rows[0].id]
+            ).then(([r]) => r),
+            db.query(
+                `SELECT id, medicine_id, medicine_name, dosage, frequency_code, frequency_label, duration_days, instructions
+                 FROM prescription_medicines WHERE prescription_id = ? ORDER BY sort_order, id`,
+                [rows[0].id]
+            ).then(([r]) => r),
+            db.query(
+                `SELECT id, test_id, test_name, notes FROM prescription_tests WHERE prescription_id = ? ORDER BY sort_order, id`,
+                [rows[0].id]
+            ).then(([r]) => r),
+        ]);
+        currentRx = { ...rows[0], care_plan_items: items, medicines, tests };
+    }
 
-    return { ...rows[0], care_plan_items: items, medicines, tests };
+    // Look up previous prescriptions for this patient from earlier sessions
+    const currentPrescriptionId = rows[0]?.id || 0;
+    const [prevRows] = await db.query(
+        `SELECT p.id, p.session_id, s.scheduled_date, p.session_notes, p.medications, p.created_at
+         FROM prescriptions p
+         JOIN sessions s ON s.id = p.session_id
+         WHERE p.patient_id = ? AND p.id != ?
+         ORDER BY s.scheduled_date DESC, p.created_at DESC`,
+        [session.patient_id, currentPrescriptionId]
+    );
+
+    const previous_prescriptions = await Promise.all(
+        prevRows.map(async (prev) => {
+            const [prevMeds, prevTests] = await Promise.all([
+                db.query(
+                    `SELECT medicine_name, dosage, frequency_code, frequency_label, duration_days, instructions
+                     FROM prescription_medicines WHERE prescription_id = ? ORDER BY sort_order, id`,
+                    [prev.id]
+                ).then(([r]) => r),
+                db.query(
+                    `SELECT test_name, notes FROM prescription_tests WHERE prescription_id = ? ORDER BY sort_order, id`,
+                    [prev.id]
+                ).then(([r]) => r),
+            ]);
+            return {
+                session_id: prev.session_id,
+                scheduled_date: prev.scheduled_date,
+                session_notes: prev.session_notes,
+                medicines: prevMeds,
+                tests: prevTests,
+                created_at: prev.created_at
+            };
+        })
+    );
+
+    if (currentRx) {
+        return { ...currentRx, previous_prescriptions };
+    } else {
+        return { previous_prescriptions };
+    }
 };
 
 // All prescriptions a therapist has written for one patient — used by Patient Archives.
@@ -216,26 +265,91 @@ const getFullPrescriptionForPdf = async (sessionId, ownerColumn, ownerId) => {
         ).then(([r]) => r),
     ]);
 
-    return { ...record, medicines, tests };
+    // Look up previous prescription for follow-up patients
+    const [prevRows] = await db.query(
+        `SELECT prev_p.id AS prev_prescription_id, prev_s.scheduled_date AS prev_session_date,
+                prev_p.session_notes AS prev_session_notes, prev_p.created_at AS prev_created_at
+         FROM prescriptions prev_p
+         JOIN sessions prev_s ON prev_s.id = prev_p.session_id
+         WHERE prev_p.patient_id = ? AND prev_p.id != ?
+           AND (prev_s.scheduled_date < ? OR (prev_s.scheduled_date = ? AND prev_p.id < ?))
+         ORDER BY prev_s.scheduled_date DESC, prev_p.created_at DESC
+         LIMIT 1`,
+        [record.patient_id, record.prescription_id, record.scheduled_date, record.scheduled_date, record.prescription_id]
+    );
+
+    let previous_prescription = null;
+    if (prevRows[0]) {
+        const prevRx = prevRows[0];
+        const [prevMeds, prevTests] = await Promise.all([
+            db.query(
+                `SELECT medicine_name, dosage, frequency_code, frequency_label, duration_days, instructions
+                 FROM prescription_medicines WHERE prescription_id = ? ORDER BY sort_order, id`,
+                [prevRx.prev_prescription_id]
+            ).then(([r]) => r),
+            db.query(
+                `SELECT test_name, notes FROM prescription_tests WHERE prescription_id = ? ORDER BY sort_order, id`,
+                [prevRx.prev_prescription_id]
+            ).then(([r]) => r),
+        ]);
+        previous_prescription = {
+            session_date: prevRx.prev_session_date,
+            session_notes: prevRx.prev_session_notes,
+            medicines: prevMeds,
+            tests: prevTests
+        };
+    }
+
+    return { ...record, medicines, tests, previous_prescription };
 };
 
-// List of completed sessions (with or without a written prescription yet)
+// List of completed sessions with full clinical prescription details
 // for the logged-in patient's "My Prescriptions" page.
 const getPrescriptionsListForPatient = async (patientId) => {
     const [rows] = await db.query(
         `SELECT
-            s.id AS session_id, s.scheduled_date, s.status,
-            doctor.display_name AS doctor_name,
-            p.id AS prescription_id, p.created_at AS prescription_created_at,
-            p.follow_up_recommended, p.follow_up_date, p.follow_up_status
+            s.id AS session_id, s.scheduled_date, s.time_slot, s.session_type, s.status,
+            doctor.id AS doctor_id, COALESCE(doctor.display_name, doctor.name) AS doctor_name,
+            tp.qualification AS doctor_qualification, tp.hospital_name AS hospital_name,
+            tp.profile_photo_url AS doctor_photo,
+            p.id AS prescription_id, p.session_notes, p.medications, p.presession_summary, p.additional_briefing,
+            p.created_at AS prescription_created_at,
+            p.follow_up_recommended, p.follow_up_date, p.follow_up_notes, p.follow_up_status, p.follow_up_responded_at
          FROM sessions s
          JOIN users doctor ON doctor.id = s.therapist_id
+         LEFT JOIN therapist_profiles tp ON tp.user_id = doctor.id
          LEFT JOIN prescriptions p ON p.session_id = s.id
          WHERE s.patient_id = ? AND s.status = 'completed'
          ORDER BY COALESCE(p.created_at, s.created_at) DESC`,
         [patientId]
     );
-    return rows;
+
+    // Fetch medicines, tests, and care plan items for each completed prescription
+    const fullList = await Promise.all(
+        rows.map(async (row) => {
+            if (!row.prescription_id) {
+                return { ...row, medicines: [], tests: [], care_plan_items: [] };
+            }
+            const [medicines, tests, care_plan_items] = await Promise.all([
+                db.query(
+                    `SELECT medicine_name, dosage, frequency_code, frequency_label, duration_days, instructions
+                     FROM prescription_medicines WHERE prescription_id = ? ORDER BY sort_order, id`,
+                    [row.prescription_id]
+                ).then(([r]) => r),
+                db.query(
+                    `SELECT test_name, notes FROM prescription_tests WHERE prescription_id = ? ORDER BY sort_order, id`,
+                    [row.prescription_id]
+                ).then(([r]) => r),
+                db.query(
+                    `SELECT item_type, title, youtube_url FROM care_plan_items WHERE prescription_id = ? ORDER BY item_type, id`,
+                    [row.prescription_id]
+                ).then(([r]) => r),
+            ]);
+            return { ...row, medicines, tests, care_plan_items };
+        })
+    );
+
+    return fullList;
 };
 
 // Feature 6: Returns the newest prescription for this patient where

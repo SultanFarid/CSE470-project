@@ -1,11 +1,11 @@
 const db = require('../config/db');
 const SessionModel = require('./sessionModel');
 const VitalsModel = require('./vitalsModel');
-const { buildSummary } = require('../utils/briefingSummarizer');
+const { getClinicalSuggestions } = require('../utils/briefingSummarizer');
 
-// Feature 11: Pre-Session Patient Briefings.
+// Feature 11: Pre-Session Patient Briefings & AI Clinical Research.
 // Given a session the therapist owns, pulls the patient's latest Vitals
-// Check submission and turns it into a short readable summary.
+// and Detailed Intake, and generates an AI summary + clinical research recommendations.
 const getBriefingForSession = async (sessionId, therapistId) => {
     const session = await SessionModel.getById(sessionId);
     if (!session || session.therapist_id !== therapistId) {
@@ -22,7 +22,7 @@ const getBriefingForSession = async (sessionId, therapistId) => {
     const patient = patientRows[0] || { id: session.patient_id, name: 'Patient' };
 
     const vitals = await VitalsModel.getLatestByPatient(session.patient_id);
-    const summary = await buildSummary(vitals);
+    const clinicalAnalysis = await getClinicalSuggestions(vitals);
 
     return {
         session: {
@@ -34,7 +34,11 @@ const getBriefingForSession = async (sessionId, therapistId) => {
         },
         patient,
         vitals,
-        summary
+        summary: clinicalAnalysis.summary,
+        clinical_insights: clinicalAnalysis.clinical_insights || [],
+        suggested_exercises: clinicalAnalysis.suggested_exercises || [],
+        suggested_medicines: clinicalAnalysis.suggested_medicines || [],
+        suggested_tests: clinicalAnalysis.suggested_tests || []
     };
 };
 

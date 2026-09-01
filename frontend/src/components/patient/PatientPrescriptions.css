@@ -1,46 +1,894 @@
-.pp-container { max-width: 700px; margin: 0 auto; padding: 24px 16px 40px; }
+/* ==========================================================
+   Patient Prescriptions (Full Treatment & Digital Rx Archive)
+   ========================================================== */
 
-.pp-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
-.pp-header-icon {
-    width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+.pp-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #0f172a;
+    padding-bottom: 60px;
 }
-.pp-header h1 { font-size: 20px; margin: 0 0 3px; color: #0f172a; }
-.pp-header p { font-size: 13px; color: #475569; margin: 0; }
 
+/* Top Navigation Bar */
+.pp-topbar {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pp-btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.pp-btn-back:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+    transform: translateX(-2px);
+}
+
+.pp-topbar-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+.text-amber { color: #d97706; }
+.text-blue { color: #2563eb; }
+.text-green { color: #16a34a; }
+.text-purple { color: #7c3aed; }
+.text-orange { color: #ea580c; }
+.text-muted { color: #94a3b8; font-size: 12px; }
+
+/* Main Container */
+.pp-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 24px;
+}
+
+/* Hero Header */
+.pp-hero-header {
+    margin-bottom: 24px;
+}
+
+.pp-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.pp-hero-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.35);
+}
+
+.pp-hero-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+}
+
+.pp-hero-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Quick Stats Row */
+.pp-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.pp-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.pp-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icon-blue { background: #eff6ff; color: #2563eb; }
+.icon-green { background: #f0fdf4; color: #16a34a; }
+.icon-purple { background: #f5f3ff; color: #7c3aed; }
+
+.pp-stat-number {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.pp-stat-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Search and Filters */
+.pp-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.pp-search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 280px;
+}
+
+.pp-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.pp-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px 10px 40px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #0f172a;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.pp-search-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.pp-controls-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pp-filter-tabs {
+    display: flex;
+    align-items: center;
+    background: #e2e8f0;
+    padding: 4px;
+    border-radius: 8px;
+    gap: 4px;
+}
+
+.pp-filter-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.pp-filter-tab.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.pp-btn-toggle-all {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pp-btn-toggle-all:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+/* Alert Banner */
 .pp-alert {
-    display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
-    font-size: 13px; font-weight: 600; margin-bottom: 16px; background: #fef2f2; color: #b91c1c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+.pp-alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.pp-alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+
+/* Empty & Loading States */
+.pp-loading-state, .pp-empty-state {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    color: #64748b;
 }
 
-.pp-state-msg { font-size: 13.5px; color: #94a3b8; text-align: center; padding: 30px 10px; }
-
-.pp-list { display: flex; flex-direction: column; gap: 10px; }
-.pp-card {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px;
+.pp-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: pp-spin 0.8s linear infinite;
+    margin: 0 auto 16px;
 }
-.pp-card-main { display: flex; align-items: center; gap: 12px; }
-.pp-card-icon {
-    width: 38px; height: 38px; border-radius: 10px; background: #f1f5f9; color: #475569;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+
+@keyframes pp-spin {
+    to { transform: rotate(360deg); }
 }
-.pp-doctor-name { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0 0 2px; }
-.pp-session-date { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #64748b; margin: 0; }
 
-.pp-followup-tag { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; margin: 4px 0 0; padding: 3px 8px; border-radius: 999px; width: fit-content; }
-.pp-followup-proposed { background: #fef9c3; color: #854d0e; }
-.pp-followup-accepted { background: #ecfdf5; color: #047857; }
-.pp-followup-declined { background: #fee2e2; color: #991b1b; }
-
-.pp-btn-download {
-    display: flex; align-items: center; gap: 6px; background: #0284c7; color: white; border: none;
-    border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+.pp-empty-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
 }
-.pp-btn-download:hover { background: #0369a1; }
-.pp-btn-download:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.pp-pending-tag {
-    font-size: 11.5px; font-weight: 600; color: #94a3b8; background: #f8fafc; border: 1px solid #e2e8f0;
-    padding: 6px 10px; border-radius: 999px; flex-shrink: 0;
+.pp-empty-state h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 8px;
+}
+
+.pp-empty-state p {
+    font-size: 14px;
+    color: #64748b;
+    max-width: 440px;
+    margin: 0 auto 20px;
+    line-height: 1.5;
+}
+
+.pp-btn-home {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   Full Prescription Card (Productive Clinical Layout)
+   ========================================================== */
+
+.pp-prescriptions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pp-full-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+}
+
+.pp-full-card:hover {
+    box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+}
+
+.pp-full-card.is-expanded {
+    border-color: #93c5fd;
+    box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.12);
+}
+
+/* 1. Doctor Header */
+.pp-card-header {
+    background: linear-gradient(to right, #ffffff, #f8fafc);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.pp-card-header:hover {
+    background: #f8fafc;
+}
+
+.pp-card-doctor-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.pp-doctor-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid #bae6fd;
+}
+
+.pp-doctor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pp-doctor-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pp-doctor-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.pp-badge-official {
+    font-size: 11px;
+    font-weight: 700;
+    color: #15803d;
+    background: #dcfce7;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #bbf7d0;
+}
+
+.pp-doctor-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.pp-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pp-session-tags-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.pp-badge-session-date, .pp-badge-session-time, .pp-badge-session-type {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.pp-badge-session-date { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+.pp-badge-session-time { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+.pp-badge-session-type { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+
+.pp-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pp-btn-feedback {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pp-btn-feedback:hover {
+    background: #fef3c7;
+    border-color: #fcd34d;
+    transform: translateY(-1px);
+}
+
+.pp-btn-feedback.reviewed {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.fill-amber {
+    fill: #f59e0b;
+}
+
+.pp-btn-download-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.pp-btn-download-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+}
+
+.pp-btn-download-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Dropdown Toggle Button */
+.pp-btn-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pp-btn-dropdown-toggle:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.pp-btn-dropdown-toggle.open {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+
+.pp-badge-pending {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+/* Collapsed Compact Summary Bar */
+.pp-collapsed-summary {
+    background: #fbfcfe;
+    border-top: 1px solid #f1f5f9;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.pp-collapsed-summary:hover {
+    background: #f1f5f9;
+}
+
+.pp-summary-pill-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pp-summary-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.pp-summary-expand-hint {
+    font-size: 12px;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+/* Expandable Content Container */
+.pp-expandable-content {
+    border-top: 1px solid #e2e8f0;
+    animation: pp-fadeIn 0.2s ease-in-out;
+}
+
+@keyframes pp-fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 2. Clinical Notes Box */
+.pp-clinical-notes-box {
+    margin: 16px 24px 0;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    border-radius: 0 8px 8px 0;
+}
+
+.pp-notes-text {
+    font-size: 13.5px;
+    color: #334155;
+    margin: 6px 0 0;
+    line-height: 1.6;
+}
+
+/* Section Header */
+.pp-card-section {
+    padding: 16px 24px;
+}
+
+.pp-section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* 3. Medicines Table */
+.pp-medicines-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.pp-medicines-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.pp-medicines-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pp-medicines-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.pp-medicines-table tr:last-child td {
+    border-bottom: none;
+}
+
+.pp-medicines-table tr:hover td {
+    background: #fafafa;
+}
+
+.col-idx { width: 32px; color: #94a3b8; font-weight: 600; }
+.col-name strong { color: #0f172a; font-size: 13.5px; }
+
+.pp-dosage-pill {
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #dbeafe;
+}
+
+.pp-frequency-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pp-freq-code-badge {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 12.5px;
+    color: #0f172a;
+    background: #f1f5f9;
+    padding: 1px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.pp-freq-subtext {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.pp-instruction-badge {
+    font-size: 12px;
+    color: #047857;
+    background: #ecfdf5;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* 4. Tests Grid */
+.pp-tests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+}
+
+.pp-test-pill-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #faf5ff;
+    border: 1px solid #f3e8ff;
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.pp-test-number {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pp-test-name {
+    display: block;
+    font-size: 13.5px;
+    color: #4c1d95;
+}
+
+.pp-test-notes {
+    font-size: 12px;
+    color: #6b21a8;
+    margin: 2px 0 0;
+}
+
+/* 5. Care Plan List */
+.pp-careplan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pp-careplan-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.pp-video-link {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+.pp-video-link:hover { text-decoration: underline; }
+
+/* 6. Follow-Up Schedule Banner */
+.pp-followup-banner {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.pp-followup-proposed {
+    background: linear-gradient(135deg, #fefce8 0%, #fffbeb 100%);
+    border-color: #fef08a;
+}
+
+.pp-followup-accepted {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border-color: #bbf7d0;
+}
+
+.pp-followup-declined {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.pp-followup-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pp-followup-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+
+.pp-followup-proposed .pp-followup-icon { color: #ca8a04; }
+.pp-followup-accepted .pp-followup-icon { color: #16a34a; }
+.pp-followup-declined .pp-followup-icon { color: #dc2626; }
+
+.pp-followup-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.pp-followup-desc {
+    font-size: 13px;
+    color: #475569;
+    margin: 3px 0 0;
+}
+
+.pp-followup-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+.pp-followup-proposed .pp-followup-badge { background: #fef08a; color: #854d0e; }
+.pp-followup-accepted .pp-followup-badge { background: #bbf7d0; color: #15803d; }
+.pp-followup-declined .pp-followup-badge { background: #fecaca; color: #991b1b; }
+
+@media (max-width: 768px) {
+    .pp-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .pp-card-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .pp-btn-download-primary {
+        flex: 1;
+        justify-content: center;
+    }
+    .pp-followup-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

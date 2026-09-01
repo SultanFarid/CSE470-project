@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bell, Calendar, CheckCircle, Clock, Play, User, Star, Search, 
   Users, LogOut, ArrowRight, Settings, Heart, Sliders, MapPin, 
-  Globe, Phone, Video, ShieldAlert, Plus, CheckSquare, BarChart2, Check, FileText
+  Globe, Phone, Video, ShieldAlert, Plus, CheckSquare, BarChart2, Check, FileText, Download, X
 } from 'lucide-react';
 import './PatientDashboard.css';
 import { 
@@ -13,8 +13,9 @@ import {
   submitReview, getPendingReview, getAllTherapistReviewSummaries,
   patientGetOpenGroupSessions, patientJoinGroupSession, patientGetMyEnrollments,
   saveVitals, completeTask, getMyStreak, getPendingCarePlan, acceptCarePlan,
-  getPendingFollowUp
+  getPendingFollowUp, getMyPrescriptionsList, getPrescriptionPdfDataForPatient
 } from '../../services/api';
+import { generatePrescriptionPdf } from '../../utils/generatePrescriptionPdf';
 
 import ActiveAppointmentCard from './ActiveAppointmentCard';
 import EditProfileModal from './EditProfileModal';
@@ -72,11 +73,11 @@ const LANGUAGE_PREF_OPTIONS = ["No preference", "English", "Bengali"];
 const FORMAT_PREF_OPTIONS = ["Either", "Online Video", "In-Person"];
 
 const MOCK_THERAPISTS = [
-  { id: 1, name: "Dr. Ayesha Rahman", specialties: ["Anxiety", "Depression", "Sleep Problems"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], session_type: "both", consultation_fee: 1500, rating: 4.8, bio: "10+ years helping clients manage anxiety and mood disorders." },
-  { id: 2, name: "Dr. Sultan M. Farid", specialties: ["Stress & Burnout", "Relationship Issues", "Self-Esteem"], languages: ["English"], gender: "Male", formats: ["Online Video"], session_type: "online", consultation_fee: 1500, rating: 4.9, bio: "CBT-focused practice for stress and relationship dynamics." },
-  { id: 3, name: "Dr. Farzana Islam", specialties: ["Trauma / PTSD", "Grief & Loss"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], session_type: "both", consultation_fee: 1500, rating: 4.7, bio: "Trauma-informed, patient-centered care." },
-  { id: 4, name: "Dr. Tanvir Ahmed", specialties: ["Substance Use", "Anxiety", "Depression"], languages: ["English"], gender: "Male", formats: ["In-Person"], session_type: "in-person", consultation_fee: 1500, rating: 4.6, bio: "Recovery-oriented and dual-diagnosis treatment." },
-  { id: 5, name: "Dr. Nusrat Jahan", specialties: ["Self-Esteem", "Relationship Issues", "Stress & Burnout"], languages: ["Bengali", "English"], gender: "Female", formats: ["Online Video", "In-Person"], session_type: "both", consultation_fee: 1500, rating: 4.8, bio: "Warm, collaborative, humanistic therapy style." }
+  { id: 4, name: "Dr. Ayesha Rahman", specialties: ["Anxiety", "Depression", "Sleep Problems"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "10+ years helping clients manage anxiety and mood disorders." },
+  { id: 5, name: "Dr. Sultan M. Farid", specialties: ["Stress & Burnout", "Relationship Issues", "Self-Esteem"], languages: ["English"], gender: "Male", formats: ["Online Video"], rating: 4.9, bio: "CBT-focused practice for stress and relationship dynamics." },
+  { id: 6, name: "Dr. Farzana Islam", specialties: ["Trauma / PTSD", "Grief & Loss"], languages: ["English", "Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.7, bio: "Trauma-informed, patient-centered care." },
+  { id: 7, name: "Dr. Tanvir Ahmed", specialties: ["Substance Use", "Anxiety", "Depression"], languages: ["English"], gender: "Male", formats: ["In-Person"], rating: 4.6, bio: "Recovery-oriented and dual-diagnosis treatment." },
+  { id: 10, name: "Dr. Nusrat Jahan", specialties: ["Self-Esteem", "Relationship Issues", "Stress & Burnout"], languages: ["Bengali"], gender: "Female", formats: ["Online Video", "In-Person"], rating: 4.8, bio: "Warm, collaborative, humanistic therapy style." }
 ];
 
 const scoreTherapist = (therapist, vitals, summaries = {}) => {
@@ -123,6 +124,10 @@ export default function PatientDashboard() {
   const [carePlanDismissed, setCarePlanDismissed] = useState(false);
   const [pendingFollowUp, setPendingFollowUp] = useState(null);
   const [followUpNotice, setFollowUpNotice] = useState('');
+
+  // Prescription Ready banner state
+  const [latestPrescription, setLatestPrescription] = useState(null);
+  const [downloadingPrescription, setDownloadingPrescription] = useState(false);
 
   // Group Sessions State
   const [groupSessions, setGroupSessions] = useState([]);
@@ -198,26 +203,24 @@ export default function PatientDashboard() {
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState(null);
-  const getLocalDateString = (daysOffset = 0) => {
-    const d = new Date();
-    if (daysOffset) d.setDate(d.getDate() + daysOffset);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  };
-
   const [bookingForm, setBookingForm] = useState({
-    date: getLocalDateString(1),
+    date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
     timeSlot: '',
-    sessionType: 'online'
+    sessionType: 'online',
+    includeBriefing: true,
+    intakeData: {
+      triggers: [],
+      sleepPhysical: [],
+      hiddenThoughts: '',
+      sessionGoals: [],
+      confidentialNotes: ''
+    }
   });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [selectedDayAvailability, setSelectedDayAvailability] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [cancelNotification, setCancelNotification] = useState(null);
 
@@ -231,25 +234,6 @@ export default function PatientDashboard() {
   };
 
   const formatSlotLabel = (start, end) => `${formatTimeLabel(start)} - ${formatTimeLabel(end)}`;
-
-  const DEFAULT_TASKS = [
-    { id: 101, text: "Take Morning Medication (Sertraline 50mg)", dueDate: new Date().toISOString().slice(0, 10), dueTime: "8:00 AM", videoUrl: null },
-    { id: 102, text: "Complete 5-Minute Daily Mood Journaling", dueDate: new Date().toISOString().slice(0, 10), dueTime: "10:30 AM", videoUrl: null },
-    { id: 103, text: "15-Min Guided Mindfulness Breathing Exercise", dueDate: new Date().toISOString().slice(0, 10), dueTime: "", videoUrl: "https://www.youtube.com/watch?v=inpok4MKVLM" }
-  ];
-
-  const DEFAULT_APPOINTMENTS = [
-    {
-      id: 1,
-      therapist_id: 2,
-      therapist_name: "Yasar Mostafa",
-      therapist_specialties: "Clinical Psychology",
-      session_type: "online",
-      appointment_date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-      time_slot: "10:00 AM - 10:50 AM",
-      status: "confirmed"
-    }
-  ];
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -301,6 +285,27 @@ export default function PatientDashboard() {
           setPendingFollowUp(null);
         }
 
+        // Check if there is a published prescription for this patient (not yet dismissed)
+        try {
+          const rxList = await getMyPrescriptionsList();
+          if (Array.isArray(rxList) && rxList.length > 0) {
+            const newestRx = rxList[0];
+            let dismissedId = null;
+            try {
+              dismissedId = localStorage.getItem('dismissed_rx_session_id');
+            } catch (e) {}
+            if (dismissedId && String(dismissedId) === String(newestRx.session_id)) {
+              setLatestPrescription(null);
+            } else {
+              setLatestPrescription(newestRx);
+            }
+          } else {
+            setLatestPrescription(null);
+          }
+        } catch {
+          setLatestPrescription(null);
+        }
+
         // Fetch Open Group Sessions
         try {
           if (typeof patientGetOpenGroupSessions === 'function') {
@@ -332,13 +337,13 @@ export default function PatientDashboard() {
       try {
         setTasksLoading(true);
         const data = await getPatientTasks();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setChecklistItems(data);
         } else {
-          setChecklistItems(DEFAULT_TASKS);
+          setChecklistItems([]);
         }
       } catch (err) {
-        setChecklistItems(DEFAULT_TASKS);
+        setChecklistItems([]);
       } finally {
         setTasksLoading(false);
       }
@@ -357,7 +362,7 @@ export default function PatientDashboard() {
           setAppointments([]);
         }
       } catch (err) {
-        setAppointments(DEFAULT_APPOINTMENTS);
+        setAppointments([]);
       } finally {
         setAppointmentsLoading(false);
       }
@@ -664,87 +669,45 @@ export default function PatientDashboard() {
     setDirectoryError('');
     try {
       const data = await getTherapistDirectory();
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         setDirectoryTherapists(data);
       } else {
-        setDirectoryTherapists([]);
+        setDirectoryTherapists(MOCK_THERAPISTS);
       }
     } catch (err) {
-      console.error('Failed to load therapist directory:', err);
-      setDirectoryError(err.response?.data?.message || 'Unable to load therapists. Please check your connection.');
-      setDirectoryTherapists([]);
+      setDirectoryTherapists(MOCK_THERAPISTS);
     } finally {
       setDirectoryLoading(false);
     }
   };
 
-  const handleClearDirectoryFilters = () => {
-    setDirectorySearch('');
-    setDirectorySpecialtyFilter('All');
-    setDirectoryFormatFilter('All');
-  };
-
-  const handleRetryDirectory = () => {
-    openDirectoryModal();
-  };
-
   const closeDirectoryModal = () => setShowDirectoryModal(false);
 
-  const directorySpecialtyOptions = useMemo(() => {
-    const specs = new Set();
-    (directoryTherapists || []).forEach(t => {
-      (t.specialties || []).forEach(s => {
-        if (s && s.trim()) specs.add(s.trim());
-      });
-    });
-    return ['All', ...Array.from(specs).sort((a, b) => a.localeCompare(b))];
-  }, [directoryTherapists]);
-
-  const directoryFormatOptions = ['All', 'Online Video', 'In-Person', 'Online & In-Person'];
+  const directorySpecialtyOptions = ['All', ...CONCERN_OPTIONS];
+  const directoryLanguageOptions = ['All', 'English', 'Bengali'];
+  const directoryFormatOptions = ['All', 'Online Video', 'In-Person'];
 
   const filteredDirectoryTherapists = directoryTherapists.filter(t => {
-    const q = directorySearch ? directorySearch.trim().toLowerCase() : '';
-    const nameMatch = !q ||
-      (t.name && t.name.toLowerCase().includes(q)) ||
-      (t.bio && t.bio.toLowerCase().includes(q)) ||
-      (t.biography && t.biography.toLowerCase().includes(q)) ||
-      (Array.isArray(t.specialties) && t.specialties.some(s => s.toLowerCase().includes(q))) ||
-      (Array.isArray(t.languages) && t.languages.some(l => l.toLowerCase().includes(q)));
-
-    const specFilter = directorySpecialtyFilter ? directorySpecialtyFilter.trim().toLowerCase() : 'all';
-    const specMatch = specFilter === 'all' || (
-      Array.isArray(t.specialties) && t.specialties.some(s => s.trim().toLowerCase() === specFilter || s.trim().toLowerCase().includes(specFilter))
-    );
-
-    // Internal language requirement: only display therapists who speak English
-    const langMatch = Array.isArray(t.languages) && t.languages.some(l => l.trim().toLowerCase() === 'english');
-
-    let formatMatch = true;
-    if (directoryFormatFilter === 'Online Video') {
-      formatMatch = t.session_type === 'online' || t.session_type === 'both' || (t.formats && t.formats.includes('Online Video'));
-    } else if (directoryFormatFilter === 'In-Person') {
-      formatMatch = t.session_type === 'in-person' || t.session_type === 'both' || (t.formats && t.formats.includes('In-Person'));
-    } else if (directoryFormatFilter === 'Online & In-Person') {
-      formatMatch = t.session_type === 'both' || (t.formats && t.formats.includes('Online Video') && t.formats.includes('In-Person'));
-    }
-
+    const nameMatch = !directorySearch || t.name.toLowerCase().includes(directorySearch.toLowerCase()) || (t.bio && t.bio.toLowerCase().includes(directorySearch.toLowerCase()));
+    const specMatch = directorySpecialtyFilter === 'All' || (t.specialties && t.specialties.includes(directorySpecialtyFilter));
+    const langMatch = directoryLanguageFilter === 'All' || (t.languages && t.languages.includes(directoryLanguageFilter));
+    const formatMatch = directoryFormatFilter === 'All' || (t.formats && t.formats.includes(directoryFormatFilter));
     return nameMatch && specMatch && langMatch && formatMatch;
   });
 
   const openBookingModal = async (therapist) => {
     setSelectedTherapistForBooking(therapist);
-    const initialDate = getLocalDateString(1);
-    const initialFormat = therapist.session_type === 'in-person' ? 'in-person' : 'online';
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     setBookingForm({
-      date: initialDate,
+      date: tomorrow,
       timeSlot: '',
-      sessionType: initialFormat
+      sessionType: 'online'
     });
     setBookingError('');
     setBookingSuccess('');
     setShowBookingModal(true);
-    fetchBookedSlots(therapist.id, initialDate);
-    fetchAvailableSlots(therapist.id, initialDate);
+    fetchBookedSlots(therapist.id, tomorrow);
+    fetchAvailableSlots(therapist.id, tomorrow);
   };
 
   const fetchBookedSlots = async (therapistId, date) => {
@@ -756,19 +719,15 @@ export default function PatientDashboard() {
     }
   };
 
-  // Pulls the therapist's weekly availability matrix (+ any date exception)
-  // for the chosen day and turns it into the list of bookable time slots.
   const fetchAvailableSlots = async (therapistId, date) => {
     setSlotsLoading(true);
     try {
       const data = await getEffectiveAvailability(therapistId, date);
       const dayData = (data.days || []).find(d => d.date === date);
-      setSelectedDayAvailability(dayData || null);
-      const slots = (dayData?.slots || []).map(s => s.label || formatSlotLabel(s.start_time, s.end_time));
+      const slots = (dayData?.slots || []).map(s => formatSlotLabel(s.start_time, s.end_time));
       setAvailableSlots(slots);
     } catch (err) {
       console.error('Failed to load therapist availability', err);
-      setSelectedDayAvailability(null);
       setAvailableSlots([]);
     } finally {
       setSlotsLoading(false);
@@ -804,6 +763,23 @@ export default function PatientDashboard() {
 
       // Immediately mark slot as booked in modal
       setBookedSlots(prev => [...prev, bookingForm.timeSlot]);
+
+      // Save pre-session intake briefing if user participated
+      if (bookingForm.includeBriefing && bookingForm.intakeData) {
+        try {
+          const triggers = bookingForm.intakeData.triggers || [];
+          await saveVitals({
+            concerns: triggers.length > 0 ? triggers : ['General Wellness & Mental Health'],
+            duration: 'Recent onset',
+            severity: 'Moderate — affecting my daily life',
+            formatPref: bookingForm.sessionType,
+            notes: bookingForm.intakeData.hiddenThoughts || bookingForm.intakeData.confidentialNotes || '',
+            detailedIntake: bookingForm.intakeData
+          });
+        } catch (vErr) {
+          console.warn('Intake briefing background sync error:', vErr);
+        }
+      }
 
       // Re-fetch appointments from backend
       try {
@@ -874,6 +850,54 @@ export default function PatientDashboard() {
     setShowReviewModal(false);
     const summaries = await getAllTherapistReviewSummaries();
     if (summaries) setReviewSummaries(summaries);
+  };
+
+  const handleDownloadLatestPrescription = async (sessionId) => {
+    setDownloadingPrescription(true);
+    try {
+      const data = await getPrescriptionPdfDataForPatient(sessionId);
+      generatePrescriptionPdf({
+        hospitalName: data.hospital_name,
+        doctorName: data.doctor_name,
+        doctorQualification: data.doctor_qualification,
+        licenseNumber: data.license_number,
+        sessionDate: data.scheduled_date,
+        sessionType: data.session_type,
+        patientName: data.patient_name,
+        patientContact: data.patient_contact,
+        patientLocation: data.patient_location,
+        presessionSummary: data.presession_summary,
+        additionalBriefing: data.additional_briefing,
+        sessionNotes: data.session_notes,
+        medicines: data.medicines,
+        tests: data.tests
+      });
+    } catch (err) {
+      console.error('Failed to generate prescription PDF:', err);
+      alert("Could not download prescription PDF. Please try again.");
+    } finally {
+      setDownloadingPrescription(false);
+    }
+  };
+
+  const handleViewPrescriptionDetails = () => {
+    if (latestPrescription) {
+      try {
+        localStorage.setItem('dismissed_rx_session_id', String(latestPrescription.session_id));
+      } catch (e) {}
+      setLatestPrescription(null);
+    }
+    navigate('/patient/prescriptions');
+  };
+
+  const handleDismissPrescriptionCard = (e) => {
+    if (e) e.stopPropagation();
+    if (latestPrescription) {
+      try {
+        localStorage.setItem('dismissed_rx_session_id', String(latestPrescription.session_id));
+      } catch (e) {}
+      setLatestPrescription(null);
+    }
   };
 
   const handleLogout = () => {
@@ -1035,7 +1059,7 @@ export default function PatientDashboard() {
             <div className="menu-item" onClick={() => navigate('/patient/group-sessions')} style={{ cursor: 'pointer' }}>
               <Users size={18} /><span>Group Sessions</span>
             </div>
-            <div className="menu-item" onClick={() => navigate('/patient/prescriptions')} style={{ cursor: 'pointer' }}>
+            <div className="menu-item" onClick={handleViewPrescriptionDetails} style={{ cursor: 'pointer' }}>
               <FileText size={18} /><span>My Prescriptions</span>
             </div>
             <div className="menu-item" onClick={openVitalsModal} style={{ cursor: 'pointer' }}>
@@ -1074,6 +1098,142 @@ export default function PatientDashboard() {
                 </div>
               </div>
             </section>
+
+            {/* Prescription Ready Card — Displays when therapist has published a prescription */}
+            {latestPrescription && (
+              <section className="dashboard-card span-12 prescription-ready-card" style={{
+                background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
+                border: '1px solid #bfdbfe',
+                padding: '18px 24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.08)',
+                position: 'relative'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '10px',
+                    background: '#2563eb',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <FileText size={24} />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#1e3a8a' }}>
+                        Medical Prescription Ready
+                      </h4>
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: '#15803d',
+                        background: '#dcfce7',
+                        padding: '2px 8px',
+                        borderRadius: '12px'
+                      }}>
+                        ✓ Official Rx
+                      </span>
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#475569' }}>
+                      Prescribed by <strong>{latestPrescription.therapist_name || 'Your Therapist'}</strong> on {latestPrescription.scheduled_date ? new Date(latestPrescription.scheduled_date).toLocaleDateString([], { dateStyle: 'medium' }) : 'Recent Session'}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => openReviewModal && openReviewModal({
+                      id: latestPrescription.session_id,
+                      therapist_id: latestPrescription.doctor_id || latestPrescription.therapist_id || 2,
+                      therapist_name: latestPrescription.therapist_name || latestPrescription.doctor_name || 'Your Therapist',
+                      therapist_specialties: latestPrescription.doctor_qualification || 'Clinical Psychology'
+                    })}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#fffbeb',
+                      color: '#92400e',
+                      border: '1px solid #fde68a',
+                      padding: '9px 14px',
+                      borderRadius: '8px',
+                      fontWeight: '700',
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Star size={14} fill="#f59e0b" color="#f59e0b" />
+                    <span>Give Feedback</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadLatestPrescription(latestPrescription.session_id)}
+                    disabled={downloadingPrescription}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      padding: '9px 18px',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)'
+                    }}
+                  >
+                    <Download size={15} /> {downloadingPrescription ? 'Generating PDF...' : 'Download PDF Rx'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleViewPrescriptionDetails}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'white',
+                      color: '#1e40af',
+                      border: '1px solid #93c5fd',
+                      padding: '9px 16px',
+                      borderRadius: '8px',
+                      fontWeight: '500',
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View Details →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDismissPrescriptionCard}
+                    title="Dismiss notice"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#64748b',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '6px'
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </section>
+            )}
 
             {/* Feature 12 extension: Follow-Up accept/decline prompt */}
             {pendingFollowUp && (
@@ -1330,15 +1490,15 @@ export default function PatientDashboard() {
         directorySpecialtyFilter={directorySpecialtyFilter}
         setDirectorySpecialtyFilter={setDirectorySpecialtyFilter}
         directorySpecialtyOptions={directorySpecialtyOptions}
+        directoryLanguageFilter={directoryLanguageFilter}
+        setDirectoryLanguageFilter={setDirectoryLanguageFilter}
+        directoryLanguageOptions={directoryLanguageOptions}
         directoryFormatFilter={directoryFormatFilter}
         setDirectoryFormatFilter={setDirectoryFormatFilter}
         directoryFormatOptions={directoryFormatOptions}
         directoryLoading={directoryLoading}
         directoryError={directoryError}
-        handleClearFilters={handleClearDirectoryFilters}
-        handleRetryDirectory={handleRetryDirectory}
         filteredDirectoryTherapists={filteredDirectoryTherapists}
-        totalTherapistsCount={directoryTherapists.length}
         getPhotoUrl={getPhotoUrl}
         getInitials={getInitials}
         openBookingModal={openBookingModal}
@@ -1357,7 +1517,6 @@ export default function PatientDashboard() {
         bookingSuccess={bookingSuccess}
         bookedSlots={bookedSlots}
         TIME_SLOT_OPTIONS={availableSlots}
-        selectedDayAvailability={selectedDayAvailability}
         slotsLoading={slotsLoading}
         getPhotoUrl={getPhotoUrl}
         getInitials={getInitials}

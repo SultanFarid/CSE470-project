@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 30, 2026 at 06:45 AM
+-- Generation Time: Sep 01, 2026 at 03:22 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,10 +68,10 @@ INSERT INTO `care_plan_items` (`id`, `prescription_id`, `patient_id`, `therapist
 (24, 12, 1, 12, 'exercise', 'Daily mindfulness practice', 'https://www.youtube.com/watch?v=inpok4MKVLM', 1, '2026-08-15 00:40:43'),
 (25, 13, 14, 13, 'medication', 'Take prescribed dose', NULL, 1, '2026-08-15 00:40:43'),
 (26, 13, 14, 13, 'exercise', 'Daily mindfulness practice', 'https://www.youtube.com/watch?v=inpok4MKVLM', 1, '2026-08-15 00:40:43'),
-(39, 6, 15, 6, 'medication', 'Take prescribed dose', NULL, 1, '2026-08-27 15:13:10'),
-(40, 6, 15, 6, 'exercise', 'Daily mindfulness practice', 'https://www.youtube.com/watch?v=inpok4MKVLM', 1, '2026-08-27 15:13:10'),
 (41, 21, 29, 6, 'medication', 'rwrwe', NULL, 1, '2026-08-27 15:29:53'),
-(42, 21, 29, 6, 'exercise', 'erew', 'https://www.youtube.com/watch?v=gpYmotrUAgw&t=2661s&pp=0gcJCRMMAYcqIYzv', 1, '2026-08-27 15:29:53');
+(42, 21, 29, 6, 'exercise', 'erew', 'https://www.youtube.com/watch?v=gpYmotrUAgw&t=2661s&pp=0gcJCRMMAYcqIYzv', 1, '2026-08-27 15:29:53'),
+(45, 22, 31, 4, 'medication', 'gfdg', NULL, 1, '2026-08-30 13:32:37'),
+(46, 22, 31, 4, 'exercise', 'dfdf', 'https://www.youtube.com/watch?v=-hSma-BRzoo', 1, '2026-08-30 13:32:37');
 
 -- --------------------------------------------------------
 
@@ -447,24 +447,30 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `type`, `is_read`, `cre
 (23, 12, 'Your group session \"Building Healthy Habits\" status was updated to rejected.', 'group_session_update', 0, '2026-08-05 00:40:43'),
 (24, 13, 'You have a new session booked.', 'booking_alert', 1, '2026-08-05 00:40:43'),
 (25, 13, 'Your group session \"Self-Esteem Support Group\" status was updated to pending.', 'group_session_update', 0, '2026-08-04 00:40:43'),
-(26, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-15 15:26:27'),
-(27, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-26 03:32:20'),
+(26, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 1, '2026-08-15 15:26:27'),
+(27, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 1, '2026-08-26 03:32:20'),
 (28, 29, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 1, '2026-08-26 07:59:41'),
 (29, 29, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 1, '2026-08-27 14:58:37'),
 (30, 6, 'Patient Teset booked a session with you on Aug 28, 2026 at 10:00 AM - 11:00 AM.', 'appointment_booked', 1, '2026-08-27 14:58:53'),
-(31, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:01:48'),
-(32, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:01:49'),
-(33, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:13:01'),
-(34, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:13:02'),
-(35, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:13:09'),
-(36, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:13:10'),
-(37, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:13:10'),
+(31, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-27 15:01:48'),
+(32, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-27 15:01:49'),
+(33, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-27 15:13:01'),
+(34, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-27 15:13:02'),
+(35, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-27 15:13:09'),
+(36, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-27 15:13:10'),
+(37, 15, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-27 15:13:10'),
 (38, 6, 'Patient Teset booked a session with you on Aug 28, 2026 at 11:00 AM - 12:00 PM.', 'appointment_booked', 1, '2026-08-27 15:14:17'),
 (39, 6, 'Patient Teset cancelled their appointment on Aug 28, 2026 (11:00 AM - 12:00 PM).', 'appointment_cancelled', 1, '2026-08-27 15:28:00'),
 (40, 6, 'Patient Teset booked a session with you on Aug 28, 2026 at 10:00 AM - 11:00 AM.', 'appointment_booked', 1, '2026-08-27 15:28:39'),
 (41, 29, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 0, '2026-08-27 15:29:53'),
 (42, 6, 'Your withdrawal of ৳19 to fasdfsdaf (••••4234) was processed successfully.', 'wallet_withdrawal', 1, '2026-08-27 15:35:47'),
-(43, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 0, '2026-08-30 04:15:44');
+(43, 15, 'Don\'t forget to complete today\'s exercises and daily checklist!', 'exercise_reminder', 1, '2026-08-30 04:15:44'),
+(44, 1, 'Hi — just checking in. We noticed you haven\'t logged your daily care plan much this week. Let us know if anything needs adjusting.', 'checkin', 0, '2026-08-30 13:28:45'),
+(45, 4, 'Amirun Nahin booked a session with you on Aug 31, 2026 at 10:00 AM - 11:00 AM.', 'appointment_booked', 0, '2026-08-30 13:31:00'),
+(46, 31, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-30 13:32:35'),
+(47, 31, 'Your therapist added a new prescription and care plan for you.', 'prescription_ready', 1, '2026-08-30 13:32:37'),
+(48, 4, 'Your patient accepted the follow-up session you proposed for Sep 4, 2026.', 'follow_up_accepted', 0, '2026-08-30 13:37:54'),
+(49, 4, 'Amirun Nahin booked a session with you on Aug 31, 2026 at 11:00 AM - 12:00 PM.', 'appointment_booked', 0, '2026-08-30 14:17:16');
 
 -- --------------------------------------------------------
 
@@ -518,28 +524,30 @@ CREATE TABLE `patient_vitals` (
   `language_pref` varchar(50) DEFAULT NULL,
   `format_pref` varchar(50) DEFAULT NULL,
   `notes` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `detailed_intake` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`detailed_intake`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `patient_vitals`
 --
 
-INSERT INTO `patient_vitals` (`id`, `patient_id`, `concerns`, `duration`, `severity`, `gender_pref`, `language_pref`, `format_pref`, `notes`, `created_at`) VALUES
-(1, 29, '[\"Anxiety\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Female', 'No preference', 'In-Person', 'hlkjhljk', '2026-08-27 15:13:59'),
-(2, 29, '[\"Sleep Problems\"]', '2-4 weeks', 'Severe — significantly impacting me', 'Male', 'Bengali', 'Online Video', 'lgl', '2026-08-27 15:14:10'),
-(3, 29, '[\"Anxiety\",\"Depression\"]', '2-4 weeks', 'Severe — significantly impacting me', 'Female', 'English', 'Online Video', 'sdw', '2026-08-27 15:28:31'),
-(4, 15, '[\"Anxiety\",\"Depression\"]', '2-4 weeks', 'Severe — significantly impacting me', 'Male', 'English', 'In-Person', '', '2026-08-30 04:16:18'),
-(5, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:34'),
-(6, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:37'),
-(7, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:38'),
-(8, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:38'),
-(9, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:38'),
-(10, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:39'),
-(11, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:41'),
-(12, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:44'),
-(13, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:44'),
-(14, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:44');
+INSERT INTO `patient_vitals` (`id`, `patient_id`, `concerns`, `duration`, `severity`, `gender_pref`, `language_pref`, `format_pref`, `notes`, `created_at`, `detailed_intake`) VALUES
+(1, 29, '[\"Anxiety\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Female', 'No preference', 'In-Person', 'hlkjhljk', '2026-08-27 15:13:59', NULL),
+(2, 29, '[\"Sleep Problems\"]', '2-4 weeks', 'Severe — significantly impacting me', 'Male', 'Bengali', 'Online Video', 'lgl', '2026-08-27 15:14:10', NULL),
+(3, 29, '[\"Anxiety\",\"Depression\"]', '2-4 weeks', 'Severe — significantly impacting me', 'Female', 'English', 'Online Video', 'sdw', '2026-08-27 15:28:31', NULL),
+(4, 15, '[\"Anxiety\",\"Depression\"]', '2-4 weeks', 'Severe — significantly impacting me', 'Male', 'English', 'In-Person', '', '2026-08-30 04:16:18', NULL),
+(5, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:34', NULL),
+(6, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:37', NULL),
+(7, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:38', NULL),
+(8, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:38', NULL),
+(9, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:38', NULL),
+(10, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:39', NULL),
+(11, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:41', NULL),
+(12, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:44', NULL),
+(13, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:44', NULL),
+(14, 15, '[\"Depression\",\"Anxiety\",\"Relationship Issues\"]', '2-4 weeks', 'Moderate — affecting my daily life', 'Male', 'English', 'Online Video', '', '2026-08-30 04:31:44', NULL),
+(15, 31, '[\"Sudden overwhelming panic or racing heart\",\"Intrusive negative self-talk or self-doubt\"]', 'Recent onset', 'Moderate — affecting my daily life', '', '', 'online', 'dfgdf', '2026-08-30 14:17:16', NULL);
 
 -- --------------------------------------------------------
 
@@ -576,7 +584,7 @@ INSERT INTO `prescriptions` (`id`, `session_id`, `patient_id`, `therapist_id`, `
 (3, 9, 16, 2, 'Patient has missed several check-ins. Following up to see if the current plan still fits their schedule.', 'Escitalopram 10mg - once daily', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
 (4, 15, 1, 4, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
 (5, 18, 14, 5, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
-(6, 21, 15, 6, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', 'No intake questionnaire on file yet for this patient. Consider asking about their main concerns at the start of the session.', 'fadf', '2026-08-15 00:40:43', '2026-08-27 15:13:09', 0, 1, '2026-08-30', 'gdfgsg', 'proposed', NULL),
+(6, 21, 15, 6, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', 'No intake questionnaire on file yet for this patient. Consider asking about their main concerns at the start of the session.', 'fadf', '2026-08-15 00:40:43', '2026-08-30 04:48:29', 1, 1, '2026-08-30', 'gdfgsg', 'proposed', NULL),
 (7, 24, 16, 7, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
 (8, 27, 1, 8, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
 (9, 30, 14, 9, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
@@ -584,7 +592,8 @@ INSERT INTO `prescriptions` (`id`, `session_id`, `patient_id`, `therapist_id`, `
 (11, 36, 16, 11, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
 (12, 39, 1, 12, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
 (13, 42, 14, 13, 'Session went well. Reviewing homework from last week and adjusting the plan going forward.', 'As discussed in session', NULL, NULL, '2026-08-15 00:40:43', '2026-08-15 00:40:43', 0, 0, NULL, NULL, 'none', NULL),
-(21, 45, 29, 6, 'safdffq', '', 'Patient reported struggling with Anxiety and Depression. They\'ve been experiencing this for 2-4 weeks. Self-reported severity: severe, affecting daily life most days. Preferred session format: Online Video. In their own words: \"sdw\"', 'swaffg', '2026-08-27 15:29:53', '2026-08-27 15:30:12', 1, 1, '2026-09-03', 'werwewf', 'proposed', NULL);
+(21, 45, 29, 6, 'safdffq', '', 'Patient reported struggling with Anxiety and Depression. They\'ve been experiencing this for 2-4 weeks. Self-reported severity: severe, affecting daily life most days. Preferred session format: Online Video. In their own words: \"sdw\"', 'swaffg', '2026-08-27 15:29:53', '2026-08-27 15:30:12', 1, 1, '2026-09-03', 'werwewf', 'proposed', NULL),
+(22, 46, 31, 4, 'gfdggdffg', '', 'No intake questionnaire on file yet for this patient. Consider asking about their main concerns at the start of the session.', 'fgdsfg', '2026-08-30 13:32:35', '2026-08-30 13:51:10', 1, 1, '2026-09-04', 'fdsfdf', 'accepted', '2026-08-30 13:37:54');
 
 -- --------------------------------------------------------
 
@@ -612,7 +621,9 @@ CREATE TABLE `prescription_medicines` (
 INSERT INTO `prescription_medicines` (`id`, `prescription_id`, `medicine_id`, `medicine_name`, `dosage`, `frequency_code`, `frequency_label`, `duration_days`, `instructions`, `sort_order`) VALUES
 (7, 6, 14, 'Alprazolam', '0.5mg', '0-1-0', 'Noon', 3, 'sdfa', 0),
 (8, 21, 65, 'Ciprofloxacin', '500mg', '1-1-1', 'Morning & Noon & Night', 4, '', 0),
-(9, 21, 41, 'Diclofenac', '50mg', '0-1-1', 'Noon & Night', 4, '', 1);
+(9, 21, 41, 'Diclofenac', '50mg', '0-1-1', 'Noon & Night', 4, '', 1),
+(12, 22, 55, 'Insulin (Regular)', '100 IU/mL', '0-1-1', 'Noon & Night', 4, '', 0),
+(13, 22, 23, 'Lamotrigine', '25mg', '0-0-1', 'Night', 5, '', 1);
 
 -- --------------------------------------------------------
 
@@ -636,7 +647,9 @@ CREATE TABLE `prescription_tests` (
 INSERT INTO `prescription_tests` (`id`, `prescription_id`, `test_id`, `test_name`, `notes`, `sort_order`) VALUES
 (7, 6, 8, 'Fasting Blood Sugar', 'g', 0),
 (8, 21, 17, 'CRP (C-Reactive Protein)', '', 0),
-(9, 21, 7, 'Thyroid Function Test (TSH, T3, T4)', '', 1);
+(9, 21, 7, 'Thyroid Function Test (TSH, T3, T4)', '', 1),
+(12, 22, 4, 'Beck Depression Inventory', '', 0),
+(13, 22, 34, 'C-Peptide Test', '', 1);
 
 -- --------------------------------------------------------
 
@@ -743,7 +756,9 @@ INSERT INTO `sessions` (`id`, `patient_id`, `therapist_id`, `status`, `fee`, `sc
 (42, 14, 13, 'completed', 2100.00, '2026-06-10', NULL, 'online', '2026-06-10 00:40:43', '2026-08-15 00:40:43', NULL),
 (43, 29, 6, 'cancelled', 1500.00, '2026-08-28', NULL, 'online', '2026-08-27 14:58:53', '2026-08-27 15:00:44', '10:00 AM - 11:00 AM'),
 (44, 29, 6, 'cancelled', 1500.00, '2026-08-28', NULL, 'online', '2026-08-27 15:14:17', '2026-08-27 15:28:00', '11:00 AM - 12:00 PM'),
-(45, 29, 6, 'completed', 1500.00, '2026-08-28', NULL, 'online', '2026-08-27 15:28:39', '2026-08-27 15:29:53', '10:00 AM - 11:00 AM');
+(45, 29, 6, 'completed', 1500.00, '2026-08-28', NULL, 'online', '2026-08-27 15:28:39', '2026-08-27 15:29:53', '10:00 AM - 11:00 AM'),
+(46, 31, 4, 'completed', 1500.00, '2026-08-31', NULL, 'online', '2026-08-30 13:31:00', '2026-08-30 13:32:35', '10:00 AM - 11:00 AM'),
+(47, 31, 4, 'pending', 1500.00, '2026-08-31', NULL, 'online', '2026-08-30 14:17:16', '2026-08-30 14:17:16', '11:00 AM - 12:00 PM');
 
 -- --------------------------------------------------------
 
@@ -778,6 +793,13 @@ CREATE TABLE `task_completions` (
   `completed_date` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `task_completions`
+--
+
+INSERT INTO `task_completions` (`id`, `patient_id`, `completed_date`, `created_at`) VALUES
+(1, 15, '2026-08-30', '2026-08-30 04:48:39');
 
 -- --------------------------------------------------------
 
@@ -1078,6 +1100,42 @@ INSERT INTO `therapist_schedule_settings` (`therapist_id`, `slot_duration_minute
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `therapy_exercise_videos`
+--
+
+CREATE TABLE `therapy_exercise_videos` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `category` varchar(100) NOT NULL,
+  `youtube_url` varchar(500) NOT NULL,
+  `duration_minutes` int(11) DEFAULT 10,
+  `description` text DEFAULT NULL,
+  `tags` varchar(500) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `therapy_exercise_videos`
+--
+
+INSERT INTO `therapy_exercise_videos` (`id`, `title`, `category`, `youtube_url`, `duration_minutes`, `description`, `tags`, `is_active`, `created_at`) VALUES
+(1, 'Shoulder & Neck Tension Release Stretch', 'Physical & Somatic', 'https://www.youtube.com/watch?v=g_tea8ZNk5A', 8, 'Gentle somatic stretching targeting the trapezius, levator scapulae, and upper neck tension.', 'shoulder therapy, shoulder, neck mobility, tension release, upper back, somatic', 1, '2026-08-30 14:12:28'),
+(2, '10-Min Shoulder Mobility & Rotator Cuff Therapy', 'Physical & Somatic', 'https://www.youtube.com/watch?v=SedzswEwpPw', 10, 'Therapeutic rotator cuff and shoulder joint mobility routine for chronic stiffness.', 'shoulder therapy, shoulder mobility, rotator cuff, frozen shoulder, physical rehab, shoulder exercise', 1, '2026-08-30 14:12:28'),
+(3, 'Desk Worker Neck, Shoulder & Spine Relief Routine', 'Physical & Somatic', 'https://www.youtube.com/watch?v=X3-gKPN8-QA', 7, 'Targeted ergonomic stretches to alleviate tension from prolonged desk work and study.', 'shoulder therapy, shoulder, desk posture, neck strain, spine mobility', 1, '2026-08-30 14:12:28'),
+(4, '4-7-8 Diaphragmatic Breathing for Acute Anxiety & Panic', 'Breathing & Regulation', 'https://www.youtube.com/watch?v=aXItOY0sLRY', 5, 'Evidence-based parasympathetic activation technique to slow heart rate during panic or acute anxiety.', 'breathing, anxiety, panic attack, 4-7-8, heart rate, calm', 1, '2026-08-30 14:12:28'),
+(5, 'Box Breathing for High Stress & Nervous System Regulation', 'Breathing & Regulation', 'https://www.youtube.com/watch?v=tEmt1Znux58', 5, 'Square breathing protocol used to stabilize the autonomic nervous system and restore mental clarity.', 'box breathing, stress relief, vagus nerve, focus, emotional regulation', 1, '2026-08-30 14:12:28'),
+(6, '15-Min Guided Mindfulness Breathing Exercise', 'Mindfulness', 'https://www.youtube.com/watch?v=inpok4MKVLM', 15, 'Foundational breath-awareness meditation to develop mindful presence and reduce rumination.', 'mindfulness, meditation, breathing, presence, rumination', 1, '2026-08-30 14:12:28'),
+(7, 'Progressive Muscle Relaxation (PMR) for Whole Body Tension', 'Somatic Relaxation', 'https://www.youtube.com/watch?v=1nZEdqcGVzo', 12, 'Jacobson progressive relaxation systematically releasing somatic tension from toes to facial muscles.', 'PMR, progressive muscle relaxation, somatic stress, insomnia, tension', 1, '2026-08-30 14:12:28'),
+(8, '5-4-3-2-1 Sensory Grounding for Emotional Overwhelm', 'Grounding & Trauma', 'https://www.youtube.com/watch?v=30VMIEmA114', 6, 'Sensory engagement technique to pull out of panic spirals, flashback intrusions, and dissociative states.', 'grounding, 54321, dissociation, panic, trauma, overwhelm', 1, '2026-08-30 14:12:28'),
+(9, 'Guided Body Scan Meditation for Deep Sleep & Insomnia', 'Sleep Support', 'https://www.youtube.com/watch?v=u4gZgnCy5ew', 20, 'Non-sleep deep rest (NSDR) and somatic body scan designed to calm racing thoughts before bed.', 'sleep, insomnia, nighttime routine, body scan, calm', 1, '2026-08-30 14:12:28'),
+(10, 'Vagus Nerve Calming Reset Routine', 'Nervous System', 'https://www.youtube.com/watch?v=L1HCG3BGK8I', 8, 'Sub-occipital release and vagal nerve stimulation exercises to transition out of fight-or-flight mode.', 'vagus nerve, nervous system, fight or flight, somatic calming', 1, '2026-08-30 14:12:28'),
+(11, 'CBT Thought Challenging & Cognitive Restructuring Walkthrough', 'Cognitive Behavioral', 'https://www.youtube.com/watch?v=0Xa4hZp8d70', 10, 'Structured CBT guide to identify cognitive distortions, catastrophic thinking, and reframe negative thoughts.', 'CBT, cognitive restructuring, negative thoughts, journaling, overthinking', 1, '2026-08-30 14:12:28'),
+(12, '5-Minute Daily Gratitude & Mood Journaling Walkthrough', 'Behavioral Activation', 'https://www.youtube.com/watch?v=WPPPFqsECz0', 5, 'Daily behavioral activation journaling exercise to build positive affect and counteract depressive inertia.', 'gratitude, journaling, depression, mood, behavioral activation', 1, '2026-08-30 14:12:28');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -1107,7 +1165,7 @@ INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, 
 (1, 'Noor Jahan Oishee', 'Noor Jahan Oishee', 'patient@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25', 'Not specified'),
 (2, 'Yasar Mostafa', 'Yasar Mostafa', 'therapist@test.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25', 'Male'),
 (3, 'Sultan Mohammad Farid', 'Sultan Mohammad Farid', 'admin@test.com', 'admin123', 'admin', 'active', '2026-08-26 11:08:04', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:07:25', 'Not specified'),
-(4, 'Dr. Ayesha Rahman', 'Dr. Ayesha Rahman', 'ayesha@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53', 'Female'),
+(4, 'Dr. Ayesha Rahman', 'Dr. Ayesha Rahman', 'ayesha@therapy.com', 'password123', 'therapist', 'active', '2026-08-30 13:28:31', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53', 'Female'),
 (5, 'Dr. Kamal Hossain', 'Dr. Kamal Hossain', 'kamal@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53', 'Male'),
 (6, 'Dr. Sarah Ahmed', 'Dr. Sarah Ahmed', 'sarah@therapy.com', 'password123', 'therapist', 'active', '2026-08-30 04:15:34', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53', 'Female'),
 (7, 'Dr. Tariqul Islam', 'Dr. Tariqul Islam', 'tariqul@therapy.com', 'password123', 'therapist', 'active', '2026-08-26 03:33:04', NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53', 'Male'),
@@ -1118,7 +1176,7 @@ INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, 
 (12, 'Dr. Salma Begum', 'Dr. Salma Begum', 'salma@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53', 'Female'),
 (13, 'Dr. Zaid Hasan', 'Dr. Zaid Hasan', 'zaid@therapy.com', 'password123', 'therapist', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-07 03:25:53', 'Male'),
 (14, 'Anika Rahman', 'Anika Rahman', 'anika@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47', 'Not specified'),
-(15, 'Tanvir Hasan', 'Tanvir Hasan', 'tanvir@test.com', 'password123', 'patient', 'active', '2026-08-30 04:15:44', NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47', 'Not specified'),
+(15, 'Tanvir Hasan', 'Tanvir Hasan', 'tanvir@test.com', 'password123', 'patient', 'active', '2026-08-30 13:28:20', NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47', 'Not specified'),
 (16, 'Sadia Islam', 'Sadia Islam', 'sadia@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-13 15:22:47', 'Not specified'),
 (17, 'Rafiul Islam', 'Rafiul Islam', 'rafiul@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-18 00:40:43', 'Not specified'),
 (18, 'Mim Akter', 'Mim Akter', 'mim@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-28 00:40:43', 'Not specified'),
@@ -1132,7 +1190,9 @@ INSERT INTO `users` (`id`, `name`, `display_name`, `email`, `password`, `role`, 
 (26, 'Tania Ferdous', 'Tania Ferdous', 'tania@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-06-16 00:40:43', 'Not specified'),
 (27, 'Mahin Chowdhury', 'Mahin Chowdhury', 'mahin@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-01 00:40:43', 'Not specified'),
 (28, 'Jannatul Ferdous', 'Jannatul Ferdous', 'jannat@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-16 00:40:43', 'Not specified'),
-(29, '', 'Patient Teset', 'patient100@test.com', 'patient123', 'patient', 'active', '2026-08-27 14:58:37', NULL, NULL, NULL, NULL, NULL, '2026-08-26 06:57:51', 'Not specified');
+(29, '', 'Patient Teset', 'patient100@test.com', 'patient123', 'patient', 'active', '2026-08-27 14:58:37', NULL, NULL, NULL, NULL, NULL, '2026-08-26 06:57:51', 'Not specified'),
+(30, '', 'Tanvir Hassan', 'tanvir1@test.com', 'password123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-30 13:29:29', 'Not specified'),
+(31, '', 'Amirun Nahin', 'nahin@test.com', 'nahin123', 'patient', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-30 13:30:04', 'Not specified');
 
 -- --------------------------------------------------------
 
@@ -1160,7 +1220,8 @@ INSERT INTO `wallet_transactions` (`id`, `therapist_id`, `type`, `amount`, `desc
 (2, 6, 'credit', 1500.00, 'Session completed on 8/27/2026', 45, NULL, '2026-08-27 15:29:53'),
 (3, 6, 'debit', 500.00, 'Withdrawal to afsdfsad ••••4135', NULL, 1, '2026-08-27 15:32:28'),
 (4, 6, 'debit', 500.00, 'Withdrawal to gvhgvgh ••••2515', NULL, 2, '2026-08-27 15:34:57'),
-(5, 6, 'debit', 19.00, 'Withdrawal to fasdfsdaf ••••4234', NULL, 3, '2026-08-27 15:35:47');
+(5, 6, 'debit', 19.00, 'Withdrawal to fasdfsdaf ••••4234', NULL, 3, '2026-08-27 15:35:47'),
+(6, 4, 'credit', 1500.00, 'Session completed on 8/30/2026', 46, NULL, '2026-08-30 13:32:35');
 
 -- --------------------------------------------------------
 
@@ -1351,6 +1412,12 @@ ALTER TABLE `therapist_schedule_settings`
   ADD PRIMARY KEY (`therapist_id`);
 
 --
+-- Indexes for table `therapy_exercise_videos`
+--
+ALTER TABLE `therapy_exercise_videos`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -1381,7 +1448,7 @@ ALTER TABLE `wallet_withdrawals`
 -- AUTO_INCREMENT for table `care_plan_items`
 --
 ALTER TABLE `care_plan_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT for table `care_plan_logs`
@@ -1417,31 +1484,31 @@ ALTER TABLE `medicines`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `patient_vitals`
 --
 ALTER TABLE `patient_vitals`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `prescriptions`
 --
 ALTER TABLE `prescriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `prescription_medicines`
 --
 ALTER TABLE `prescription_medicines`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `prescription_tests`
 --
 ALTER TABLE `prescription_tests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -1453,13 +1520,13 @@ ALTER TABLE `reviews`
 -- AUTO_INCREMENT for table `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `task_completions`
 --
 ALTER TABLE `task_completions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `therapist_applications`
@@ -1480,16 +1547,22 @@ ALTER TABLE `therapist_availability_exceptions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `therapy_exercise_videos`
+--
+ALTER TABLE `therapy_exercise_videos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `wallet_transactions`
 --
 ALTER TABLE `wallet_transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `wallet_withdrawals`

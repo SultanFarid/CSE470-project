@@ -4,10 +4,11 @@ const db = require('../config/db');
 // has something to summarize. We keep every submission (history) rather than
 // overwriting — getLatestByPatient always reads the newest row.
 const saveVitals = async (patientId, data) => {
+    const detailedIntakeJson = data.detailedIntake ? JSON.stringify(data.detailedIntake) : null;
     const [result] = await db.query(
         `INSERT INTO patient_vitals
-            (patient_id, concerns, duration, severity, gender_pref, language_pref, format_pref, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            (patient_id, concerns, duration, severity, gender_pref, language_pref, format_pref, notes, detailed_intake)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
             patientId,
             JSON.stringify(Array.isArray(data.concerns) ? data.concerns : []),
@@ -16,7 +17,8 @@ const saveVitals = async (patientId, data) => {
             data.genderPref || '',
             data.languagePref || '',
             data.formatPref || '',
-            data.notes || ''
+            data.notes || '',
+            detailedIntakeJson
         ]
     );
     return result.insertId;
@@ -30,7 +32,8 @@ const getLatestByPatient = async (patientId) => {
     if (!rows[0]) return null;
     return {
         ...rows[0],
-        concerns: safeParseArray(rows[0].concerns)
+        concerns: safeParseArray(rows[0].concerns),
+        detailed_intake: safeParseObject(rows[0].detailed_intake)
     };
 };
 
@@ -40,6 +43,16 @@ const safeParseArray = (raw) => {
         return Array.isArray(parsed) ? parsed : [];
     } catch (err) {
         return [];
+    }
+};
+
+const safeParseObject = (raw) => {
+    if (!raw) return null;
+    try {
+        const parsed = typeof raw === 'object' ? raw : JSON.parse(raw);
+        return parsed || null;
+    } catch (err) {
+        return null;
     }
 };
 

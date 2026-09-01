@@ -96,6 +96,29 @@ export function generatePrescriptionPdf(data) {
     leftY = writeWrappedParagraph(doc, data.presessionSummary || 'No intake summary available.', marginX, leftY, leftWidth, dark, 8.7);
     leftY += 5;
 
+    // ---- Previous Prescription History (for follow-up sessions) ----
+    const prevRx = data.previous_prescription || data.previousPrescription;
+    if (prevRx) {
+        leftY = writeSectionHeading(doc, `Previous Rx (${formatDate(prevRx.session_date)})`, marginX, leftY, [124, 58, 237]);
+        
+        const prevMeds = Array.isArray(prevRx.medicines) ? prevRx.medicines : [];
+        if (prevMeds.length > 0) {
+            const medSummary = prevMeds.map(m => `${m.medicine_name}${m.dosage ? ' ' + m.dosage : ''}${m.frequency_code ? ' (' + m.frequency_code + ')' : ''}`).join(', ');
+            leftY = writeWrappedParagraph(doc, `Meds: ${medSummary}`, marginX, leftY, leftWidth, dark, 8.2);
+        }
+        
+        const prevTests = Array.isArray(prevRx.tests) ? prevRx.tests : [];
+        if (prevTests.length > 0) {
+            const testSummary = prevTests.map(t => t.test_name).join(', ');
+            leftY = writeWrappedParagraph(doc, `Tests: ${testSummary}`, marginX, leftY, leftWidth, dark, 8.2);
+        }
+
+        if (prevRx.session_notes && prevRx.session_notes.trim()) {
+            leftY = writeWrappedParagraph(doc, `Notes: ${prevRx.session_notes.trim()}`, marginX, leftY, leftWidth, muted, 8.0);
+        }
+        leftY += 5;
+    }
+
     if (data.additionalBriefing && data.additionalBriefing.trim()) {
         leftY = writeSectionHeading(doc, "Doctor's Additional Notes", marginX, leftY, muted);
         leftY = writeWrappedParagraph(doc, data.additionalBriefing.trim(), marginX, leftY, leftWidth, dark, 8.7);
@@ -103,7 +126,7 @@ export function generatePrescriptionPdf(data) {
     }
 
     if (data.sessionNotes && data.sessionNotes.trim()) {
-        leftY = writeSectionHeading(doc, 'Session Notes', marginX, leftY, muted);
+        leftY = writeSectionHeading(doc, 'Current Session Notes', marginX, leftY, muted);
         leftY = writeWrappedParagraph(doc, data.sessionNotes.trim(), marginX, leftY, leftWidth, dark, 8.7);
         leftY += 5;
     }
